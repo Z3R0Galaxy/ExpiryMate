@@ -1,3 +1,21 @@
 # Problem Statement
 
-Many food items across all households expire without ever getting used. This is largely due to the fact that members of the household simply forget to use them before they expire as they are never reminded to use them. This misuse of goods leads to a net waste of money and is one of the main contributions to landfill across the world. The primary users are household consumers who manage groceries and the preparation of meals who are aiming to reduce waste and maximize the use of their food items. Currently, the only workarounds to mitigate this issue are to place food items in memorable places or to write down, either physically or digitally, the individual expiry dates. The former approach falls short as there are only so many possible places one can place a food item in order for it to be remembered, such as the front or sides of the fridge, freezer, or pantry. Once those spots become occupied, food items are often lost and forgotten as they are visibly blocked by items in front. The latter falls short as note documents or stickies can easily be misplaced around the house. Furthermore, these notes do not provide any reminders or notifications that food items that are about to expire. In summation, the proposed problem affects all who manage and consume food and thus requires an accessible and simple solution.
+## Background
+
+Food waste is a widespread problem affecting households globally. According to the UN Environment Programme, approximately one third of all food produced for human consumption is lost or wasted each year, contributing significantly to both financial loss and landfill growth. A large portion of this waste occurs at the household level, where food items expire before they are ever used.
+
+## Problem
+
+The primary cause of household food waste is that consumers forget to use food items before they expire. Without a reliable reminder system, perishable and non-perishable goods are routinely overlooked, pushed to the back of the fridge or pantry, and discarded once past their expiry date. This results in unnecessary financial cost to the household and avoidable environmental impact.
+
+## Affected Users
+
+The primary users are household consumers who manage groceries and the preparation of meals. This includes individuals, couples, and families who regularly purchase food and are looking to reduce waste and make better use of the items they already own.
+
+## Current Workarounds and Their Limitations
+
+Existing approaches to managing expiry dates are inadequate. Placing items in visible locations — such as the front of a fridge or pantry shelf — only works until those positions fill up, after which items are blocked from view and forgotten. Writing expiry dates down, whether on paper or in a notes app, is easily overlooked and provides no active reminders. Neither approach scales with the volume of items a typical household manages, and neither notifies the user when something is about to expire.
+
+## Proposed Solution
+
+ExpiryMate is a web application that allows household members to log food items alongside their expiry dates and quantities. The system tracks each item and proactively notifies the user when items are approaching their expiry date, enabling timely consumption and reducing waste. The application is accessible from any device with a browser and requires no specialist hardware.
