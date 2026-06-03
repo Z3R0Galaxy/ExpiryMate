@@ -33,6 +33,7 @@ src/
 supabase/
   migrations/
     20260507000000_create_items.sql  — items table + RLS policy
+    20260601000000_add_item_fields.sql — adds category, storage_location, quantity, is_opened, date_opened
 docs/
   01-problem-statement.md
   02-requirements.md
@@ -43,11 +44,16 @@ docs/
 ## Database Schema
 ```sql
 items (
-  id          uuid PK  default gen_random_uuid(),
-  user_id     uuid FK  → auth.users(id) ON DELETE CASCADE,
-  name        text     NOT NULL,
-  expiry_date date     NOT NULL,
-  created_at  timestamptz default now()
+  id               uuid PK   default gen_random_uuid(),
+  user_id          uuid FK   → auth.users(id) ON DELETE CASCADE,
+  name             text      NOT NULL,
+  category         food_category NOT NULL,  -- Dairy|Meat|Seafood|Produce|Bakery|Frozen|Beverages|Condiments|Snacks|Leftovers
+  storage_location storage_location NOT NULL,  -- Fridge|Freezer|Pantry
+  expiry_date      date      NOT NULL,
+  quantity         integer   NOT NULL check (quantity between 1 and 999),
+  is_opened        boolean   NOT NULL default false,
+  date_opened      date,     -- required when is_opened = true
+  created_at       timestamptz default now()
 )
 -- RLS: users can only see/manage their own rows
 ```

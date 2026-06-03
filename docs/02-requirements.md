@@ -6,13 +6,19 @@
 
 - The system must allow users to create an account and log in using an email address and password.
 
-- The system must allow users to input and track food items, including the item name, expiry date, and quantity.
+- The system must allow users to input and track food items, including the item name, food category, printed expiry date, quantity, and storage location (Fridge, Freezer, or Pantry).
+
+- The system must allow users to specify whether a food item is opened or unopened. If the item is opened, the user must be able to record the date it was opened, either at the time of adding the item or at a later date by editing it.
 
 - The system must allow users to add, edit, and delete items from their inventory.
 
-- The system must calculate the number of days remaining until each item's expiry date and display a status accordingly: "Fresh" if more than 7 days remain, "Expiring Soon" if between 0 and 7 days remain, and "Expired" if the date has passed.
+- The system must calculate an adjusted expiry date for each item based on its food category, storage location, opened status, and date opened, using a predefined set of category-specific rules sourced from USDA food safety guidelines.
 
-- The system must notify users when an item is within 7 days of its expiry date.
+- Where a combination of storage location and food category is considered unsafe (e.g. raw meat stored in the pantry), the system must display a warning to the user rather than calculating an adjusted date.
+
+- The system must calculate the number of days remaining until each item's adjusted expiry date and display a status accordingly: "Fresh" if more than 7 days remain, "Expiring Soon" if between 0 and 7 days remain, and "Expired" if the date has passed.
+
+- The system must notify users when an item is within 7 days of its adjusted expiry date.
 
 - The system must ensure that each user can only view and manage their own items.
 
