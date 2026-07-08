@@ -1,5 +1,54 @@
 # Design Decisions
 
+## Build Slice Structure (decided 2026-06-11, revised 2026-06-11)
+
+We follow a vertical-slice approach: each slice produces a shippable increment that runs in the browser. Slices are ordered by dependency — later slices build on earlier ones.
+
+| # | Slice | Requirement coverage |
+|---|---|---|
+| 1 | **App Shell** | Auth (sign up, sign in, sign out, per-user data isolation) |
+| 2 | **Full Schema Forms** | Item name, category, printed expiry date, quantity, storage location, opened status, date opened — add / edit / delete all fields |
+| 3 | **Adjusted Expiry + Status Display** | Adjusted expiry date calculation, safety warnings for unsafe combos, days-remaining count, Fresh / Expiring Soon / Expired status badges (all using adjusted date) |
+| 4 | **Styling** | Clean, usable UI on any browser — no UI library |
+| 5 | **Expiry Notifications** | Notify user when any item is within 7 days of its adjusted expiry date (browser Notification API on load; optionally Supabase Edge Function for email) |
+| 6 | **Nice-to-Haves** | Recipe suggestions (AI-powered), multi-user household sharing — descoped until Slices 1–5 are complete |
+
+### Slice details
+
+**Slice 1 — App Shell**
+- `App.tsx`: call `supabase.auth.getSession()` on mount; subscribe to `onAuthStateChange`
+- Unauthenticated: render `<Auth />`
+- Authenticated: render `<AddItemForm userId={...} onAdded={...} />` + `<ItemList userId={...} refresh={...} />` + Sign Out button
+- Requirement: each user sees only their own rows (enforced by existing RLS policy)
+
+**Slice 2 — Full Schema Forms**
+- `AddItemForm`: add `category` dropdown (Dairy / Meat / Seafood / Produce / Bakery / Frozen / Beverages / Condiments / Snacks / Leftovers), `storage_location` dropdown (Fridge / Freezer / Pantry), `quantity` number input (1–999), `is_opened` checkbox, `date_opened` date picker (shown only when `is_opened` is checked)
+- `ItemList`: fetch and display all columns; inline edit must expose all fields (including the new ones); delete unchanged
+- Extract a `useItems(userId)` custom hook: owns the `SELECT` query, `insert`, `update`, `delete` calls so neither component manages Supabase directly
+- Requirement: all Must Have fields captured and persisted
+
+**Slice 3 — Adjusted Expiry + Status Display**
+- Create `src/lib/adjustedExpiry.ts`: pure function `getAdjustedExpiry(item) → { adjustedDate: string } | { unsafe: true }`; implements all category/storage/opened rules from the algorithm section of this file
+- `ItemList` row displays: printed expiry date, adjusted expiry date (or ⚠ unsafe warning), days remaining count (integer, derived from adjusted date), status badge
+- Status thresholds (per requirements): **Fresh** > 7 days, **Expiring Soon** 0–7 days, **Expired** < 0 days
+- Status and days-remaining both derive from the adjusted date, not the printed date
+- Requirement: adjusted expiry calculation, safety warnings, days remaining, status display
+
+**Slice 4 — Styling**
+- Components already carry class names (`auth-container`, `item-row`, `status-badge`, `status-expired`, `status-soon`, `status-fresh`, etc.)
+- Write `index.css`: CSS reset, base typography, colour variables
+- Write `App.css`: centred layout, form layout, item card grid or list, badge colours (green / amber / red), responsive at mobile widths
+- Requirement: accessible, usable on any device with a browser
+
+**Slice 5 — Expiry Notifications**
+- On app load (after session confirmed), fetch items where adjusted expiry ≤ today + 7 days
+- Request browser `Notification` permission; fire one notification listing affected items
+- Threshold: **7 days** (matches requirements — not 3)
+- Optional stretch: Supabase Edge Function sends a daily email digest via Resend/SendGrid
+- Requirement: notify users when an item is within 7 days of its adjusted expiry date
+
+---
+
 ## Adjusted Expiry Date Algorithm
 
 ### Overview

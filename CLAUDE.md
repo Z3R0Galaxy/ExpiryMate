@@ -1,5 +1,9 @@
 # ExpiryMate — Project Memory
 
+## Standing Instructions
+- **Always update `docs/ai-use-log.md` at the end of every session.** Add a dated entry (DD/M/YY format) summarising what was discussed or built. If multiple things happened, use a short paragraph or bullet points. Do this without being asked.
+- **Always update `docs/decisions.md` whenever a design or architectural decision is made.** Record what was decided and why. Do this without being asked.
+
 ## What This Is
 A **React + TypeScript + Vite** web app that helps household members track food expiry dates, reducing waste. Users can add items with expiry dates, get status indicators (fresh / expiring soon / expired), edit items, and delete them. Authentication is handled via Supabase Auth.
 
