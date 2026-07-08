@@ -1,6 +1,6 @@
 function App() {
   return (
-    <h1>Alex is a cool guy</h1>
+    <h1>I like to code very much!</h1>
   )
 }
 
