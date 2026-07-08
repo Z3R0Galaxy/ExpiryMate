@@ -1,6 +1,6 @@
 function App() {
   return (
-    <h1>expiry mate</h1>
+    <h1>Alex is a cool guy</h1>
   )
 }
 
