@@ -209,7 +209,7 @@ interface ItemDetailModalProps {
   onStartEdit: (item: Item) => void
   onCancelEdit: () => void
   onSaveEdit: (id: string) => void
-  onDelete: (id: string) => void
+  onDelete: (id: string) => Promise<string | undefined>
   setEdit: (edit: EditState) => void
 }
 
@@ -219,11 +219,35 @@ function ItemDetailModal({
 }: ItemDetailModalProps) {
   const { result, badgeStatus, countdownValue, countdownLabel } = computeStatusInfo(item)
 
+  // Deletion is destructive and irreversible, so clicking the Delete icon
+  // only arms a confirmation step inside the modal rather than deleting
+  // immediately — the actual delete only happens once the user confirms.
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  function armDelete() {
+    setDeleteError(null)
+    setConfirmingDelete(true)
+  }
+
+  function cancelDelete() {
+    setDeleteError(null)
+    setConfirmingDelete(false)
+  }
+
+  async function confirmDelete() {
+    const err = await onDelete(item.id)
+    // On success the parent closes the whole modal (see ItemList's
+    // handleDelete), so there's nothing left to reset here. On failure,
+    // stay in the confirmation state and show why it didn't work.
+    if (err) setDeleteError(err)
+  }
+
   return (
     <AnimatedModal visible={visible} origin={origin} onClose={onClose}>
       <div className="item-modal-header">
         <div className="item-modal-header-actions">
-          {!isEditing && (
+          {!isEditing && !confirmingDelete && (
             <>
               <button
                 type="button"
@@ -240,7 +264,7 @@ function ItemDetailModal({
               <button
                 type="button"
                 className="icon-button icon-button-danger"
-                onClick={() => onDelete(item.id)}
+                onClick={armDelete}
                 aria-label={`Delete ${item.name}`}
                 title="Delete"
               >
@@ -260,7 +284,20 @@ function ItemDetailModal({
         </button>
       </div>
 
-      {isEditing && edit ? (
+      {confirmingDelete ? (
+        <div className="delete-confirm">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="delete-confirm-icon">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+            <path d="M12 9v4M12 17h.01" />
+          </svg>
+          <p className="delete-confirm-text">Delete <strong>{item.name}</strong>? This can't be undone.</p>
+          {deleteError && <p className="error">{deleteError}</p>}
+          <div className="delete-confirm-actions">
+            <button type="button" className="button-secondary" onClick={cancelDelete}>Cancel</button>
+            <button type="button" className="button-danger" onClick={confirmDelete}>Delete</button>
+          </div>
+        </div>
+      ) : isEditing && edit ? (
         <div className="item-edit">
           <label className="field-label">
             Item name
@@ -515,6 +552,7 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
     if (!deleteError && expandedId === id) {
       closeItem()
     }
+    return deleteError
   }
 
   if (loading) return <p>Loading items...</p>

@@ -637,6 +637,53 @@ html, body {
   color: var(--color-text);
 }
 
+/* Delete confirmation — replaces the modal's normal content in place
+ * rather than opening a second modal on top of the first, so confirming
+ * or cancelling a delete stays a single, focused step. --------------------- */
+
+.delete-confirm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0 0.25rem;
+  text-align: center;
+}
+
+.delete-confirm-icon {
+  color: var(--color-danger);
+}
+
+.delete-confirm-text {
+  font-size: 1rem;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.button-secondary {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.button-secondary:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.button-danger {
+  background-color: var(--color-danger);
+}
+
+.button-danger:hover {
+  background-color: var(--color-danger-hover);
+}
+
 /* Dark mode: shadows barely read against a dark background, so cards get a
  * hairline border instead to stay visually separated from the page. ----- */
 

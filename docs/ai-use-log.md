@@ -181,3 +181,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed/new file.
 
 **Not yet verified:** the add button/modal, the sort toggle, each filter, search, warnings-always-on-top, and the field labels all still need a real click-through — genuinely pending, including a phone-sized check given the toolbar now has five controls.
+
+## 18/8/26 (Slice 4 sixth revision — delete confirmation)
+
+**Prompt:** "can you make it so it asks the user to confirm if they want to delete an item?"
+
+**Response:** rather than a native `window.confirm()` dialog (out of place next to the app's own custom-styled modal, and can't follow dark mode), the Delete icon now swaps the modal's content for an in-place confirmation step (warning icon, "Delete `<name>`? This can't be undone.", Cancel/Delete buttons) instead of stacking a second modal. Also caught and fixed a real gap while doing this: the existing delete handler discarded any Supabase error silently — now it's returned and shown under the confirmation if the delete actually fails.
+
+**Accepted:** the in-place confirmation approach (no clarifying question needed — there wasn't a genuine fork here, just an implementation choice within the existing design language).
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** the confirm/cancel click-through and the failure-message path, same as the rest of Slice 4.
