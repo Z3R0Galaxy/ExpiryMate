@@ -76,8 +76,9 @@ items (
   date_opened      date,     -- required when is_opened = true
   created_at       timestamptz default now()
 )
--- RLS: users can only see/manage their own rows (currently one broad "for all" policy —
--- Slice 1 will split this into per-operation policies, see decisions.md)
+-- RLS: users can only see/manage their own rows. Migration to split the original
+-- broad "for all" policy into per-operation policies is written
+-- (20260818000000_split_items_rls_policies.sql) but not yet run against the live project.
 ```
 Full schema detail and ERD: `docs/04-data-model.md`.
 
@@ -100,7 +101,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Inline edit mode for name + date; optimistic UI update on save
 
 ## Current State (as of 18/8/26)
-- **`App.tsx` doesn't render any of the real components** — it's a placeholder. This is also what's currently live on the Vercel deployment. Slice 1 (App Shell) is the priority.
+- **Slice 1 (App Shell) is code-complete but not yet verified.** `App.tsx` now wires `Auth`/`AddItemForm`/`ItemList` together with real session management and a Sign Out button — but this hasn't been exercised in a real browser yet, and the RLS-split migration hasn't been run against the live Supabase project. What's still live on Vercel is the old placeholder, since nothing's been pushed yet. See `docs/09-iteration-log.md` for the exact open items.
 - `AddItemForm`/`ItemList` only handle `name` + `expiry_date`, not the full schema — Slice 2.
 - No CSS styles written yet — Slice 4.
 - `src/lib/adjustedExpiry.ts` doesn't exist yet — Slice 3.
