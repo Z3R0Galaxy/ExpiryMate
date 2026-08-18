@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>expirymate</title>
+    <script>
+      // Set the theme attribute before first paint, synchronously, so there's
+      // no flash of the wrong theme while React mounts and useTheme() runs.
+      // Kept in sync with src/hooks/useTheme.ts's own fallback logic.
+      (function () {
+        try {
+          var stored = localStorage.getItem('expirymate-theme');
+          var theme = stored === 'light' || stored === 'dark'
+            ? stored
+            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

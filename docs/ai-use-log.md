@@ -117,3 +117,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** hasn't been opened in a real browser — CSS parsing clean isn't the same as the layout actually looking right. Logged as open in `09-iteration-log.md`.
+
+## 18/8/26 (Slice 4 revision — minimal, dark mode, full-width desktop)
+
+**Prompt:** feedback after seeing Slice 4 rendered: the UI felt cluttered, wanted a nicer colour palette with a dark mode, and wanted the site to use the full screen on a desktop ("landscape") while still fitting a phone. Asked directly whether this would be handled in a later slice.
+
+**Response:** Claude answered honestly rather than deferring — neither Slice 5 (notifications) nor Slice 6 (nice-to-haves) touch visual design at all, so this needed to happen now as a revision of Slice 4. Before building the dark mode piece, Claude asked one direct question: manual toggle button vs. automatically following the OS setting with no button.
+
+**Accepted:** manual toggle, remembered across visits via `localStorage`, implemented as `src/hooks/useTheme.ts` plus a small inline script in `index.html` to avoid a flash of the wrong theme on load. Also accepted: restructuring the item card's view mode (a genuine JSX change, not just CSS) into a cleaner two-row layout with muted middle-dot-separated meta text instead of individual pill badges for every field; a four-colour palette with dark-mode variants; and a full-bleed sticky header with a wide, grid-based item list so a desktop screen shows multiple item cards side by side instead of one narrow centred column.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed file.
+
+**Not yet verified:** hasn't been opened in a real browser — need to check both light and dark themes, the toggle persisting across a reload, the grid actually showing multiple columns on a wide screen, and the mobile layout at a genuinely narrow width. Logged as open in `09-iteration-log.md`.

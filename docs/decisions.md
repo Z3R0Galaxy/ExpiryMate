@@ -270,6 +270,25 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 
 ---
 
+## Slice 4 revision: minimal look, dark mode, full-width desktop layout (decided 18/8/26)
+
+**Context:** feedback on the first pass of Slice 4 — the UI felt cluttered, the colour palette wasn't distinctive, there was no dark mode, and the layout stayed a narrow centred column even on a wide desktop screen. Asked directly whether this would get addressed in a later slice: no, neither Slice 5 (notifications, backend/functional) nor Slice 6 (nice-to-haves, none of which touch visual design) cover this, so it was treated as a revision of Slice 4 rather than deferred.
+
+**Decluttering:** the item card's view mode was genuinely busy — eight sibling elements (badge, name, five separate pill-styled fields, two buttons) all in one flex row with equal visual weight. Restructured (a small, deliberate JSX change to `ItemList.tsx`'s view-mode block, not a CSS-only fix) into two rows: a top row (status badge, name, Edit/Delete as low-emphasis outlined buttons instead of solid green) and a meta row (category, storage, dates, quantity) rendered as plain muted text joined by middle-dot separators instead of individual pill/chip backgrounds. Same data, far fewer competing shapes and colours.
+
+**Dark mode — manual toggle, asked and confirmed rather than assumed:** given the choice between a manual toggle (remembered across visits) and simply following the OS setting with no toggle, chose the manual toggle — also a concrete feature to point to in the report/walk-through. Implementation:
+- `src/hooks/useTheme.ts` — reads a stored preference or falls back to `prefers-color-scheme`, applies it via a `data-theme` attribute on `<html>`, persists the choice to `localStorage`. Deliberately a one-time-read default rather than continuing to live-follow the OS setting — a user who explicitly picked dark shouldn't get flipped back to light just because their OS switches at sunset.
+- A small inline script in `index.html`'s `<head>` sets the same attribute before React mounts, to avoid a flash of the wrong theme on load — kept deliberately in sync with the hook's own fallback logic (documented in both places).
+- Colour variables in `index.css` are redefined under `[data-theme='dark']`; the toggle button itself sits inline in the authenticated header (next to Sign Out) and in the corner of the auth screen, not fixed/floating, so it can't overlap other controls at any screen width.
+
+**Full-width desktop layout, still fits a phone:** `.app-header` is now a full-bleed sticky bar (`width: 100%`, no max-width) so it visually reaches both edges of the screen on a desktop, like a real app rather than a document; the content area (`.app-main`) keeps a generous max-width (1400px, centred) so text and cards don't stretch to unreadable line lengths on an ultrawide monitor. `.item-list` changed from a single-column stack to `grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))`, so a wide screen shows several item cards side by side using the available space, and the same rule naturally collapses to one column once the viewport can't fit a 300px card plus gap — no separate mobile-only grid rule needed for that part, though the existing breakpoints were kept for the forms, which do need to explicitly drop from 2–3 columns to 1.
+
+**Dark-mode-specific layout tweak:** box-shadows barely read against a dark background, so cards (`auth-container`, `add-item-form`, `item-row`) get a hairline border under `[data-theme='dark']` instead, to stay visually separated from the page without relying on a shadow that wouldn't be visible.
+
+**Verified:** `tsc -b --force` and `eslint` both pass clean on every changed file. **Not yet verified:** hasn't been opened in a real browser — need to check both themes, the toggle persisting across a reload, the desktop-width grid actually showing multiple columns, and the mobile layout at a genuinely narrow width. Logged as open in `09-iteration-log.md`.
+
+---
+
 ## Leftovers date field relabelling (decided 18/8/26)
 
 **Context:** raised directly — if an item's category is Leftovers, there's no printed expiry date to read off a label, since it's homemade food. The algorithm in this file already anticipated this (the Leftovers section notes "the user enters the date prepared rather than a printed expiry date"), but the form itself never reflected that: it always showed a single date field labelled "Printed expiry date" regardless of category, which would confuse anyone trying to log a home-cooked meal.

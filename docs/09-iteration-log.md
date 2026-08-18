@@ -53,3 +53,7 @@ Confirmed working: Eggs and Frozen categories, storage/opened toggles, adjusted 
 ## 18/8/26 (Slice 4 — Styling, code complete)
 
 `src/index.css` and `src/App.css` written per the plan (reset/typography/variables in the former, layout in the latter). Found and fixed a real gap: `App.css` was never imported anywhere, so the new styles would have done nothing without adding `import './App.css'` to `App.tsx`. `tsc -b --force` and `eslint` both pass clean. **Not yet verified:** hasn't been opened in a real browser — need to check the auth screen, the item list/cards, the status badge colours (including the new warning colour), and the mobile breakpoint (560px) actually render as intended.
+
+## 18/8/26 (Slice 4 revision — minimal look, dark mode, full-width desktop)
+
+Feedback on the first pass: cluttered UI, wanted a nicer palette with dark mode, wanted the layout to use the full desktop screen while still fitting a phone. Reworked the item card into a cleaner two-row layout, added `useTheme.ts` (manual light/dark toggle, persisted, avoids a flash-of-wrong-theme via a small inline script in `index.html`), and changed `.app-header` to a full-bleed sticky bar with `.item-list` as a responsive grid (multiple columns on wide screens, one column on narrow). `tsc -b --force` and `eslint` both pass clean. **Not yet verified:** hasn't been opened in a real browser — need to check both themes, the toggle persisting across a reload, the grid at desktop width, and the mobile layout at a genuinely narrow width.

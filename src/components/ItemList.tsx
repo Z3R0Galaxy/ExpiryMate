@@ -141,24 +141,30 @@ function ItemRow({
         </div>
       ) : (
         <div className="item-view">
-          <span className={`status-badge ${STATUS_CLASS[badgeStatus]}`}>{STATUS_LABEL[badgeStatus]}</span>
-          <span className="item-name">{item.name}</span>
-          <span className="item-category">{item.category}</span>
-          <span className="item-storage">{item.storage_location}</span>
-          <span className="item-date">
-            {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
-          </span>
-          {result.safe ? (
-            <span className="item-adjusted">
-              adjusted {result.adjustedDate} ({daysRemaining} day{daysRemaining === 1 ? '' : 's'})
+          <div className="item-top">
+            <span className={`status-badge ${STATUS_CLASS[badgeStatus]}`}>{STATUS_LABEL[badgeStatus]}</span>
+            <span className="item-name">{item.name}</span>
+            <div className="item-actions">
+              <button onClick={() => onStartEdit(item)}>Edit</button>
+              <button onClick={() => onDelete(item.id)}>Delete</button>
+            </div>
+          </div>
+          <div className="item-meta">
+            <span>{item.category}</span>
+            <span>{item.storage_location}</span>
+            <span>
+              {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
             </span>
-          ) : (
-            <span className="item-warning">{result.message}</span>
-          )}
-          <span className="item-quantity">qty {item.quantity}</span>
-          {item.is_opened && <span className="item-opened">opened {item.date_opened}</span>}
-          <button onClick={() => onStartEdit(item)}>Edit</button>
-          <button onClick={() => onDelete(item.id)}>Delete</button>
+            {result.safe ? (
+              <span>
+                adjusted {result.adjustedDate} ({daysRemaining} day{daysRemaining === 1 ? '' : 's'})
+              </span>
+            ) : (
+              <span className="item-warning">{result.message}</span>
+            )}
+            <span>qty {item.quantity}</span>
+            {item.is_opened && <span>opened {item.date_opened}</span>}
+          </div>
         </div>
       )}
     </li>

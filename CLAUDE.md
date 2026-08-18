@@ -47,6 +47,7 @@ src/
   App.css               — layout for auth screen, app shell, forms, item list/cards (Slice 4)
   hooks/
     useItems.ts         — centralises all Supabase reads/writes for items
+    useTheme.ts          — manual light/dark toggle, persisted to localStorage (Slice 4)
   lib/
     supabase.ts         — Supabase client initialisation (anon key only)
     validateItem.ts     — shared client-side validation for add + edit forms
@@ -122,7 +123,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
 - **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. Also includes the Leftovers date-field relabelling fix (18/8/26). See `docs/09-iteration-log.md`.
 - **Slice 3 (Adjusted Expiry Logic) is fully done and verified.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. Eggs migration run against the live project; browser-tested (Eggs, Frozen, storage/opened toggles all confirmed working).
-- **Slice 4 (Styling) is code-complete, not yet browser-tested.** `src/index.css` (reset/typography/variables) and `src/App.css` (layout) written; a real gap was caught and fixed along the way — `App.css` was never actually imported, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
+- **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised once already based on feedback: minimal two-row item card (no more per-field pill badges), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), and a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.
