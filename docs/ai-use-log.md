@@ -63,3 +63,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** ran `tsc -b --force` (clean) and `eslint` on the changed files, which caught a real issue — `react-hooks/set-state-in-effect` flagged the mount-time fetch in `useItems`. Rather than accepting Claude's first fix or silently ignoring the lint failure, asked it to explain why the rule fired; it turned out the rule flags the pattern based on the fetch function transitively calling a state setter at all, not on synchronous timing specifically, which would rule out the "shared fetch function for mount + refetch" pattern outright. Accepted Claude's disable-with-explanation as the right call rather than contorting the code, recorded in `decisions.md`.
 
 **Not yet verified:** the actual add/edit item flow with the full field set hasn't been exercised in a real browser yet, and the index migration hasn't been run against the live project. Both logged as open in `09-iteration-log.md`.
+
+## 18/8/26 (Leftovers date field relabelling)
+
+**Prompt:** while testing, raised a real design gap unprompted: "one thing im wondering, if the item is left overs, the user wouldnt know what the exp date is" — Leftovers are homemade, so there's no printed date to read off a label.
+
+**Response:** Claude pointed out the algorithm in `decisions.md` had already anticipated this (Leftovers use "date prepared," not a printed expiry date) but the form never actually reflected it — it always showed "Printed expiry date" regardless of category. Fixed `AddItemForm.tsx` and `ItemList.tsx`'s inline edit to relabel the same `expiry_date` field to "Date prepared" (visually and via `aria-label`) when category is Leftovers, and capped that field at today's date for Leftovers only, since a meal can't be prepared in the future. Display row changed from always "expires {date}" to "prepared {date}" for Leftovers. No schema change — same column, reused.
+
+**Accepted:** the relabelling, after checking it didn't silently paper over the deeper issue — asked Claude directly whether the status badge would still make sense for Leftovers. It flagged that `getStatus` will show a fresh Leftovers item as "Expiring soon" or "Expired" immediately, since it still treats the date as a future expiry date rather than a past prepared date. Accepted this as a known, tracked limitation rather than a bug to patch now, since Slice 3's `getAdjustedExpiry` replaces `getStatus` wholesale in a few days anyway and a special-case fix here would just be thrown away. Recorded in `decisions.md`.
+
+**Verified before accepting:** ran `tsc -b --force` and `eslint` on both changed files — clean.
+
+**Not yet verified:** the relabelling hasn't been exercised in a real browser yet (confirm "Date prepared" actually shows when Leftovers is selected, in both the add form and inline edit). Logged as open in `09-iteration-log.md`.

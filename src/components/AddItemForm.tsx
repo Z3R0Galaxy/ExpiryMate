@@ -26,6 +26,13 @@ export function AddItemForm({ onAdd }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Leftovers have no printed label to read a date from — the algorithm in
+  // decisions.md uses the date the food was prepared instead, so the form
+  // needs to make that switch obvious rather than silently reusing the same
+  // field under a misleading label.
+  const isLeftovers = category === 'Leftovers'
+  const dateFieldLabel = isLeftovers ? 'Date prepared' : 'Printed expiry date'
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -93,13 +100,17 @@ export function AddItemForm({ onAdd }: Props) {
         {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
       </select>
 
-      <input
-        aria-label="Printed expiry date"
-        type="date"
-        value={expiryDate}
-        onChange={e => setExpiryDate(e.target.value)}
-        required
-      />
+      <label className="field-label">
+        {dateFieldLabel}
+        <input
+          aria-label={dateFieldLabel}
+          type="date"
+          value={expiryDate}
+          onChange={e => setExpiryDate(e.target.value)}
+          max={isLeftovers ? today() : undefined}
+          required
+        />
+      </label>
 
       <input
         aria-label="Quantity"

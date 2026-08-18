@@ -137,12 +137,16 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
                 >
                   {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <input
-                  aria-label="Printed expiry date"
-                  type="date"
-                  value={edit.expiry_date}
-                  onChange={e => setEdit({ ...edit, expiry_date: e.target.value })}
-                />
+                <label className="field-label">
+                  {edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
+                  <input
+                    aria-label={edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
+                    type="date"
+                    value={edit.expiry_date}
+                    onChange={e => setEdit({ ...edit, expiry_date: e.target.value })}
+                    max={edit.category === 'Leftovers' ? today() : undefined}
+                  />
+                </label>
                 <input
                   aria-label="Quantity"
                   type="number"
@@ -182,7 +186,9 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
                 <span className="item-name">{item.name}</span>
                 <span className="item-category">{item.category}</span>
                 <span className="item-storage">{item.storage_location}</span>
-                <span className="item-date">expires {item.expiry_date}</span>
+                <span className="item-date">
+                  {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
+                </span>
                 <span className="item-quantity">qty {item.quantity}</span>
                 {item.is_opened && <span className="item-opened">opened {item.date_opened}</span>}
                 <button onClick={() => startEdit(item)}>Edit</button>
