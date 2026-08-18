@@ -3,7 +3,7 @@ import type { FoodCategory, ItemInput, StorageLocation } from '../hooks/useItems
 import { validateItemForm } from '../lib/validateItem'
 
 const CATEGORIES: FoodCategory[] = [
-  'Dairy', 'Meat', 'Seafood', 'Produce', 'Bakery',
+  'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
   'Frozen', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
 ]
 

@@ -68,7 +68,8 @@ items (
   id               uuid PK   default gen_random_uuid(),
   user_id          uuid FK   → auth.users(id) ON DELETE CASCADE,
   name             text      NOT NULL,
-  category         food_category NOT NULL,  -- Dairy|Meat|Seafood|Produce|Bakery|Frozen|Beverages|Condiments|Snacks|Leftovers
+  category         food_category NOT NULL,  -- Dairy|Eggs|Meat|Seafood|Produce|Bakery|Frozen|Beverages|Condiments|Snacks|Leftovers
+                                             -- Eggs added 18/8/26 (migration 20260818020000, not yet run against live project)
   storage_location storage_location NOT NULL,  -- Fridge|Freezer|Pantry
   expiry_date      date      NOT NULL,
   quantity         integer   NOT NULL check (quantity between 1 and 999),
@@ -100,18 +101,23 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Props: `onAdd: (input: ItemInput) => Promise<{ error?: string }>`
 - Collects all required fields: name, category, storage location, printed expiry date, quantity, opened status, date opened (conditionally)
 
+### `adjustedExpiry.ts` (`src/lib/`)
+- `getAdjustedExpiry(item)` — pure function implementing the full Adjusted Expiry Date Algorithm (`decisions.md`) for all 11 categories, returns `{ safe: true, adjustedDate }` or `{ safe: false, message }` for unsafe/not-recommended combinations
+- `getDaysRemaining(adjustedDate)`, `getExpiryStatus(days)` — derive the Fresh/Soon/Expired status from the adjusted date, not the printed one
+
 ### `ItemList.tsx`
 - Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
-- Status logic: `expired` (< 0 days), `soon` (0–7 days), `fresh` (> 7 days) — currently based on the printed date; Slice 3 switches this to the adjusted date
+- Renders each item via a memoised `ItemRow` subcomponent (`useMemo` keyed on the fields `getAdjustedExpiry` actually depends on) so switching one row into edit mode doesn't recompute every other row's adjusted date
+- Status badge and days-remaining now derive from `getAdjustedExpiry`'s adjusted date; unsafe/not-recommended combinations show a warning message instead of a Fresh/Soon/Expired badge
 - Inline edit mode exposes the full field set, same validation as the add form
 
 ## Current State (as of 18/8/26)
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
-- **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. See `docs/09-iteration-log.md`.
+- **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. Also includes the Leftovers date-field relabelling fix (18/8/26). See `docs/09-iteration-log.md`.
+- **Slice 3 (Adjusted Expiry Logic) is code-complete, not yet browser-tested.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` now shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. `tsc -b --force`, `eslint`, and a hand-run set of representative cases all pass. The Eggs migration hasn't been run against the live project yet.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - No CSS styles written yet — Slice 4.
-- `src/lib/adjustedExpiry.ts` doesn't exist yet — Slice 3.
-- `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront.
+- `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.
 
 ## Requirements Summary
@@ -143,8 +149,8 @@ npm run preview   # preview production build
 
 ## Next Logical Steps
 1. ~~Slice 1 — App Shell~~ Fully done and verified 18/8/26, including the RLS-split migration.
-2. Slice 2 — Full Schema Forms: code-complete 18/8/26. Still need to browser-test and run the `(user_id, expiry_date)` index migration.
-3. Slice 3 — Adjusted Expiry Logic: build `getAdjustedExpiry`, memoise it per item, switch status display to the adjusted date.
+2. Slice 2 — Full Schema Forms: code-complete 18/8/26, plus the Leftovers relabelling fix. Still need to browser-test and run the `(user_id, expiry_date)` index migration.
+3. Slice 3 — Adjusted Expiry Logic: code-complete 18/8/26 (`getAdjustedExpiry`, memoised per row, 11 categories including the newly-added Eggs). Still need to browser-test and run the Eggs migration.
 4. Slice 4 — Styling.
 5. Slice 5 — Expiry Notifications, framed explicitly as a performance/UX decision in the report.
 6. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.

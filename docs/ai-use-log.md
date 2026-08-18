@@ -83,3 +83,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Response:** Claude confirmed it's a good, cheap-to-build feature (a pure keyword-matching function, no network call or LLM needed), but flagged the honest trade-off directly rather than just agreeing: it's not a Must Have, and Slices 3–5 are required, outstanding, and due in six days, so building it now competes with that time. Asked two direct questions before doing anything: when to build it (now vs. deferred to Slice 6), and whether a simple keyword-matching heuristic was acceptable versus a "real" AI/LLM call.
 
 **Accepted:** deferred to Slice 6, keyword-matching approach confirmed (explicitly rejected a real LLM call — added cost, latency, an API key to manage, and a new failure mode for no real benefit over a good keyword list). Recorded as a decision in `decisions.md` and folded into Slice 6's scope in `CLAUDE.md`. No code written yet — this entry is planning only.
+
+## 18/8/26 (Slice 3 — Adjusted Expiry Logic)
+
+**Prompt:** "slice three lets do it!" — go-ahead to build Slice 3 per the plan in `decisions.md`.
+
+**Response:** before writing `getAdjustedExpiry`, Claude checked the `food_category` DB enum against the algorithm's category sections and found they didn't actually line up — the DB's Frozen and Snacks had no algorithm rules, and the algorithm's Eggs and Dry Goods had no matching DB category. Rather than guess at a graded algorithm, Claude raised all three gaps directly and proposed a recommended resolution for each before writing any code.
+
+**Accepted:** Snacks reuses the Dry Goods rules; Frozen gets a new rule set (printed date holds in the freezer, unsafe outside it); Eggs added as an 11th DB category with a small migration, since the algorithm's Eggs rules already existed but had nowhere to attach. All three recorded in `decisions.md` ("Category/algorithm reconciliation") before implementation, not after.
+
+**Verified before accepting:** Claude built `src/lib/adjustedExpiry.ts` as a pure function, wired it into a memoised `ItemRow` inside `ItemList.tsx` (per the marking-alignment review's performance note), and ran a hand-picked test case per category — including the unsafe-warning paths and an exact day-0 boundary case — through a throwaway script before treating any of it as done. `tsc -b --force` and `eslint` both pass clean. Checked the boundary case output by hand against the Fresh/Soon/Expired thresholds already fixed in `decisions.md` rather than trusting the script's output blindly.
+
+**Not yet verified:** the actual add/edit flow — picking Eggs or Frozen as a category, toggling storage location and opened status, and seeing the adjusted date/status badge/warning text update correctly — hasn't been exercised in a real browser yet, and the Eggs migration hasn't been run against the live project. Both logged as open in `09-iteration-log.md`.

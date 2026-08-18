@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FoodCategory, Item, ItemInput, StorageLocation } from '../hooks/useItems'
 import { validateItemForm } from '../lib/validateItem'
+import { getAdjustedExpiry, getDaysRemaining, getExpiryStatus } from '../lib/adjustedExpiry'
+import type { ExpiryStatus } from '../lib/adjustedExpiry'
 
 const CATEGORIES: FoodCategory[] = [
-  'Dairy', 'Meat', 'Seafood', 'Produce', 'Bakery',
+  'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
   'Frozen', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
 ]
 
@@ -11,30 +13,20 @@ const STORAGE_LOCATIONS: StorageLocation[] = ['Fridge', 'Freezer', 'Pantry']
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-type Status = 'expired' | 'soon' | 'fresh'
+type BadgeStatus = ExpiryStatus | 'warning'
 
-// Printed-date status for now — Slice 3 switches this to the adjusted date.
-function getStatus(expiryDate: string): Status {
-  const now = new Date()
-  now.setHours(0, 0, 0, 0)
-  const expiry = new Date(expiryDate)
-  const daysLeft = Math.floor((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (daysLeft < 0) return 'expired'
-  if (daysLeft <= 7) return 'soon'
-  return 'fresh'
-}
-
-const STATUS_LABEL: Record<Status, string> = {
+const STATUS_LABEL: Record<BadgeStatus, string> = {
   expired: 'Expired',
   soon: 'Expiring soon',
   fresh: 'Fresh',
+  warning: '⚠ Unsafe',
 }
 
-const STATUS_CLASS: Record<Status, string> = {
+const STATUS_CLASS: Record<BadgeStatus, string> = {
   expired: 'status-expired',
   soon: 'status-soon',
   fresh: 'status-fresh',
+  warning: 'status-warning',
 }
 
 interface EditState {
@@ -45,6 +37,132 @@ interface EditState {
   quantity: string
   is_opened: boolean
   date_opened: string
+}
+
+interface ItemRowProps {
+  item: Item
+  isEditing: boolean
+  edit: EditState | null
+  error: string | null
+  onStartEdit: (item: Item) => void
+  onCancelEdit: () => void
+  onSaveEdit: (id: string) => void
+  onDelete: (id: string) => void
+  setEdit: (edit: EditState) => void
+}
+
+function ItemRow({
+  item, isEditing, edit, error, onStartEdit, onCancelEdit, onSaveEdit, onDelete, setEdit,
+}: ItemRowProps) {
+  // Memoised per item, keyed only on the fields the calculation actually
+  // depends on — see decisions.md's marking-alignment review ("memoise the
+  // adjusted-expiry calculation per item") so ItemList doesn't recompute
+  // every row's adjusted date on every re-render (e.g. while another row is
+  // mid-edit).
+  const result = useMemo(
+    () => getAdjustedExpiry({
+      category: item.category,
+      storage_location: item.storage_location,
+      expiry_date: item.expiry_date,
+      is_opened: item.is_opened,
+      date_opened: item.date_opened,
+    }),
+    [item.category, item.storage_location, item.expiry_date, item.is_opened, item.date_opened],
+  )
+
+  const badgeStatus: BadgeStatus = result.safe ? getExpiryStatus(getDaysRemaining(result.adjustedDate)) : 'warning'
+  const daysRemaining = result.safe ? getDaysRemaining(result.adjustedDate) : null
+
+  return (
+    <li className={`item-row ${STATUS_CLASS[badgeStatus]}`}>
+      {isEditing && edit ? (
+        <div className="item-edit">
+          <input
+            aria-label="Item name"
+            value={edit.name}
+            onChange={e => setEdit({ ...edit, name: e.target.value })}
+          />
+          <select
+            aria-label="Category"
+            value={edit.category}
+            onChange={e => setEdit({ ...edit, category: e.target.value as FoodCategory })}
+          >
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select
+            aria-label="Storage location"
+            value={edit.storage_location}
+            onChange={e => setEdit({ ...edit, storage_location: e.target.value as StorageLocation })}
+          >
+            {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <label className="field-label">
+            {edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
+            <input
+              aria-label={edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
+              type="date"
+              value={edit.expiry_date}
+              onChange={e => setEdit({ ...edit, expiry_date: e.target.value })}
+              max={edit.category === 'Leftovers' ? today() : undefined}
+            />
+          </label>
+          <input
+            aria-label="Quantity"
+            type="number"
+            min={1}
+            max={999}
+            value={edit.quantity}
+            onChange={e => setEdit({ ...edit, quantity: e.target.value })}
+          />
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={edit.is_opened}
+              onChange={e => setEdit({
+                ...edit,
+                is_opened: e.target.checked,
+                date_opened: e.target.checked ? edit.date_opened : '',
+              })}
+            />
+            Opened
+          </label>
+          {edit.is_opened && (
+            <input
+              aria-label="Date opened"
+              type="date"
+              value={edit.date_opened}
+              onChange={e => setEdit({ ...edit, date_opened: e.target.value })}
+              max={today()}
+            />
+          )}
+          {error && <p className="error">{error}</p>}
+          <button onClick={() => onSaveEdit(item.id)}>Save</button>
+          <button onClick={onCancelEdit}>Cancel</button>
+        </div>
+      ) : (
+        <div className="item-view">
+          <span className={`status-badge ${STATUS_CLASS[badgeStatus]}`}>{STATUS_LABEL[badgeStatus]}</span>
+          <span className="item-name">{item.name}</span>
+          <span className="item-category">{item.category}</span>
+          <span className="item-storage">{item.storage_location}</span>
+          <span className="item-date">
+            {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
+          </span>
+          {result.safe ? (
+            <span className="item-adjusted">
+              adjusted {result.adjustedDate} ({daysRemaining} day{daysRemaining === 1 ? '' : 's'})
+            </span>
+          ) : (
+            <span className="item-warning">{result.message}</span>
+          )}
+          <span className="item-quantity">qty {item.quantity}</span>
+          {item.is_opened && <span className="item-opened">opened {item.date_opened}</span>}
+          <button onClick={() => onStartEdit(item)}>Edit</button>
+          <button onClick={() => onDelete(item.id)}>Delete</button>
+        </div>
+      )}
+    </li>
+  )
 }
 
 interface Props {
@@ -110,94 +228,20 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
 
   return (
     <ul className="item-list">
-      {items.map(item => {
-        const status = getStatus(item.expiry_date)
-        const isEditing = editingId === item.id
-
-        return (
-          <li key={item.id} className={`item-row ${STATUS_CLASS[status]}`}>
-            {isEditing && edit ? (
-              <div className="item-edit">
-                <input
-                  aria-label="Item name"
-                  value={edit.name}
-                  onChange={e => setEdit({ ...edit, name: e.target.value })}
-                />
-                <select
-                  aria-label="Category"
-                  value={edit.category}
-                  onChange={e => setEdit({ ...edit, category: e.target.value as FoodCategory })}
-                >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <select
-                  aria-label="Storage location"
-                  value={edit.storage_location}
-                  onChange={e => setEdit({ ...edit, storage_location: e.target.value as StorageLocation })}
-                >
-                  {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <label className="field-label">
-                  {edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
-                  <input
-                    aria-label={edit.category === 'Leftovers' ? 'Date prepared' : 'Printed expiry date'}
-                    type="date"
-                    value={edit.expiry_date}
-                    onChange={e => setEdit({ ...edit, expiry_date: e.target.value })}
-                    max={edit.category === 'Leftovers' ? today() : undefined}
-                  />
-                </label>
-                <input
-                  aria-label="Quantity"
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={edit.quantity}
-                  onChange={e => setEdit({ ...edit, quantity: e.target.value })}
-                />
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={edit.is_opened}
-                    onChange={e => setEdit({
-                      ...edit,
-                      is_opened: e.target.checked,
-                      date_opened: e.target.checked ? edit.date_opened : '',
-                    })}
-                  />
-                  Opened
-                </label>
-                {edit.is_opened && (
-                  <input
-                    aria-label="Date opened"
-                    type="date"
-                    value={edit.date_opened}
-                    onChange={e => setEdit({ ...edit, date_opened: e.target.value })}
-                    max={today()}
-                  />
-                )}
-                {error && <p className="error">{error}</p>}
-                <button onClick={() => saveEdit(item.id)}>Save</button>
-                <button onClick={cancelEdit}>Cancel</button>
-              </div>
-            ) : (
-              <div className="item-view">
-                <span className={`status-badge ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
-                <span className="item-name">{item.name}</span>
-                <span className="item-category">{item.category}</span>
-                <span className="item-storage">{item.storage_location}</span>
-                <span className="item-date">
-                  {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
-                </span>
-                <span className="item-quantity">qty {item.quantity}</span>
-                {item.is_opened && <span className="item-opened">opened {item.date_opened}</span>}
-                <button onClick={() => startEdit(item)}>Edit</button>
-                <button onClick={() => onDelete(item.id)}>Delete</button>
-              </div>
-            )}
-          </li>
-        )
-      })}
+      {items.map(item => (
+        <ItemRow
+          key={item.id}
+          item={item}
+          isEditing={editingId === item.id}
+          edit={edit}
+          error={error}
+          onStartEdit={startEdit}
+          onCancelEdit={cancelEdit}
+          onSaveEdit={saveEdit}
+          onDelete={onDelete}
+          setEdit={setEdit}
+        />
+      ))}
     </ul>
   )
 }

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 
 export type FoodCategory =
   | 'Dairy'
+  | 'Eggs'
   | 'Meat'
   | 'Seafood'
   | 'Produce'
