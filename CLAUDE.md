@@ -101,7 +101,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Inline edit mode for name + date; optimistic UI update on save
 
 ## Current State (as of 18/8/26)
-- **Slice 1 (App Shell) is done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Along the way, also fixed a real bug: Auth's Site URL was pointed at `localhost:5173`, which would have broken confirmation emails for anyone other than the developer's own machine — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). Still outstanding from Slice 1: the RLS-split migration (`20260818000000_split_items_rls_policies.sql`) hasn't been run against the live project yet. What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
+- **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Along the way, also fixed a real bug: Auth's Site URL was pointed at `localhost:5173`, which would have broken confirmation emails for anyone other than the developer's own machine — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). The RLS-split migration has also been run against the live project and confirmed (`items` shows four policies in the dashboard). What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - `AddItemForm`/`ItemList` only handle `name` + `expiry_date`, not the full schema — Slice 2.
 - No CSS styles written yet — Slice 4.
 - `src/lib/adjustedExpiry.ts` doesn't exist yet — Slice 3.
@@ -136,7 +136,7 @@ npm run preview   # preview production build
 ```
 
 ## Next Logical Steps
-1. ~~Slice 1 — App Shell~~ Done and verified 18/8/26. Still need to run the RLS-split migration in the Supabase SQL Editor.
+1. ~~Slice 1 — App Shell~~ Fully done and verified 18/8/26, including the RLS-split migration.
 2. Slice 2 — Full Schema Forms: collect and persist all required fields, extract a `useItems` hook, add the `(user_id, expiry_date)` index, strengthen client-side validation.
 3. Slice 3 — Adjusted Expiry Logic: build `getAdjustedExpiry`, memoise it per item, switch status display to the adjusted date.
 4. Slice 4 — Styling.

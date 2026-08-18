@@ -26,4 +26,6 @@ Ran `npm run dev` and tested the real flow. Hit three separate issues along the 
 
 After the URL fix: signed up, confirmed via email, signed in, added a food item, saw it appear in the list. **Slice 1 is genuinely done** — not just "compiles," the whole auth + CRUD loop works end-to-end against the live Supabase project.
 
-**Still outstanding from Slice 1's scope:** the RLS policy-split migration (`20260818000000_split_items_rls_policies.sql`) still needs to be run in the Supabase SQL Editor — it wasn't part of this test pass.
+## 18/8/26 (Slice 1 — RLS migration run)
+
+Ran `20260818000000_split_items_rls_policies.sql` in the Supabase SQL Editor. Confirmed in the dashboard's policy list: `items` now shows four separate policies (view/insert/update/delete) instead of the original single "Users can manage their own items." **Slice 1 is fully closed out** — code, live verification, and the security enhancement are all done.
