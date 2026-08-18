@@ -460,6 +460,24 @@ html, body {
   border-color: var(--color-text-muted);
 }
 
+/* Category icon + name, side by side at the bottom of the card — the
+ * icon is decorative (aria-hidden, the visible name text already carries
+ * the card's accessible name), so it's purely a visual "what type of food
+ * is this" cue that previously wasn't shown anywhere on the collapsed
+ * card at all. */
+.item-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  max-width: 100%;
+}
+
+.item-card-footer svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
 .item-card-name {
   font-size: 1rem;
   font-weight: 650;
@@ -575,11 +593,20 @@ html, body {
 }
 
 .item-modal-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   text-align: center;
   overflow-wrap: anywhere;
+}
+
+.item-modal-name svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 /* A small grid of stat tiles instead of a plain label/value list — each
@@ -611,6 +638,17 @@ html, body {
 .item-stat-tile dd {
   margin: 0;
   font-weight: 600;
+}
+
+.item-stat-value-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.item-stat-value-icon svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 /* Status badge (shared with the fresh/soon/expired/warning colours) --- */

@@ -85,3 +85,7 @@ New `useExpiryNotifications` hook fires one batched browser `Notification` per p
 ## 18/8/26 (Slice 6 — auto-category suggestion + default date to today)
 
 Built the two quick-win nice-to-haves already planned in `decisions.md`: `AddItemForm` now guesses the category from the item name as it's typed (`src/lib/guessCategory.ts`, a keyword lookup with no AI/network call), stopping as soon as the user picks a category themselves, and the add form's date field now defaults to today instead of blank. AI recipe suggestions and multi-user household sharing (the other two Slice 6 items) were deliberately deferred, not dropped — the user asked to revisit them later. `tsc -b --force` and `eslint` both pass clean; `guessCategory` was also hand-verified against 18 cases via a throwaway script before wiring it in. **Not yet verified in a real browser.**
+
+## 18/8/26 (Slice 4 seventh revision — food-category icons on cards)
+
+Added a hand-drawn icon per food category, shown beside the item name on the collapsed card, in the modal heading, and next to the "Category" stat value — category had never been visible on the card itself before this. No icon library, same plain-SVG style as the rest of the app. `tsc -b --force` and `eslint` both pass clean. **Not yet verified in a real browser** — whether each icon actually reads clearly at card size is a genuinely open question until it's actually seen.

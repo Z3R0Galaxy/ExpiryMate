@@ -221,3 +221,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** hand-verified 18 cases for `guessCategory` (one per category, ambiguous-looking names, an empty string, and a word-boundary edge case — "Ham" matches, "Shampoo" doesn't) via a throwaway script; all 18 matched. `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** the actual typing/guessing experience and the date default, in a real browser.
+
+## 18/8/26 (Slice 4 seventh revision — food-category icons on cards)
+
+**Prompt:** "can you add icons to the cards that show the food type?"
+
+**Response:** added a `CategoryIcon` component — 11 hand-drawn inline SVGs, one per category, in the same plain-shapes style as the app's existing icons (no icon library). Placed beside the item name at the bottom of the collapsed card (previously category wasn't shown on the card at all), and for consistency also added next to the name in the expanded modal's heading and next to the "Category" value in its stat grid. Frozen deliberately reuses the same snowflake glyph already used for the Freezer storage-location icon rather than inventing a second symbol.
+
+**Accepted:** the icon set and placement (no clarifying question needed — a single reasonable design call within the app's existing visual language, same latitude as earlier "make the cards look better" requests).
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** whether each of the 11 icons is actually recognisable at card size — flagged directly as a real open question, since this environment can't render or screenshot the result before delivery.

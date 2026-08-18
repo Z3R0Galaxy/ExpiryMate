@@ -119,6 +119,107 @@ function GroupIcon({ groupKey }: { groupKey: GroupKey | 'warning' }) {
   }
 }
 
+// --- food-category icons ---------------------------------------------
+//
+// Shown on the collapsed card (and the expanded modal's heading) so the
+// food type reads at a glance without opening the card — previously
+// category was only ever visible as text inside the modal's stat grid.
+// Hand-drawn inline SVGs, same as every other icon in this file: no icon
+// library, kept deliberately simple (mostly basic shapes) since these are
+// meant to be recognisable silhouettes, not detailed illustrations.
+
+function CategoryIcon({ category, size = 16 }: { category: FoodCategory; size?: number }) {
+  const common = {
+    viewBox: '0 0 24 24',
+    width: size,
+    height: size,
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  }
+
+  switch (category) {
+    case 'Dairy':
+      return (
+        <svg {...common}>
+          <path d="M9 3h6l1 3H8l1-3Z" />
+          <path d="M8 6h8v14a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V6Z" />
+        </svg>
+      )
+    case 'Eggs':
+      return (
+        <svg {...common}>
+          <ellipse cx="12" cy="13" rx="5.5" ry="7.5" />
+        </svg>
+      )
+    case 'Meat':
+      return (
+        <svg {...common}>
+          <ellipse cx="12" cy="12" rx="8" ry="5" />
+          <path d="M8 10c1 1 1 3 0 4M12 9c1 1 1 5 0 6M16 10c1 1 1 3 0 4" />
+        </svg>
+      )
+    case 'Seafood':
+      return (
+        <svg {...common}>
+          <ellipse cx="10" cy="12" rx="7" ry="4" />
+          <path d="M17 12l4-3v6l-4-3Z" />
+        </svg>
+      )
+    case 'Produce':
+      return (
+        <svg {...common}>
+          <path d="M6 20c-2-6 1-14 9-16 2 6-1 14-9 16Z" />
+          <path d="M7 19c3-4 5-8 8-14" />
+        </svg>
+      )
+    case 'Bakery':
+      return (
+        <svg {...common}>
+          <path d="M4 13c0-5 3.5-9 8-9s8 4 8 9v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5Z" />
+          <path d="M8 12v6M12 11v7M16 12v6" />
+        </svg>
+      )
+    case 'Frozen':
+      return (
+        <svg {...common}>
+          <path d="M12 2v20M5 6.5l14 11M19 6.5 5 17.5" />
+        </svg>
+      )
+    case 'Beverages':
+      return (
+        <svg {...common}>
+          <path d="M6 7h12l-1.2 13a1 1 0 0 1-1 .9H8.2a1 1 0 0 1-1-.9L6 7Z" />
+          <path d="M14 3v6" />
+        </svg>
+      )
+    case 'Condiments':
+      return (
+        <svg {...common}>
+          <path d="M10 2h4v3l2 2v14a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V7l2-2V2Z" />
+          <path d="M9 13h6" />
+        </svg>
+      )
+    case 'Snacks':
+      return (
+        <svg {...common}>
+          <path d="M6 6h12l1 14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1L6 6Z" />
+          <path d="M9 6V4h6v2" />
+        </svg>
+      )
+    case 'Leftovers':
+      return (
+        <svg {...common}>
+          <rect x="4" y="9" width="16" height="11" rx="2" />
+          <path d="M4 9c0-2.5 2-4.5 8-4.5s8 2 8 4.5" />
+        </svg>
+      )
+  }
+}
+
 // --- collapsed card -------------------------------------------------
 
 interface ItemCardProps {
@@ -144,7 +245,10 @@ function ItemCard({ item, badgeStatus, countdownValue, countdownLabel, onOpen }:
           warningMessage={null}
           size="card"
         />
-        <span className="item-card-name">{item.name}</span>
+        <span className="item-card-footer">
+          <CategoryIcon category={item.category} />
+          <span className="item-card-name">{item.name}</span>
+        </span>
       </button>
     </li>
   )
@@ -338,12 +442,18 @@ function ItemDetailModal({
             warningMessage={result.safe ? null : result.message}
             size="modal"
           />
-          <h2 className="item-modal-name">{item.name}</h2>
+          <h2 className="item-modal-name">
+            <CategoryIcon category={item.category} size={20} />
+            {item.name}
+          </h2>
 
           <dl className="item-stat-grid">
             <div className="item-stat-tile">
               <dt>Category</dt>
-              <dd>{item.category}</dd>
+              <dd className="item-stat-value-icon">
+                <CategoryIcon category={item.category} size={14} />
+                {item.category}
+              </dd>
             </div>
             <div className="item-stat-tile">
               <dt>Storage</dt>
