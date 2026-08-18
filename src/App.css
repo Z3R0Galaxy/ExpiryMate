@@ -200,64 +200,9 @@ html, body {
 
 .item-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
   align-items: start;
-}
-
-.item-row {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-surface);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  padding: 1.15rem 1.3rem 1.1rem 1.5rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.item-row:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgb(0 0 0 / 0.07), 0 8px 24px rgb(0 0 0 / 0.07);
-}
-
-/* Status accent as its own layer rather than a plain border-left — sits
- * flush with the card's rounded corners at any radius. */
-.item-row::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 5px;
-  background-color: var(--color-border);
-}
-
-.item-row.status-fresh::before { background-color: var(--color-fresh-text); }
-.item-row.status-soon::before { background-color: var(--color-soon-text); }
-.item-row.status-expired::before { background-color: var(--color-expired-text); }
-.item-row.status-warning::before { background-color: var(--color-warning-text); }
-
-[data-theme='dark'] .item-row:hover {
-  border-color: var(--color-text-muted);
-}
-
-.item-top {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.item-name {
-  font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: -0.005em;
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.item-actions {
-  display: flex;
-  gap: 0.35rem;
-  flex-shrink: 0;
 }
 
 /* Icon-only circular buttons, matching the theme toggle's shape/language
@@ -274,6 +219,7 @@ html, body {
   background-color: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .icon-button:hover {
@@ -291,52 +237,206 @@ html, body {
   color: var(--color-danger-hover);
 }
 
-/* A small label/value grid instead of a run-on, wrapping line of text —
- * each fact gets its own row so it reads as one tidy block regardless of
- * how many facts there are or how narrow the card gets. */
-.item-meta {
-  margin: 0.85rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--color-border);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 0.45rem 1rem;
-  font-size: 0.85rem;
+/* Collapsed card — a button so it's keyboard/click accessible, styled to
+ * look nothing like a default <button>. Deliberately minimal: the
+ * countdown is the whole point, so nothing else competes with it. -------- */
+
+.item-card {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  border: none;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.1rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.item-meta-row {
+.item-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.07), 0 8px 24px rgb(0 0 0 / 0.07);
+}
+
+/* Status accent as its own layer rather than a plain border — sits flush
+ * with the card's rounded corners at any radius. */
+.item-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background-color: var(--color-border);
+}
+
+.item-card.status-fresh::before { background-color: var(--color-fresh-text); }
+.item-card.status-soon::before { background-color: var(--color-soon-text); }
+.item-card.status-expired::before { background-color: var(--color-expired-text); }
+.item-card.status-warning::before { background-color: var(--color-warning-text); }
+
+[data-theme='dark'] .item-card:hover {
+  border-color: var(--color-text-muted);
+}
+
+.item-card-name {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
+}
+
+/* The "hero" — status badge + big countdown — shared by the collapsed
+ * card and the expanded modal, just larger in the modal. The countdown is
+ * deliberately the single biggest thing on the card: it's the number a
+ * user actually opens the app to check. ---------------------------------- */
+
+.item-hero {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.item-meta-row dt {
-  margin: 0;
-  font-size: 0.68rem;
+.item-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.item-countdown-number {
+  font-size: 2.5rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.item-countdown-label {
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
-.item-meta-row dd {
-  margin: 0;
+.item-countdown-warning .item-countdown-text {
+  display: block;
+  max-width: 220px;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.item-hero-modal .item-countdown-number {
+  font-size: 3.25rem;
+}
+
+.item-hero-modal .item-countdown-warning .item-countdown-text {
+  max-width: 320px;
+  font-size: 0.95rem;
   font-weight: 500;
-  text-align: right;
 }
 
-/* The warning message is a full sentence, not a short value, so it gets
- * its own full-width row instead of squeezing into the value column. */
-.item-meta-row.item-meta-warning {
-  grid-column: 1 / -1;
-  flex-direction: column;
-  gap: 0.1rem;
-}
+.item-card.status-fresh .item-countdown-number { color: var(--color-fresh-text); }
+.item-card.status-soon .item-countdown-number { color: var(--color-soon-text); }
+.item-card.status-expired .item-countdown-number { color: var(--color-expired-text); }
 
-.item-meta-row.item-meta-warning dd {
+/* The warning text is always the warning colour regardless of which
+ * container (card or modal) it's rendered in — there's no fresh/soon/
+ * expired variant of it, so it doesn't need to be scoped by ancestor. */
+.item-countdown-warning .item-countdown-text {
   color: var(--color-warning-text);
-  text-align: left;
+}
+
+/* Expanded modal — click-to-open overlay ------------------------------- */
+
+.item-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: rgb(0 0 0 / 0);
+  transition: background-color 0.22s ease;
+}
+
+.item-modal-backdrop.item-modal-visible {
+  background-color: rgb(0 0 0 / 0.45);
+}
+
+.item-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: min(600px, 90vh);
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-radius: 20px;
+  box-shadow: 0 12px 24px rgb(0 0 0 / 0.15), 0 24px 48px rgb(0 0 0 / 0.15);
+  padding: 1.25rem 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+}
+
+.item-modal-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-modal-header-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.item-modal-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* A small grid of stat tiles instead of a plain label/value list — each
+ * fact gets its own tinted tile so the modal reads as a little dashboard
+ * rather than a form-like list of fields. */
+.item-stat-grid {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+
+.item-stat-tile {
+  background-color: var(--color-surface-alt);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+}
+
+.item-stat-tile dt {
+  margin: 0 0 0.15rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.item-stat-tile dd {
+  margin: 0;
+  font-weight: 600;
 }
 
 /* Status badge (shared with the fresh/soon/expired/warning colours) --- */
@@ -409,7 +509,8 @@ html, body {
 
 [data-theme='dark'] .auth-container,
 [data-theme='dark'] .add-item-form,
-[data-theme='dark'] .item-row {
+[data-theme='dark'] .item-card,
+[data-theme='dark'] .item-modal {
   border: 1px solid var(--color-border);
 }
 
@@ -442,7 +543,17 @@ html, body {
     grid-template-columns: 1fr;
   }
 
+  /* Cards are compact "stat" tiles, not full rows, so most phones still
+   * comfortably fit two per line rather than dropping to one. */
   .item-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .item-modal {
+    padding: 1.1rem 1.15rem 1.5rem;
+  }
+
+  .item-stat-grid {
     grid-template-columns: 1fr;
   }
 }

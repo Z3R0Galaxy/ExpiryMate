@@ -153,3 +153,17 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** the actual look, in a real browser — genuinely pending this time, not just a formality.
+
+## 18/8/26 (Slice 4 fourth revision — click-to-expand cards, central countdown)
+
+**Prompt:** a bigger UX idea rather than a tweak — make the days-remaining countdown central to each card, redesign the facts layout ("I don't know what to do instead but something better than just a list"), and make cards collapsed-by-default (countdown, status, name only) that expand to the centre with an animation on click, showing everything else.
+
+**Response:** before building, Claude asked two direct questions rather than assuming: what a collapsed card should show when there's no numeric countdown at all (an unsafe/not-recommended item), and whether Edit/Delete should move off the collapsed card entirely now that it's meant to be minimal. Both confirmed (warning label in the countdown's place; both actions move into the expanded view only) before any code changed.
+
+**Accepted:** a full restructure of `ItemList.tsx` — a minimal clickable `ItemCard`, a `ItemDetailModal` rendered via `createPortal`, and a "grows from where you clicked" transform animation built from plain `getBoundingClientRect()` + CSS transitions rather than adding an animation library (kept to the existing "no UI library" decision). The facts list became a small tinted stat-tile grid inside the modal instead of a plain label/value list.
+
+**Flagged directly:** Claude restated the same real limitation as the last revision — no ability to render the app in a real browser here — and was explicit that this particular change (click targets, an animated transform, a portal, focus/scroll handling) is meaningfully more complex than the earlier CSS-only passes and more likely to need a real fix-up round once actually seen and clicked through, not just eyeballed for colour/spacing.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** the actual click-through experience, the animation, and the modal at a phone-sized viewport — all genuinely pending a real browser check.

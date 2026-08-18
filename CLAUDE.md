@@ -115,9 +115,10 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 
 ### `ItemList.tsx`
 - Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
-- Renders each item via a memoised `ItemRow` subcomponent (`useMemo` keyed on the fields `getAdjustedExpiry` actually depends on) so switching one row into edit mode doesn't recompute every other row's adjusted date
-- Status badge and days-remaining now derive from `getAdjustedExpiry`'s adjusted date; unsafe/not-recommended combinations show a warning message instead of a Fresh/Soon/Expired badge
-- Inline edit mode exposes the full field set, same validation as the add form
+- Collapsed cards (`ItemCard`) are minimal and click-to-expand: status badge, a large countdown (days left/ago, or a warning label if the item has no safe adjusted date), and the name — nothing else, no Edit/Delete on the collapsed card
+- Clicking a card opens `ItemDetailModal` (rendered via `createPortal` into `document.body`), centred, with a "grows from where you clicked" transform animation built from `getBoundingClientRect()` + CSS transitions (no animation library). Shows every remaining fact as its own stat tile, plus Edit/Delete as icon buttons; Edit swaps the modal's content to the inline-edit form in place
+- Status/countdown derive from `getAdjustedExpiry`'s adjusted date via a shared `useCardStatus` hook, memoised per item
+- Inline edit mode (now inside the modal) exposes the full field set, same validation as the add form
 
 ## Current State (as of 18/8/26)
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
