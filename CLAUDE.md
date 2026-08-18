@@ -70,6 +70,8 @@ supabase/
     20260818010000_add_items_index.sql           — composite index on (user_id, expiry_date)
     20260818020000_add_eggs_category.sql         — adds Eggs to the food_category enum
   functions/           — empty; Slice 5's optional email-digest stretch was deliberately not built (needs an external email-provider API key + scheduling — see decisions.md, "Slice 5: Expiry Notifications")
+  seed/
+    seed.sql           — ~20 representative household items for local testing; moved out of migrations/ (18/8/26) so a migration-runner never replays it against production — see decisions.md, "GitHub deploy integration: migration history reconciliation"
 tests/
   unit/                — empty, reserved — adjustedExpiry.ts is written pure/testable, tests not yet written
   integration/         — empty, reserved for RLS/constraint tests
@@ -83,7 +85,7 @@ items (
   user_id          uuid FK   → auth.users(id) ON DELETE CASCADE,
   name             text      NOT NULL,
   category         food_category NOT NULL,  -- Dairy|Eggs|Meat|Seafood|Produce|Bakery|Frozen|Beverages|Condiments|Snacks|Leftovers
-                                             -- Eggs added 18/8/26 (migration 20260818020000, not yet run against live project)
+                                             -- Eggs added 18/8/26 (migration 20260818020000, run against the live project and confirmed)
   storage_location storage_location NOT NULL,  -- Fridge|Freezer|Pantry
   expiry_date      date      NOT NULL,
   quantity         integer   NOT NULL check (quantity between 1 and 999),
@@ -91,10 +93,13 @@ items (
   date_opened      date,     -- required when is_opened = true
   created_at       timestamptz default now()
 )
--- RLS: users can only see/manage their own rows. Migration to split the original
--- broad "for all" policy into per-operation policies is written
--- (20260818000000_split_items_rls_policies.sql) but not yet run against the live project.
+-- RLS: users can only see/manage their own rows. The original broad "for all"
+-- policy was split into four per-operation policies
+-- (20260818000000_split_items_rls_policies.sql), run against the live project
+-- and confirmed 18/8/26 (four separate policies now visible in the dashboard).
 ```
+
+**Migration application status (as of 18/8/26):** `20260507000000`, `20260601000000`, `20260818000000` (RLS split), and `20260818020000` (Eggs) have all been run by hand in the Supabase SQL Editor and are live. `20260818010000` (the `(user_id, expiry_date)` index) has **not** been run yet — it's the one outstanding migration. All 5 were applied outside the Supabase CLI/GitHub integration, which matters if that integration ever gets connected: see `decisions.md`, "GitHub deploy integration: migration history reconciliation," for why its own migration-history table needs a manual `supabase migration repair` for the 4 already-applied ones before it's safe to connect.
 Full schema detail and ERD: `docs/04-data-model.md`.
 
 ## Key Components

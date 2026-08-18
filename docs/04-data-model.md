@@ -66,6 +66,6 @@ Category and storage location were modelled as Postgres enums on the `items` row
 |---|---|
 | `supabase/migrations/20260507000000_create_items.sql` | Creates `items` with `id`, `user_id`, `name`, `expiry_date`, `created_at`, enables RLS, adds the base ownership policy |
 | `supabase/migrations/20260601000000_add_item_fields.sql` | Adds the `food_category` and `storage_location` enums, and the `category`, `storage_location`, `quantity`, `is_opened`, `date_opened` columns with their constraints |
-| `supabase/migrations/seed.sql` | Seeds ~20 representative household items across all categories for local testing, including one expired item to exercise the status-badge logic |
+| `supabase/seed/seed.sql` | Seeds ~20 representative household items across all categories for local testing, including one expired item to exercise the status-badge logic. Moved out of `migrations/` (18/8/26) so a migration-runner tool never mistakes it for a real schema migration and replays it against production — see `decisions.md`, "GitHub deploy integration: migration history reconciliation" |
 
 Future schema changes (e.g. a `households` table) will be added as new timestamped migration files rather than editing existing ones, so the migration history stays a reliable audit trail of how the schema evolved.

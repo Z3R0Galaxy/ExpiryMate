@@ -89,3 +89,7 @@ Built the two quick-win nice-to-haves already planned in `decisions.md`: `AddIte
 ## 18/8/26 (Slice 4 seventh revision — food-category icons on cards)
 
 Added a hand-drawn icon per food category, shown beside the item name on the collapsed card, in the modal heading, and next to the "Category" stat value — category had never been visible on the card itself before this. No icon library, same plain-SVG style as the rest of the app. `tsc -b --force` and `eslint` both pass clean. **Not yet verified in a real browser** — whether each icon actually reads clearly at card size is a genuinely open question until it's actually seen.
+
+## 18/8/26 (Supabase GitHub deploy integration — caught before connecting)
+
+While helping set up Supabase's GitHub deploy integration, found that every migration so far was applied by hand in the SQL Editor rather than through Supabase's own tooling — meaning the integration would believe none of the 5 migrations had run and would try to replay all of them from scratch on the next merge, failing immediately since the early ones aren't idempotent. Also found `seed.sql` sitting inside `supabase/migrations/`, where it risked being replayed against production as if it were a real migration. Moved `seed.sql` to `supabase/seed/` and prepared `supabase migration repair` commands for the 4 already-applied migrations (deliberately excluding the still-outstanding index migration) for the user to run locally. Caught before the integration was actually connected, not after a broken deploy.

@@ -122,7 +122,8 @@ ExpiryMate/
 │   └── lib/                         Supabase client, the adjusted-expiry algorithm, validation, category guessing
 ├── supabase/
 │   ├── migrations/                  schema history, applied in order
-│   └── functions/                   reserved for a possible future email-digest edge function
+│   ├── functions/                   reserved for a possible future email-digest edge function
+│   └── seed/                        local test data — kept out of migrations/ so it's never replayed against production
 └── tests/
     ├── unit/                        pure logic (adjusted-expiry, status calculation)
     ├── integration/                 tests against a real Supabase schema (RLS, constraints)
@@ -212,3 +213,7 @@ All six planned build slices have landed code, in order:
 6. 🟡 **Nice-to-Haves** — auto-category suggestion and defaulting the date field to today are done; AI recipe suggestions and multi-user household sharing are deliberately deferred, not dropped.
 
 All Must Have requirements from `docs/02-requirements.md` are code-complete. The one thing genuinely outstanding across every slice above is a real browser walk-through — this project has been built and verified with `tsc`/`eslint` throughout, but not yet clicked through in an actual browser. See [`CLAUDE.md`](CLAUDE.md) for the detailed, currently-accurate breakdown of what's done, what's outstanding, and why.
+
+## Use of AI in this project
+
+This project was built with substantial assistance from Claude, used as a coding and design-decision partner throughout. Every substantive interaction — what was asked, what Claude produced, and whether it was accepted, modified, or rejected — is logged in [`docs/ai-use-log.md`](docs/ai-use-log.md), per the assessment's AI use disclosure requirements. Design and architecture decisions, including the reasoning behind them, are recorded separately in [`docs/decisions.md`](docs/decisions.md).

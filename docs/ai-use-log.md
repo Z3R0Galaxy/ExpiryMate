@@ -245,3 +245,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Accepted:** the rewritten README as delivered.
 
 **Verified before accepting:** cross-checked the tech-stack table and script names against the real `package.json` (via `device_bash`) rather than restating what an earlier README said; confirmed every file path linked from the README actually exists in the repo.
+
+## 18/8/26 (Supabase GitHub deploy integration — migration history reconciliation)
+
+**Prompt:** shared a screenshot of Supabase's Settings → Integrations → GitHub page, mid-setup of "Deploy to production" (working directory `.`, production branch `main`), and asked for help; then confirmed with "yes" to acting on what Claude found.
+
+**Response:** rather than just confirming the visible settings looked right (they did), Claude checked what the integration actually does against how this project's migrations have really been applied — by hand, in the Supabase SQL Editor, every time so far, never through the CLI or this integration. Found that connecting it and merging to `main` would make Supabase believe none of the 5 real migrations had ever run (its own tracking table only knows about migrations it applied itself), so it would try to replay all 5 from scratch — and since none of the early ones are idempotent, the very first (`create table items`) would fail against the live database. Separately found `seed.sql` sitting inside `supabase/migrations/`, where a migration-runner could mistake it for a real migration and insert ~20 fake household items into production.
+
+**Response, continued:** moved `seed.sql` to a new `supabase/seed/` folder (committed), updated its reference in `docs/04-data-model.md`, and prepared exact `supabase migration repair --status applied` commands for the 4 migrations genuinely already applied by hand — deliberately excluding the `(user_id, expiry_date)` index migration, which per `CLAUDE.md` hasn't actually been run yet, so it should be left for the integration to apply for real rather than falsely marked as done.
+
+**Accepted:** the file move and doc update, committed. The repair commands were handed to the user to run themselves, since this sandboxed session has no Supabase CLI credentials to run them directly.
+
+**Verified before accepting:** read every migration file's actual SQL directly (not assumed from filenames) to confirm which are/aren't idempotent and which enums/columns/policies each one touches, before concluding the replay would fail.
