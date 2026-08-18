@@ -5,9 +5,11 @@ import { supabase } from './lib/supabase'
 import { Auth } from './components/Auth'
 import { AddItemForm } from './components/AddItemForm'
 import { ItemList } from './components/ItemList'
+import { ExpiryBanner } from './components/ExpiryBanner'
 import { useItems } from './hooks/useItems'
 import { useTheme } from './hooks/useTheme'
 import { useAnimatedModal } from './hooks/useAnimatedModal'
+import { useExpiryNotifications } from './hooks/useExpiryNotifications'
 import { AnimatedModal } from './components/AnimatedModal'
 import type { ItemInput } from './hooks/useItems'
 
@@ -21,6 +23,7 @@ interface AuthenticatedAppProps {
 function AuthenticatedApp({ userId, onSignOut }: AuthenticatedAppProps) {
   const { items, loading, error, addItem, updateItem, deleteItem } = useItems(userId)
   const addModal = useAnimatedModal()
+  const { expiringItems, dismissed, dismiss } = useExpiryNotifications(items, loading)
 
   // Only close the add-item modal on a successful add — on a validation or
   // Supabase error the form should stay open with its error message visible,
@@ -42,6 +45,7 @@ function AuthenticatedApp({ userId, onSignOut }: AuthenticatedAppProps) {
       </header>
       <main className="app-main">
         {error && <p className="error">{error}</p>}
+        {!dismissed && <ExpiryBanner items={expiringItems} onDismiss={dismiss} />}
         <ItemList items={items} loading={loading} onUpdate={updateItem} onDelete={deleteItem} />
       </main>
 

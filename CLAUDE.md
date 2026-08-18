@@ -49,15 +49,18 @@ src/
     useItems.ts         — centralises all Supabase reads/writes for items
     useTheme.ts          — manual light/dark toggle, persisted to localStorage (Slice 4)
     useAnimatedModal.ts — shared "grows from where you clicked" open/close/animation state (Slice 4)
+    useExpiryNotifications.ts — finds items within 7 days of adjusted expiry, fires one batched browser Notification per load (Slice 5)
   lib/
     supabase.ts         — Supabase client initialisation (anon key only)
     validateItem.ts     — shared client-side validation for add + edit forms
     adjustedExpiry.ts   — getAdjustedExpiry (Slice 3 algorithm), getDaysRemaining, getExpiryStatus
+    itemStatus.ts       — computeStatusInfo/BadgeStatus/STATUS_LABEL/STATUS_CLASS, shared by ItemList and useExpiryNotifications (Slice 5)
   components/
     Auth.tsx            — Email/password sign-up & sign-in form
     AddItemForm.tsx     — full item schema, category/storage/quantity/opened/date-opened, opens from App.tsx's "+" button (Slice 4)
     AnimatedModal.tsx   — shared portal/backdrop/escape/scroll-lock modal shell, used by both the add-item and item-detail flows (Slice 4)
     ItemList.tsx        — full item schema, adjusted-expiry status badges/countdown, toolbar (search/filter/sort), grouped sections
+    ExpiryBanner.tsx    — always-visible in-app fallback for Slice 5's notification (browser Notification can be denied/blocked/missed)
 supabase/
   migrations/
     20260507000000_create_items.sql              — items table + RLS policy
@@ -65,7 +68,7 @@ supabase/
     20260818000000_split_items_rls_policies.sql  — RLS: one broad policy -> four per-operation policies
     20260818010000_add_items_index.sql           — composite index on (user_id, expiry_date)
     20260818020000_add_eggs_category.sql         — adds Eggs to the food_category enum
-  functions/           — empty, reserved for Slice 5 email digest
+  functions/           — empty; Slice 5's optional email-digest stretch was deliberately not built (needs an external email-provider API key + scheduling — see decisions.md, "Slice 5: Expiry Notifications")
 tests/
   unit/                — empty, reserved — adjustedExpiry.ts is written pure/testable, tests not yet written
   integration/         — empty, reserved for RLS/constraint tests
@@ -121,6 +124,20 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - `getAdjustedExpiry(item)` — pure function implementing the full Adjusted Expiry Date Algorithm (`decisions.md`) for all 11 categories, returns `{ safe: true, adjustedDate }` or `{ safe: false, message }` for unsafe/not-recommended combinations
 - `getDaysRemaining(adjustedDate)`, `getExpiryStatus(days)` — derive the Fresh/Soon/Expired status from the adjusted date, not the printed one
 
+### `itemStatus.ts` (`src/lib/`)
+- `computeStatusInfo(item)` — combines `getAdjustedExpiry` + `getDaysRemaining`/`getExpiryStatus` into one `{ result, badgeStatus, countdownValue, countdownLabel }`, where `badgeStatus` is `'fresh' | 'soon' | 'expired' | 'warning'`
+- Extracted from `ItemList.tsx` in Slice 5 so `useExpiryNotifications` uses the identical status logic rather than a second copy
+
+### `useExpiryNotifications.ts` (`src/hooks/`)
+- `useExpiryNotifications(items, loading)` — returns `{ expiringItems, dismissed, dismiss }`
+- `expiringItems`: every item whose `badgeStatus` is `soon` or `expired` (i.e. within 7 days of, or past, its adjusted expiry date); `warning`/unsafe items are deliberately excluded (no adjusted date to be "within 7 days" of, and already always shown at the top of the dashboard)
+- Fires exactly one batched browser `Notification` the first time `loading` becomes `false` (guarded by a ref so it never re-fires on later item changes), requesting permission if not yet granted/denied; listing up to 5 names with an "and N more" suffix beyond that
+- The optional Slice 5 stretch (a Supabase Edge Function daily email digest) was deliberately not built — see `decisions.md`, "Slice 5: Expiry Notifications"
+
+### `ExpiryBanner.tsx` (`src/components/`)
+- Props: `items: ExpiringItem[]`, `onDismiss: () => void`
+- Always-visible fallback rendered on the dashboard whenever `expiringItems` is non-empty, since a browser `Notification` can be silently denied/blocked/missed — lists the same item names, dismissible per session
+
 ### `ItemList.tsx`
 - Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
 - Collapsed cards (`ItemCard`) are minimal and click-to-expand: status badge, a large countdown (days left/ago, or a warning label if the item has no safe adjusted date), and the name — nothing else, no Edit/Delete on the collapsed card
@@ -133,7 +150,8 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
 - **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. Also includes the Leftovers date-field relabelling fix (18/8/26). See `docs/09-iteration-log.md`.
 - **Slice 3 (Adjusted Expiry Logic) is fully done and verified.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. Eggs migration run against the live project; browser-tested (Eggs, Frozen, storage/opened toggles all confirmed working).
-- **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised several times based on feedback: minimal two-row item card became a click-to-expand card (countdown/status/name collapsed, everything else in a centred animated modal), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone, and most recently: the add-item form moved off the dashboard behind a "+" FAB button, a toolbar with search/filter/sort was added to `ItemList.tsx` (warnings always pinned to their own top section), and every form field (add + edit) now has a visible title. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
+- **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised several times based on feedback: minimal two-row item card became a click-to-expand card (countdown/status/name collapsed, everything else in a centred animated modal), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone, the add-item form moved off the dashboard behind a "+" FAB button, a toolbar with search/filter/sort added to `ItemList.tsx` (warnings always pinned to their own top section), every form field (add + edit) now has a visible title, and deleting an item now requires an in-place confirmation step instead of happening immediately. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
+- **Slice 5 (Expiry Notifications) is code-complete, not yet browser-tested.** `useExpiryNotifications` fires one batched browser `Notification` per page load listing items within 7 days of (or past) their adjusted expiry date, reusing status logic newly extracted into `src/lib/itemStatus.ts`; `ExpiryBanner` shows the same list directly on the dashboard as an always-visible, dismissible fallback since notifications can be denied/blocked/missed. The optional email-digest stretch (Supabase Edge Function) was deliberately not built — needs an external email-provider API key and scheduling setup — and is recorded as a scope decision, not a gap, in `decisions.md`. `tsc -b --force` and `eslint` both pass clean. All Must Have requirements are now code-complete.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.
@@ -143,7 +161,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Track food item name + expiry date
 - Add / edit / delete items
 - Track quantity, category, storage location, opened status (schema exists, forms don't collect it yet — Slice 2)
-- Notify users when items are about to expire (not yet implemented — Slice 5)
+- Notify users when items are about to expire (Slice 5 — code-complete, not yet browser-tested)
 - User auth + per-user database storage ✅
 
 ### Nice to Have
@@ -169,8 +187,8 @@ npm run preview   # preview production build
 1. ~~Slice 1 — App Shell~~ Fully done and verified 18/8/26, including the RLS-split migration.
 2. Slice 2 — Full Schema Forms: code-complete 18/8/26, plus the Leftovers relabelling fix. Still need to browser-test and run the `(user_id, expiry_date)` index migration.
 3. ~~Slice 3 — Adjusted Expiry Logic~~ Fully done and verified 18/8/26, including the Eggs migration and browser test.
-4. Slice 4 — Styling: code-complete 18/8/26 (`index.css` + `App.css`, plus the missing `App.css` import fix). Still need to browser-test.
-5. Slice 5 — Expiry Notifications, framed explicitly as a performance/UX decision in the report.
+4. Slice 4 — Styling: code-complete 18/8/26 (`index.css` + `App.css`, plus the missing `App.css` import fix, sort/filter/add-button, and delete confirmation). Still need to browser-test.
+5. Slice 5 — Expiry Notifications: code-complete 18/8/26. The single-batched-notification behaviour is framed explicitly as a performance/UX decision in the report; the optional email-digest stretch was deliberately scoped out (see `decisions.md`). Still need to browser-test.
 6. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.
 7. Slice 6 (Nice-to-Haves) now also includes auto-category suggestion from the item name (keyword-matching, no network call, always overridable) — see `decisions.md`, 18/8/26.
 8. Slice 6 also includes defaulting `AddItemForm`'s date field to today's date instead of blank (still fully changeable) — see `decisions.md`, 18/8/26.

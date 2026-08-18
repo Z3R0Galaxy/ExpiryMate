@@ -226,6 +226,47 @@ html, body {
   padding: 2rem 0;
 }
 
+/* Expiry banner — the always-visible fallback for Slice 5's notification,
+ * since a browser Notification can be denied/blocked/missed. Uses the
+ * "soon" amber colour rather than a neutral one, since everything it
+ * lists is by definition within 7 days of its adjusted expiry (or past
+ * it) — the same urgency the status badge would show. ------------------- */
+
+.expiry-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-soon-bg);
+  color: var(--color-soon-text);
+  border-radius: var(--radius);
+}
+
+.expiry-banner-icon {
+  flex-shrink: 0;
+}
+
+.expiry-banner-text {
+  flex: 1;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.expiry-banner .icon-button {
+  color: inherit;
+  border-color: transparent;
+  flex-shrink: 0;
+}
+
+.expiry-banner .icon-button:hover {
+  background-color: rgb(0 0 0 / 0.08);
+  color: inherit;
+}
+
+[data-theme='dark'] .expiry-banner .icon-button:hover {
+  background-color: rgb(255 255 255 / 0.08);
+}
+
 .item-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

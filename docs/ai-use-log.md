@@ -193,3 +193,17 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** the confirm/cancel click-through and the failure-message path, same as the rest of Slice 4.
+
+## 18/8/26 (Slice 5 — Expiry Notifications)
+
+**Prompt:** "lets move onto slice 5" — the last remaining Must Have requirement, per the slice plan in `decisions.md`.
+
+**Response:** before building, Claude asked two questions rather than assuming: whether to build the slice's optional stretch (a Supabase Edge Function daily email digest, which needs an external email-provider API key and a scheduled trigger — real setup work, not just code) given the Monday deadline, and whether to add an always-visible in-app banner alongside the strictly-specced browser `Notification`, since notifications are easy to deny/block/miss. Both confirmed as recommended: skip the email digest for now (documented as a deliberate, stated scope decision rather than an oversight), and add the banner.
+
+**Response, continued:** extracted the shared status-computation logic (`computeStatusInfo`, `BadgeStatus`, etc.) out of `ItemList.tsx` into a new `src/lib/itemStatus.ts` so the new notification hook (`useExpiryNotifications`) reuses the exact same "soon/expired" thresholds instead of a second, potentially-drifting copy. The hook fires exactly one batched browser `Notification` per page load (guarded by a ref, not re-fired on later item changes) listing items within 7 days of, or past, their adjusted expiry date, and a new `ExpiryBanner` component renders the same information directly on the dashboard regardless of notification permission.
+
+**Accepted:** the full approach, following both confirmed answers.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed/new file.
+
+**Not yet verified:** whether the permission prompt, the notification firing, and the banner all actually behave as expected in a real browser — genuinely pending, and the permission prompt specifically only appears once per browser origin, so testing it may need a fresh profile or a manually reset permission.

@@ -3,8 +3,9 @@ import type { FoodCategory, Item, ItemInput, StorageLocation } from '../hooks/us
 import { useAnimatedModal } from '../hooks/useAnimatedModal'
 import { AnimatedModal } from './AnimatedModal'
 import { validateItemForm } from '../lib/validateItem'
-import { getAdjustedExpiry, getDaysRemaining, getExpiryStatus } from '../lib/adjustedExpiry'
-import type { AdjustedExpiryResult, ExpiryStatus } from '../lib/adjustedExpiry'
+import { computeStatusInfo, STATUS_CLASS, STATUS_LABEL } from '../lib/itemStatus'
+import type { BadgeStatus, StatusInfo } from '../lib/itemStatus'
+import type { ExpiryStatus } from '../lib/adjustedExpiry'
 
 const CATEGORIES: FoodCategory[] = [
   'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
@@ -16,60 +17,13 @@ const STATUS_ORDER: ExpiryStatus[] = ['expired', 'soon', 'fresh']
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-type BadgeStatus = ExpiryStatus | 'warning'
 type GroupKey = StorageLocation | ExpiryStatus
 
-const STATUS_LABEL: Record<BadgeStatus, string> = {
-  expired: 'Expired',
-  soon: 'Expiring soon',
-  fresh: 'Fresh',
-  warning: 'Unsafe',
-}
-
-const STATUS_CLASS: Record<BadgeStatus, string> = {
-  expired: 'status-expired',
-  soon: 'status-soon',
-  fresh: 'status-fresh',
-  warning: 'status-warning',
-}
-
-interface StatusInfo {
-  result: AdjustedExpiryResult
-  badgeStatus: BadgeStatus
-  countdownValue: number | null
-  countdownLabel: string | null
-}
-
-interface StatusEntry {
+// computeStatusInfo/BadgeStatus/STATUS_LABEL/STATUS_CLASS now live in
+// ../lib/itemStatus (Slice 5) so useExpiryNotifications can reuse the exact
+// same status logic instead of duplicating it.
+interface StatusEntry extends StatusInfo {
   item: Item
-  result: AdjustedExpiryResult
-  badgeStatus: BadgeStatus
-  countdownValue: number | null
-  countdownLabel: string | null
-}
-
-/** Plain function, not a hook — the expensive-ish part (getAdjustedExpiry's
- * date math) only needs memoising once, at the list level, keyed on
- * `items` (see ItemList's `itemsWithStatus` below); calling this per item
- * inside a render is otherwise cheap. */
-function computeStatusInfo(item: Item): StatusInfo {
-  const result = getAdjustedExpiry({
-    category: item.category,
-    storage_location: item.storage_location,
-    expiry_date: item.expiry_date,
-    is_opened: item.is_opened,
-    date_opened: item.date_opened,
-  })
-
-  const badgeStatus: BadgeStatus = result.safe ? getExpiryStatus(getDaysRemaining(result.adjustedDate)) : 'warning'
-  const daysRemaining = result.safe ? getDaysRemaining(result.adjustedDate) : null
-  const isPast = daysRemaining !== null && daysRemaining < 0
-  const countdownValue = daysRemaining === null ? null : Math.abs(daysRemaining)
-  const countdownLabel = daysRemaining === null
-    ? null
-    : `day${countdownValue === 1 ? '' : 's'} ${isPast ? 'ago' : 'left'}`
-
-  return { result, badgeStatus, countdownValue, countdownLabel }
 }
 
 interface EditState {

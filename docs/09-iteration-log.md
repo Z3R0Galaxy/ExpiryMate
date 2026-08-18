@@ -77,3 +77,7 @@ Add-item form moved off the dashboard behind a "+" FAB button (`App.tsx`), openi
 ## 18/8/26 (Slice 4 sixth revision — delete confirmation)
 
 Delete no longer happens on a single click — the Delete icon now arms an in-place confirmation step inside the item-detail modal (warning icon, name, Cancel/Delete) rather than opening a native browser confirm or a second modal. Also fixed a real gap: a failed delete used to fail silently; now the error is surfaced under the confirmation. `tsc -b --force` and `eslint` both pass clean. **Not yet verified in a real browser.**
+
+## 18/8/26 (Slice 5 — Expiry Notifications)
+
+New `useExpiryNotifications` hook fires one batched browser `Notification` per page load listing items within 7 days of (or past) their adjusted expiry date, reusing status logic newly extracted into `src/lib/itemStatus.ts`. A new `ExpiryBanner` shows the same list directly on the dashboard as a dismissible, always-visible fallback, since notifications can be denied/blocked/missed. The optional email-digest stretch (Supabase Edge Function) was deliberately not built — needs an external email-provider API key and scheduling setup outside what's available before Monday; recorded as a scope decision in `decisions.md`, not a gap. `tsc -b --force` and `eslint` both pass clean. **Not yet verified in a real browser** — the permission prompt, the notification firing, and the banner all still need a real check. Slice 5 (Must Have requirements) is now code-complete.
