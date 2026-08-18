@@ -53,3 +53,13 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Accepted:** all three diagnoses were verified against what the dashboard actually showed before acting on them, not taken on faith — e.g. checked the health breakdown to confirm Auth/DB/PostgREST were genuinely healthy before ruling out "project is down" as the cause. Fixed the Site URL in Supabase to point at `https://expiry-mate.vercel.app` with `localhost:5173/**` as an additional redirect, per Claude's suggestion, which is now the permanent setting, not a workaround — recorded in `decisions.md`.
 
 **Result:** full sign-up → email confirmation → sign-in → add item → see it in the list, working end-to-end against the live Supabase project. Slice 1 is genuinely verified now, not just "compiles."
+
+## 18/8/26 (Slice 2 — Full Schema Forms)
+
+**Prompt:** "lets move onto slice 2" — go-ahead to build the full-schema forms per `decisions.md`.
+
+**Response:** Claude created `src/hooks/useItems.ts` to centralise the Supabase calls, `src/lib/validateItem.ts` for shared client-side validation, and rewrote `AddItemForm.tsx`, `ItemList.tsx`, and `App.tsx` to use both. Also wrote the `(user_id, expiry_date)` index migration planned in the marking-alignment review.
+
+**Verified before accepting:** ran `tsc -b --force` (clean) and `eslint` on the changed files, which caught a real issue — `react-hooks/set-state-in-effect` flagged the mount-time fetch in `useItems`. Rather than accepting Claude's first fix or silently ignoring the lint failure, asked it to explain why the rule fired; it turned out the rule flags the pattern based on the fetch function transitively calling a state setter at all, not on synchronous timing specifically, which would rule out the "shared fetch function for mount + refetch" pattern outright. Accepted Claude's disable-with-explanation as the right call rather than contorting the code, recorded in `decisions.md`.
+
+**Not yet verified:** the actual add/edit item flow with the full field set hasn't been exercised in a real browser yet, and the index migration hasn't been run against the live project. Both logged as open in `09-iteration-log.md`.

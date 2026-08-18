@@ -89,20 +89,26 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Uses `supabase.auth.signInWithPassword` and `supabase.auth.signUp`
 - Shows confirmation message after sign-up (email verification is confirmed ON in the Supabase project as of 18/8/26)
 
+### `useItems.ts` (`src/hooks/`)
+- Owns all Supabase reads/writes for `items` — `AddItemForm` and `ItemList` no longer talk to Supabase directly
+- Returns `{ items, loading, error, addItem, updateItem, deleteItem, refetch }`
+
+### `validateItem.ts` (`src/lib/`)
+- `validateItemForm(values)` — shared client-side validation used by both the add form and the inline edit form
+
 ### `AddItemForm.tsx`
-- Props: `userId: string`, `onAdded: () => void`
-- Inserts into `items` table via Supabase client
-- Currently only collects `name` + `expiry_date` — inserts will fail against the live schema until Slice 2 adds the required fields
+- Props: `onAdd: (input: ItemInput) => Promise<{ error?: string }>`
+- Collects all required fields: name, category, storage location, printed expiry date, quantity, opened status, date opened (conditionally)
 
 ### `ItemList.tsx`
-- Props: `userId: string`, `refresh: number` (increment to force re-fetch)
-- Fetches user's items ordered by `expiry_date ASC`
+- Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
 - Status logic: `expired` (< 0 days), `soon` (0–7 days), `fresh` (> 7 days) — currently based on the printed date; Slice 3 switches this to the adjusted date
-- Inline edit mode for name + date; optimistic UI update on save
+- Inline edit mode exposes the full field set, same validation as the add form
 
 ## Current State (as of 18/8/26)
-- **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Along the way, also fixed a real bug: Auth's Site URL was pointed at `localhost:5173`, which would have broken confirmation emails for anyone other than the developer's own machine — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). The RLS-split migration has also been run against the live project and confirmed (`items` shows four policies in the dashboard). What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
-- `AddItemForm`/`ItemList` only handle `name` + `expiry_date`, not the full schema — Slice 2.
+- **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
+- **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. See `docs/09-iteration-log.md`.
+- What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - No CSS styles written yet — Slice 4.
 - `src/lib/adjustedExpiry.ts` doesn't exist yet — Slice 3.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront.
@@ -137,7 +143,7 @@ npm run preview   # preview production build
 
 ## Next Logical Steps
 1. ~~Slice 1 — App Shell~~ Fully done and verified 18/8/26, including the RLS-split migration.
-2. Slice 2 — Full Schema Forms: collect and persist all required fields, extract a `useItems` hook, add the `(user_id, expiry_date)` index, strengthen client-side validation.
+2. Slice 2 — Full Schema Forms: code-complete 18/8/26. Still need to browser-test and run the `(user_id, expiry_date)` index migration.
 3. Slice 3 — Adjusted Expiry Logic: build `getAdjustedExpiry`, memoise it per item, switch status display to the adjusted date.
 4. Slice 4 — Styling.
 5. Slice 5 — Expiry Notifications, framed explicitly as a performance/UX decision in the report.

@@ -4,11 +4,36 @@ import { supabase } from './lib/supabase'
 import { Auth } from './components/Auth'
 import { AddItemForm } from './components/AddItemForm'
 import { ItemList } from './components/ItemList'
+import { useItems } from './hooks/useItems'
+
+interface AuthenticatedAppProps {
+  userId: string
+  onSignOut: () => void
+}
+
+// Split out so useItems (which fetches on mount) only ever runs once we
+// actually have a signed-in user, and cleanly unmounts on sign out.
+function AuthenticatedApp({ userId, onSignOut }: AuthenticatedAppProps) {
+  const { items, loading, error, addItem, updateItem, deleteItem } = useItems(userId)
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <h1>ExpiryMate</h1>
+        <button className="sign-out" onClick={onSignOut}>Sign Out</button>
+      </header>
+      <main className="app-main">
+        <AddItemForm onAdd={addItem} />
+        {error && <p className="error">{error}</p>}
+        <ItemList items={items} loading={loading} onUpdate={updateItem} onDelete={deleteItem} />
+      </main>
+    </div>
+  )
+}
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refresh, setRefresh] = useState(0)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -37,18 +62,7 @@ function App() {
     return <Auth />
   }
 
-  return (
-    <div className="app-shell">
-      <header className="app-header">
-        <h1>ExpiryMate</h1>
-        <button className="sign-out" onClick={handleSignOut}>Sign Out</button>
-      </header>
-      <main className="app-main">
-        <AddItemForm userId={session.user.id} onAdded={() => setRefresh(r => r + 1)} />
-        <ItemList userId={session.user.id} refresh={refresh} />
-      </main>
-    </div>
-  )
+  return <AuthenticatedApp userId={session.user.id} onSignOut={handleSignOut} />
 }
 
 export default App

@@ -29,3 +29,7 @@ After the URL fix: signed up, confirmed via email, signed in, added a food item,
 ## 18/8/26 (Slice 1 — RLS migration run)
 
 Ran `20260818000000_split_items_rls_policies.sql` in the Supabase SQL Editor. Confirmed in the dashboard's policy list: `items` now shows four separate policies (view/insert/update/delete) instead of the original single "Users can manage their own items." **Slice 1 is fully closed out** — code, live verification, and the security enhancement are all done.
+
+## 18/8/26 (Slice 2 — Full Schema Forms, code complete)
+
+`AddItemForm` now collects category, storage location, quantity, opened status, and date opened alongside name and expiry date; `ItemList`'s inline edit exposes the same full set. Both now go through `useItems` and `validateItemForm` instead of talking to Supabase directly. `tsc -b --force` and `eslint` both pass clean. **Not yet verified:** the actual add/edit flow with the full field set hasn't been tested in a real browser, and the `(user_id, expiry_date)` index migration (`20260818010000_add_items_index.sql`) hasn't been run against the live project yet.

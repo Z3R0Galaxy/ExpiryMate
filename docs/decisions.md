@@ -202,3 +202,15 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Decision:** set Site URL to the live deployment, `https://expiry-mate.vercel.app`, in Supabase dashboard → Authentication → URL Configuration, and add `http://localhost:5173/**` as an additional redirect URL so local dev keeps working alongside the production flow. This is the correct permanent setting, not a temporary one — it should stay this way even after Slices 2–5 are done, since the deployed app is what actually gets marked.
 
 **Why it matters beyond just fixing a bug:** this is exactly the kind of thing that's easy to miss if the app is only ever tested by the one person developing it on their own machine, and worth a line in the Part B report (Section 2, testing methods) as a genuine example of what testing against a real device/deploy surfaces that local-only testing wouldn't.
+
+---
+
+## Slice 2 implementation notes (decided 18/8/26)
+
+**`useItems` hook:** lives at `src/hooks/useItems.ts`. Owns the `select`/`insert`/`update`/`delete` calls against `items`; `AddItemForm` and `ItemList` no longer talk to Supabase directly — they receive `addItem`/`updateItem`/`deleteItem` as props from `App.tsx`. This is the fix for the bug this same hook's docstring calls out: `AddItemForm` previously only inserted `name` + `expiry_date` because nothing forced the two components' Supabase calls to agree on shape.
+
+**Shared validation:** `src/lib/validateItem.ts` holds one `validateItemForm` function used by both the add form and the inline edit form, rather than duplicating the same checks twice. Database constraints remain the actual enforcement (see `05-security-review.md`) — this is about surfacing a readable error before the user hits a raw Postgres constraint message.
+
+**Lint rule disabled, deliberately, once:** `eslint-plugin-react-hooks`'s `react-hooks/set-state-in-effect` flags `useItems`' mount-time fetch (`useEffect(() => { fetchItems() }, [fetchItems])`) even though the actual `setState` calls inside `fetchItems` happen after an `await`, not synchronously. Investigated whether restructuring would satisfy the rule — it flags the pattern based on the function transitively calling a state setter at all, not specifically on synchronous timing, which would rule out the standard "shared fetch function reused for mount and for post-mutation refetch" pattern outright. Disabled with `eslint-disable-next-line` and an inline comment explaining why, rather than either silently ignoring the lint failure or contorting the code around an overly strict experimental rule. Worth a line in Section 2 of the report as an example of understanding *why* a lint rule fired before deciding whether to obey it.
+
+**Index migration:** `20260818010000_add_items_index.sql` adds `items(user_id, expiry_date)` per the marking-alignment review. Needs to be run in the Supabase SQL Editor same as every other migration — not yet done as of writing this entry.
