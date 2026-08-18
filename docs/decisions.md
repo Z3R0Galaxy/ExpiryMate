@@ -13,7 +13,7 @@ We follow a vertical-slice approach: each slice produces a shippable increment t
 | 3 | **Adjusted Expiry + Status Display** | Adjusted expiry date calculation, safety warnings for unsafe combos, days-remaining count, Fresh / Expiring Soon / Expired status badges (all using adjusted date) |
 | 4 | **Styling** | Clean, usable UI on any browser — no UI library |
 | 5 | **Expiry Notifications** | Notify user when any item is within 7 days of its adjusted expiry date (browser Notification API on load; optionally Supabase Edge Function for email) |
-| 6 | **Nice-to-Haves** | Recipe suggestions (AI-powered), multi-user household sharing, auto-category suggestion from item name — descoped until Slices 1–5 are complete |
+| 6 | **Nice-to-Haves** | Recipe suggestions (AI-powered), multi-user household sharing, auto-category suggestion from item name, default date field to today — descoped until Slices 1–5 are complete |
 
 ### Slice details
 
@@ -224,6 +224,18 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Decision:** deferred to Slice 6 (Nice-to-Haves), not built now. It's genuinely good UX, but it's not a Must Have from the assessment brief, and Slices 3–5 (adjusted expiry, styling, notifications) are all required and still outstanding with the deadline six days out — those take priority.
 
 **Approach agreed for when it's built:** a pure client-side function, e.g. `guessCategory(name: string): FoodCategory | null`, matching against a curated keyword list (e.g. "milk"/"cheese"/"yoghurt" → Dairy, "chicken"/"beef"/"mince" → Meat, "soup"/"stew"/"curry" → Leftovers). No network call, no LLM API — explicitly ruled out a "real AI" call as unnecessary cost, latency, and a new failure mode for what a keyword heuristic solves just as well. Wired into `AddItemForm` so it pre-fills `category` when the name changes, but stops overriding as soon as the user manually touches the category dropdown themselves — the guess never fights a user's explicit choice. Framed honestly in Part B as a UX heuristic, not "AI," since that's what it actually is.
+
+---
+
+## Default the date field to today (decided 18/8/26)
+
+**Context:** raised after confirming Slice 3 worked — for almost every item, the year typed into the expiry/date-prepared field is the current year, so making the user type it every single time is friction for no real benefit.
+
+**Decision:** deferred to Slice 6 (Nice-to-Haves), not built now, same reasoning as the auto-category suggestion above — genuinely good UX, not a Must Have, and Slices 4–5 take priority with the deadline close.
+
+**Technical constraint checked before agreeing an approach:** `<input type="date">` can't hold a partial value — it's a complete ISO date or nothing, there's no way to pre-fill just the year and leave month/day blank. So "pre-fill the year" in practice means defaulting the whole field to today's date.
+
+**Approach agreed for when it's built:** default `AddItemForm`'s date field to today's date (not blank) when the form loads or resets after a successful add, instead of requiring the user to type all three parts every time. The user can still change any part of it — this is only the starting value, not a lock. Applies to the add form only; the inline edit form in `ItemList` already defaults to the item's existing date, which is correct as-is and shouldn't change.
 
 ---
 

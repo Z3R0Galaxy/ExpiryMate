@@ -95,3 +95,11 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** Claude built `src/lib/adjustedExpiry.ts` as a pure function, wired it into a memoised `ItemRow` inside `ItemList.tsx` (per the marking-alignment review's performance note), and ran a hand-picked test case per category — including the unsafe-warning paths and an exact day-0 boundary case — through a throwaway script before treating any of it as done. `tsc -b --force` and `eslint` both pass clean. Checked the boundary case output by hand against the Fresh/Soon/Expired thresholds already fixed in `decisions.md` rather than trusting the script's output blindly.
 
 **Not yet verified:** the actual add/edit flow — picking Eggs or Frozen as a category, toggling storage location and opened status, and seeing the adjusted date/status badge/warning text update correctly — hasn't been exercised in a real browser yet, and the Eggs migration hasn't been run against the live project. Both logged as open in `09-iteration-log.md`.
+
+## 18/8/26 (Eggs migration run + a Slice 6 idea)
+
+**Prompt:** ran `20260818020000_add_eggs_category.sql` in Supabase and confirmed it worked. Asked Claude to explain what the migration was actually for and why it was needed, then raised a new idea: pre-fill the current year in the date fields, since it's almost always right, while keeping it changeable.
+
+**Response:** Claude explained the migration in plain terms (Eggs' algorithm rules existed but had nowhere to attach as a real category, so eggs were being logged under the wrong rules until this ran). For the date-field idea, Claude checked a real technical constraint before agreeing an approach: `<input type="date">` can't hold a partial value, so "pre-fill just the year" isn't achievable — the practical version is defaulting the whole field to today's date, which the user can still fully edit.
+
+**Accepted:** deferred to Slice 6 (same reasoning as the auto-category suggestion — good UX, not a Must Have, required slices take priority). Agreed approach: default `AddItemForm`'s date field to today's date instead of blank; leave `ItemList`'s inline edit form as-is since it already correctly defaults to the item's existing date. Recorded in `decisions.md` and `CLAUDE.md`. No code written yet — planning only.
