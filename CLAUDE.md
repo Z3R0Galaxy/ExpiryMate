@@ -148,3 +148,4 @@ npm run preview   # preview production build
 4. Slice 4 — Styling.
 5. Slice 5 — Expiry Notifications, framed explicitly as a performance/UX decision in the report.
 6. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.
+7. Slice 6 (Nice-to-Haves) now also includes auto-category suggestion from the item name (keyword-matching, no network call, always overridable) — see `decisions.md`, 18/8/26.

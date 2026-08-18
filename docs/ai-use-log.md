@@ -75,3 +75,11 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** ran `tsc -b --force` and `eslint` on both changed files — clean.
 
 **Not yet verified:** the relabelling hasn't been exercised in a real browser yet (confirm "Date prepared" actually shows when Leftovers is selected, in both the add form and inline edit). Logged as open in `09-iteration-log.md`.
+
+## 18/8/26 (Auto-category suggestion — planning only)
+
+**Prompt:** proposed a new idea — have the app read the item name as it's typed and automatically suggest the category, while still letting the user override it if the guess is wrong.
+
+**Response:** Claude confirmed it's a good, cheap-to-build feature (a pure keyword-matching function, no network call or LLM needed), but flagged the honest trade-off directly rather than just agreeing: it's not a Must Have, and Slices 3–5 are required, outstanding, and due in six days, so building it now competes with that time. Asked two direct questions before doing anything: when to build it (now vs. deferred to Slice 6), and whether a simple keyword-matching heuristic was acceptable versus a "real" AI/LLM call.
+
+**Accepted:** deferred to Slice 6, keyword-matching approach confirmed (explicitly rejected a real LLM call — added cost, latency, an API key to manage, and a new failure mode for no real benefit over a good keyword list). Recorded as a decision in `decisions.md` and folded into Slice 6's scope in `CLAUDE.md`. No code written yet — this entry is planning only.

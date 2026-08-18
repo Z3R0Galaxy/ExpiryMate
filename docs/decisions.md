@@ -13,7 +13,7 @@ We follow a vertical-slice approach: each slice produces a shippable increment t
 | 3 | **Adjusted Expiry + Status Display** | Adjusted expiry date calculation, safety warnings for unsafe combos, days-remaining count, Fresh / Expiring Soon / Expired status badges (all using adjusted date) |
 | 4 | **Styling** | Clean, usable UI on any browser — no UI library |
 | 5 | **Expiry Notifications** | Notify user when any item is within 7 days of its adjusted expiry date (browser Notification API on load; optionally Supabase Edge Function for email) |
-| 6 | **Nice-to-Haves** | Recipe suggestions (AI-powered), multi-user household sharing — descoped until Slices 1–5 are complete |
+| 6 | **Nice-to-Haves** | Recipe suggestions (AI-powered), multi-user household sharing, auto-category suggestion from item name — descoped until Slices 1–5 are complete |
 
 ### Slice details
 
@@ -214,6 +214,16 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Lint rule disabled, deliberately, once:** `eslint-plugin-react-hooks`'s `react-hooks/set-state-in-effect` flags `useItems`' mount-time fetch (`useEffect(() => { fetchItems() }, [fetchItems])`) even though the actual `setState` calls inside `fetchItems` happen after an `await`, not synchronously. Investigated whether restructuring would satisfy the rule — it flags the pattern based on the function transitively calling a state setter at all, not specifically on synchronous timing, which would rule out the standard "shared fetch function reused for mount and for post-mutation refetch" pattern outright. Disabled with `eslint-disable-next-line` and an inline comment explaining why, rather than either silently ignoring the lint failure or contorting the code around an overly strict experimental rule. Worth a line in Section 2 of the report as an example of understanding *why* a lint rule fired before deciding whether to obey it.
 
 **Index migration:** `20260818010000_add_items_index.sql` adds `items(user_id, expiry_date)` per the marking-alignment review. Needs to be run in the Supabase SQL Editor same as every other migration — not yet done as of writing this entry.
+
+---
+
+## Auto-category suggestion from item name (decided 18/8/26)
+
+**Context:** raised as an idea while testing Slice 2 — when a user types an item name (e.g. "Milk"), have the app guess the category automatically instead of making them pick it from the dropdown every time, while still letting them override the guess.
+
+**Decision:** deferred to Slice 6 (Nice-to-Haves), not built now. It's genuinely good UX, but it's not a Must Have from the assessment brief, and Slices 3–5 (adjusted expiry, styling, notifications) are all required and still outstanding with the deadline six days out — those take priority.
+
+**Approach agreed for when it's built:** a pure client-side function, e.g. `guessCategory(name: string): FoodCategory | null`, matching against a curated keyword list (e.g. "milk"/"cheese"/"yoghurt" → Dairy, "chicken"/"beef"/"mince" → Meat, "soup"/"stew"/"curry" → Leftovers). No network call, no LLM API — explicitly ruled out a "real AI" call as unnecessary cost, latency, and a new failure mode for what a keyword heuristic solves just as well. Wired into `AddItemForm` so it pre-fills `category` when the name changes, but stops overriding as soon as the user manually touches the category dropdown themselves — the guess never fights a user's explicit choice. Framed honestly in Part B as a UX heuristic, not "AI," since that's what it actually is.
 
 ---
 
