@@ -207,3 +207,17 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed/new file.
 
 **Not yet verified:** whether the permission prompt, the notification firing, and the banner all actually behave as expected in a real browser — genuinely pending, and the permission prompt specifically only appears once per browser origin, so testing it may need a fresh profile or a manually reset permission.
+
+## 18/8/26 (Slice 6 — auto-category suggestion + default date to today)
+
+**Prompt:** "lets move onto slice 6" — the Nice-to-Haves slice, now that Slices 1–5 (all Must Haves) are code-complete.
+
+**Response:** Claude asked which of Slice 6's four items to build now given six days left — the two already-planned quick wins (auto-category suggestion, default date to today), or also the two bigger ones (AI recipe suggestions, multi-user household sharing). The user picked the two quick wins and asked to come back to the other two later.
+
+**Response, continued:** built `src/lib/guessCategory.ts` exactly per the approach already agreed in decisions.md — a keyword table, checked in a deliberate priority order (Frozen first), whole-word matching for single-word keywords and substring matching for phrases, no AI/network call. Wired into `AddItemForm` so it guesses the category as the name is typed, but a `categoryTouched` flag stops it from ever overriding a category the user picked themselves. Also defaulted the add form's date field to today (was blank), applying only to the add form as agreed — the edit form's existing "default to the item's current value" behaviour is untouched.
+
+**Accepted:** both, following the confirmed scope exactly; recipe suggestions and household sharing explicitly deferred rather than dropped.
+
+**Verified before accepting:** hand-verified 18 cases for `guessCategory` (one per category, ambiguous-looking names, an empty string, and a word-boundary edge case — "Ham" matches, "Shampoo" doesn't) via a throwaway script; all 18 matched. `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** the actual typing/guessing experience and the date default, in a real browser.

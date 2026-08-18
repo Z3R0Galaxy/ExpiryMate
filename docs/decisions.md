@@ -225,6 +225,8 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 
 **Approach agreed for when it's built:** a pure client-side function, e.g. `guessCategory(name: string): FoodCategory | null`, matching against a curated keyword list (e.g. "milk"/"cheese"/"yoghurt" → Dairy, "chicken"/"beef"/"mince" → Meat, "soup"/"stew"/"curry" → Leftovers). No network call, no LLM API — explicitly ruled out a "real AI" call as unnecessary cost, latency, and a new failure mode for what a keyword heuristic solves just as well. Wired into `AddItemForm` so it pre-fills `category` when the name changes, but stops overriding as soon as the user manually touches the category dropdown themselves — the guess never fights a user's explicit choice. Framed honestly in Part B as a UX heuristic, not "AI," since that's what it actually is.
 
+**Built 18/8/26, as Slice 6:** `src/lib/guessCategory.ts` implements the agreed approach exactly — a `CategoryRule[]` keyword table checked in a deliberate order (Frozen first, so "frozen chicken" reads as Frozen rather than Meat), whole-word matching via a regex boundary for single-word keywords (so "Ham" matches but "Shampoo" doesn't) and a plain substring check for multi-word keywords like "ice cream" (a word-boundary regex doesn't apply cleanly to a phrase). `AddItemForm` calls it from a new `handleNameChange`, which only updates `category` when there's an actual match and only while a new `categoryTouched` flag is still `false`; picking a category manually (`handleCategoryChange`) sets that flag so the guess can never fight a real user choice again for the rest of that form session. Hand-verified 18 cases (one per category, several ambiguous-looking names, the empty-string case, and the "Ham" vs. "Shampoo" word-boundary edge case) via a throwaway script before wiring it in — all 18 matched.
+
 ---
 
 ## Default the date field to today (decided 18/8/26)
@@ -236,6 +238,18 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Technical constraint checked before agreeing an approach:** `<input type="date">` can't hold a partial value — it's a complete ISO date or nothing, there's no way to pre-fill just the year and leave month/day blank. So "pre-fill the year" in practice means defaulting the whole field to today's date.
 
 **Approach agreed for when it's built:** default `AddItemForm`'s date field to today's date (not blank) when the form loads or resets after a successful add, instead of requiring the user to type all three parts every time. The user can still change any part of it — this is only the starting value, not a lock. Applies to the add form only; the inline edit form in `ItemList` already defaults to the item's existing date, which is correct as-is and shouldn't change.
+
+**Built 18/8/26, as Slice 6:** `AddItemForm`'s `expiryDate` state now initialises to `today()` (via a lazy `useState(() => today())` rather than calling it on every render) instead of an empty string, and resets to `today()` again — not `''` — after a successful add. Exactly as agreed: applies only to the add form, still fully editable, and the inline edit form in `ItemList` is untouched.
+
+---
+
+## Slice 6 scope: quick wins now, recipe suggestions and household sharing deferred (decided 18/8/26)
+
+**Context:** asked directly which of the four Slice 6 nice-to-haves (auto-category suggestion, default date to today, AI recipe suggestions, multi-user household sharing) to build now that Slices 1–5 are complete, given six days left before the deadline. The first two already had an agreed approach recorded above and are small; the other two are meaningfully bigger — recipe suggestions needs a real AI/LLM API call (cost, an API key, a new failure mode to handle), and household sharing needs an actual data-model and RLS change (shared access to another user's rows, not just per-user isolation).
+
+**Decision:** build the two quick wins now (both recorded above as "Built 18/8/26"). Recipe suggestions and household sharing are deferred, not dropped — the user asked to come back to them later if time allows once the report and tests are further along, rather than committing to them now. Recorded here as a deliberate, revisitable scope decision rather than either quietly building scope-creep or quietly dropping documented nice-to-haves.
+
+**Verified:** `tsc -b --force` and `eslint` both pass clean on `guessCategory.ts` and `AddItemForm.tsx`. **Not yet verified:** as with the rest of this project in this environment, the actual typing/guessing experience and the date field's default value haven't been seen in a real browser yet.
 
 ---
 

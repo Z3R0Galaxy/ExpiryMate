@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FoodCategory, ItemInput, StorageLocation } from '../hooks/useItems'
 import { validateItemForm } from '../lib/validateItem'
+import { guessCategory } from '../lib/guessCategory'
 
 const CATEGORIES: FoodCategory[] = [
   'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
@@ -18,8 +19,16 @@ interface Props {
 export function AddItemForm({ onAdd }: Props) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState<FoodCategory>('Produce')
+  // Tracks whether the user has manually picked a category themselves —
+  // once they have, the name-based guess (below) stops overriding their
+  // choice for the rest of this form session. Resets on a successful add,
+  // same as every other field.
+  const [categoryTouched, setCategoryTouched] = useState(false)
   const [storageLocation, setStorageLocation] = useState<StorageLocation>('Fridge')
-  const [expiryDate, setExpiryDate] = useState('')
+  // Defaults to today rather than blank (Slice 6) — most items use the
+  // current year anyway, so this saves typing the common case while
+  // leaving every part of the date still fully editable.
+  const [expiryDate, setExpiryDate] = useState(() => today())
   const [quantity, setQuantity] = useState('1')
   const [isOpened, setIsOpened] = useState(false)
   const [dateOpened, setDateOpened] = useState('')
@@ -32,6 +41,25 @@ export function AddItemForm({ onAdd }: Props) {
   // field under a misleading label.
   const isLeftovers = category === 'Leftovers'
   const dateFieldLabel = isLeftovers ? 'Date prepared' : 'Printed expiry date'
+
+  // Slice 6 nice-to-have: guess the category as the user types the name,
+  // via a plain keyword lookup (no AI/network call — see
+  // src/lib/guessCategory.ts). Only applies while the user hasn't picked a
+  // category themselves yet, and only overrides when there's an actual
+  // guess — no match leaves the current selection untouched rather than
+  // resetting it to a default.
+  function handleNameChange(value: string) {
+    setName(value)
+    if (!categoryTouched) {
+      const guess = guessCategory(value)
+      if (guess) setCategory(guess)
+    }
+  }
+
+  function handleCategoryChange(value: FoodCategory) {
+    setCategory(value)
+    setCategoryTouched(true)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,8 +93,9 @@ export function AddItemForm({ onAdd }: Props) {
     } else {
       setName('')
       setCategory('Produce')
+      setCategoryTouched(false)
       setStorageLocation('Fridge')
-      setExpiryDate('')
+      setExpiryDate(today())
       setQuantity('1')
       setIsOpened(false)
       setDateOpened('')
@@ -82,7 +111,7 @@ export function AddItemForm({ onAdd }: Props) {
           type="text"
           placeholder="e.g. Milk"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => handleNameChange(e.target.value)}
           required
         />
       </label>
@@ -91,7 +120,7 @@ export function AddItemForm({ onAdd }: Props) {
         Category
         <select
           value={category}
-          onChange={e => setCategory(e.target.value as FoodCategory)}
+          onChange={e => handleCategoryChange(e.target.value as FoodCategory)}
         >
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>

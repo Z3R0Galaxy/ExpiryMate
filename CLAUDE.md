@@ -55,6 +55,7 @@ src/
     validateItem.ts     — shared client-side validation for add + edit forms
     adjustedExpiry.ts   — getAdjustedExpiry (Slice 3 algorithm), getDaysRemaining, getExpiryStatus
     itemStatus.ts       — computeStatusInfo/BadgeStatus/STATUS_LABEL/STATUS_CLASS, shared by ItemList and useExpiryNotifications (Slice 5)
+    guessCategory.ts    — keyword-based category guess from item name, no AI/network call (Slice 6)
   components/
     Auth.tsx            — Email/password sign-up & sign-in form
     AddItemForm.tsx     — full item schema, category/storage/quantity/opened/date-opened, opens from App.tsx's "+" button (Slice 4)
@@ -114,6 +115,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Props: `onAdd: (input: ItemInput) => Promise<{ error?: string }>`
 - Collects all required fields: name, category, storage location, printed expiry date, quantity, opened status, date opened (conditionally) — every field has its own visible `field-label` title
 - No longer rendered inline on the dashboard (Slice 4 fifth revision) — `App.tsx` opens it inside `AnimatedModal` from a fixed "+" button
+- Category auto-guessed from the name as it's typed (`guessCategory`, Slice 6) until the user picks one themselves, tracked via a `categoryTouched` flag; date field defaults to today instead of blank (Slice 6), still fully editable
 
 ### `useAnimatedModal.ts` / `AnimatedModal.tsx`
 - Shared open/visible/origin state machine + portal/backdrop/escape/scroll-lock shell, extracted once the add-item flow needed the same "grows from where you clicked" animation as the item-detail modal
@@ -138,6 +140,11 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - Props: `items: ExpiringItem[]`, `onDismiss: () => void`
 - Always-visible fallback rendered on the dashboard whenever `expiringItems` is non-empty, since a browser `Notification` can be silently denied/blocked/missed — lists the same item names, dismissible per session
 
+### `guessCategory.ts` (`src/lib/`)
+- `guessCategory(name)` — pure keyword lookup, no AI/network call; returns a `FoodCategory` or `null` if nothing matches
+- Checked in a deliberate priority order (Frozen first, so "frozen chicken" reads as Frozen not Meat); whole-word regex matching for single-word keywords, plain substring matching for phrases like "ice cream"
+- Used by `AddItemForm` to pre-fill `category` from the name, only while the user hasn't picked a category themselves
+
 ### `ItemList.tsx`
 - Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
 - Collapsed cards (`ItemCard`) are minimal and click-to-expand: status badge, a large countdown (days left/ago, or a warning label if the item has no safe adjusted date), and the name — nothing else, no Edit/Delete on the collapsed card
@@ -152,6 +159,7 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - **Slice 3 (Adjusted Expiry Logic) is fully done and verified.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. Eggs migration run against the live project; browser-tested (Eggs, Frozen, storage/opened toggles all confirmed working).
 - **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised several times based on feedback: minimal two-row item card became a click-to-expand card (countdown/status/name collapsed, everything else in a centred animated modal), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone, the add-item form moved off the dashboard behind a "+" FAB button, a toolbar with search/filter/sort added to `ItemList.tsx` (warnings always pinned to their own top section), every form field (add + edit) now has a visible title, and deleting an item now requires an in-place confirmation step instead of happening immediately. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
 - **Slice 5 (Expiry Notifications) is code-complete, not yet browser-tested.** `useExpiryNotifications` fires one batched browser `Notification` per page load listing items within 7 days of (or past) their adjusted expiry date, reusing status logic newly extracted into `src/lib/itemStatus.ts`; `ExpiryBanner` shows the same list directly on the dashboard as an always-visible, dismissible fallback since notifications can be denied/blocked/missed. The optional email-digest stretch (Supabase Edge Function) was deliberately not built — needs an external email-provider API key and scheduling setup — and is recorded as a scope decision, not a gap, in `decisions.md`. `tsc -b --force` and `eslint` both pass clean. All Must Have requirements are now code-complete.
+- **Slice 6 (Nice-to-Haves) is partially built.** Two of the four items are code-complete: auto-category suggestion from the item name (`src/lib/guessCategory.ts`, a keyword lookup with no AI/network call, hand-verified against 18 cases) and defaulting the add form's date field to today instead of blank. The other two (AI recipe suggestions, multi-user household sharing) were deliberately deferred at the user's request, not dropped — see `decisions.md`, "Slice 6 scope." `tsc -b --force` and `eslint` both pass clean.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.
@@ -165,8 +173,10 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 - User auth + per-user database storage ✅
 
 ### Nice to Have
-- AI-powered recipe suggestions based on expiring ingredients
-- Multi-user household sharing / shared pantry
+- Auto-category suggestion from item name ✅ (Slice 6, 18/8/26)
+- Default the add form's date field to today ✅ (Slice 6, 18/8/26)
+- AI-powered recipe suggestions based on expiring ingredients (deferred — see `decisions.md`, "Slice 6 scope")
+- Multi-user household sharing / shared pantry (deferred — see `decisions.md`, "Slice 6 scope")
 
 ### Out of Scope
 - Barcode / QR code scanning
@@ -189,6 +199,6 @@ npm run preview   # preview production build
 3. ~~Slice 3 — Adjusted Expiry Logic~~ Fully done and verified 18/8/26, including the Eggs migration and browser test.
 4. Slice 4 — Styling: code-complete 18/8/26 (`index.css` + `App.css`, plus the missing `App.css` import fix, sort/filter/add-button, and delete confirmation). Still need to browser-test.
 5. Slice 5 — Expiry Notifications: code-complete 18/8/26. The single-batched-notification behaviour is framed explicitly as a performance/UX decision in the report; the optional email-digest stretch was deliberately scoped out (see `decisions.md`). Still need to browser-test.
-6. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.
-7. Slice 6 (Nice-to-Haves) now also includes auto-category suggestion from the item name (keyword-matching, no network call, always overridable) — see `decisions.md`, 18/8/26.
-8. Slice 6 also includes defaulting `AddItemForm`'s date field to today's date instead of blank (still fully changeable) — see `decisions.md`, 18/8/26.
+6. Slice 6 — Nice-to-Haves: auto-category suggestion and default-date-to-today are code-complete 18/8/26 (see `decisions.md`, "Slice 6 scope"). AI recipe suggestions and multi-user household sharing are deferred at the user's request — revisit if time allows once the report and tests are further along.
+7. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.
+8. `tests/{unit,integration,smoke}` are still empty — worth starting now that all planned Must Have + partial Nice-to-Have code is in, especially unit tests for the pure functions (`adjustedExpiry.ts`, `itemStatus.ts`, `guessCategory.ts`, `validateItem.ts`) since none of them need a browser or Supabase to test.
