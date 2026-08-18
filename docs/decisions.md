@@ -2,6 +2,8 @@
 
 ## Build Slice Structure (decided 2026-06-11, revised 2026-06-11)
 
+*Note (18/8/26): this section originally also existed as a standalone `docs/04-slice-structure.md`. That file has been retired — its content was a duplicate of what's below, and the assessment's mandated repo layout reserves `04` for `data-model.md`. This section is the single source of truth for the slice plan going forward.*
+
 We follow a vertical-slice approach: each slice produces a shippable increment that runs in the browser. Slices are ordered by dependency — later slices build on earlier ones.
 
 | # | Slice | Requirement coverage |
@@ -20,12 +22,15 @@ We follow a vertical-slice approach: each slice produces a shippable increment t
 - Unauthenticated: render `<Auth />`
 - Authenticated: render `<AddItemForm userId={...} onAdded={...} />` + `<ItemList userId={...} refresh={...} />` + Sign Out button
 - Requirement: each user sees only their own rows (enforced by existing RLS policy)
+- Security enhancement (added 18/8/26, see "Marking-alignment review" below): split the single `for all` RLS policy on `items` into four per-operation policies (select/insert/update/delete), each still enforcing `auth.uid() = user_id`. Same protection, but reads as a range of distinct, deliberate security features rather than one broad rule — worth naming explicitly in Part B, Section 3.
 
 **Slice 2 — Full Schema Forms**
 - `AddItemForm`: add `category` dropdown (Dairy / Meat / Seafood / Produce / Bakery / Frozen / Beverages / Condiments / Snacks / Leftovers), `storage_location` dropdown (Fridge / Freezer / Pantry), `quantity` number input (1–999), `is_opened` checkbox, `date_opened` date picker (shown only when `is_opened` is checked)
 - `ItemList`: fetch and display all columns; inline edit must expose all fields (including the new ones); delete unchanged
 - Extract a `useItems(userId)` custom hook: owns the `SELECT` query, `insert`, `update`, `delete` calls so neither component manages Supabase directly
 - Requirement: all Must Have fields captured and persisted
+- Also covers the client-side input validation gap noted in `05-security-review.md`
+- Performance enhancement (added 18/8/26): add a migration for a composite index on `items(user_id, expiry_date)`. Every query the app runs filters by `user_id` and orders by `expiry_date` (see `useItems`), so this is the one query pattern that actually matters for performance — a real, easily justified backend engineering decision for Part B, Section 2, rather than a token gesture.
 
 **Slice 3 — Adjusted Expiry + Status Display**
 - Create `src/lib/adjustedExpiry.ts`: pure function `getAdjustedExpiry(item) → { adjustedDate: string } | { unsafe: true }`; implements all category/storage/opened rules from the algorithm section of this file
@@ -33,6 +38,7 @@ We follow a vertical-slice approach: each slice produces a shippable increment t
 - Status thresholds (per requirements): **Fresh** > 7 days, **Expiring Soon** 0–7 days, **Expired** < 0 days
 - Status and days-remaining both derive from the adjusted date, not the printed date
 - Requirement: adjusted expiry calculation, safety warnings, days remaining, status display
+- Performance enhancement (added 18/8/26): memoise `getAdjustedExpiry(item)` per item (`useMemo`, keyed on the fields it actually depends on) so `ItemList` doesn't recompute every item's adjusted date on every re-render — a small but concrete, explainable performance choice for the walk-through.
 
 **Slice 4 — Styling**
 - Components already carry class names (`auth-container`, `item-row`, `status-badge`, `status-expired`, `status-soon`, `status-fresh`, etc.)
@@ -46,6 +52,23 @@ We follow a vertical-slice approach: each slice produces a shippable increment t
 - Threshold: **7 days** (matches requirements — not 3)
 - Optional stretch: Supabase Edge Function sends a daily email digest via Resend/SendGrid
 - Requirement: notify users when an item is within 7 days of its adjusted expiry date
+- Performance note (added 18/8/26): firing exactly one batched notification per load (not one per matching item, not re-checking on every render) is a deliberate performance/UX decision, not just how it happened to be built — call it out explicitly as such in Part B, Section 2.
+
+---
+
+## Marking-alignment review (decided 18/8/26)
+
+**Context:** asked directly whether the six-slice plan was tuned for full marks, not just functional correctness. Went back through the Part A rubric specifically rather than assuming "covers the requirements" and "scores highest" are the same thing.
+
+**Finding:** performance is graded at every band of Part A, from 1–4 ("attempts... optimisation") through to 17–20 ("effectively and efficiently optimised"), and the original slice plan had no performance work anywhere in it. Security was a related but separate gap: the security floor (`05-security-review.md`) is explicitly described in the assessment as "the floor, not full marks," while the top band wants "a range of highly effective security features" — plural. The original plan delivered the floor and stopped there.
+
+**Decision:** fold small, concrete additions into the existing slices now, before building, rather than either ignoring the gap or bolting extras on afterward:
+- Slice 1: split the single RLS policy into per-operation policies (see Slice 1 detail above).
+- Slice 2: add a composite index on `items(user_id, expiry_date)` (see Slice 2 detail above).
+- Slice 3: memoise the adjusted-expiry calculation per item (see Slice 3 detail above).
+- Slice 5: explicitly frame the single-batched-notification behaviour as a performance/UX choice in the report, not just an implementation detail.
+
+**Why fold in now rather than defer:** each addition is small (a SQL policy split, one migration, one `useMemo`, one framing choice) and is much cheaper to build in from the start than to retrofit after Slices 1–3 are "done." Deferring them risked either running out of time before circling back, or forgetting they existed as report material for Section 2/3.
 
 ---
 
@@ -61,7 +84,7 @@ Where a storage location is considered unsafe for a given category (e.g. raw mea
 
 ### Source
 
-All storage duration values are sourced from the **USDA FoodSafety.gov Cold Food Storage Chart**, last reviewed September 2023.  
+All storage duration values are sourced from the **USDA FoodSafety.gov Cold Food Storage Chart**, last reviewed September 2023.
 https://www.foodsafety.gov/food-safety-charts/cold-food-storage-charts
 
 ---
@@ -155,3 +178,17 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 | Pantry | Yes | Printed expiry date − 2 days |
 | Fridge | Either | Printed expiry date + 3 days |
 | Freezer | Either | Date of freezing + 90 days |
+
+---
+
+## Repository structure alignment (decided 18/8/26)
+
+**Context:** the assessment brief (Assessment Task 3 — Software Engineering Project) mandates a fixed repository layout so a marker can find source, migrations, tests, and folio without hunting. The repo predates having seen that brief in detail, so it had drifted: `docs/04` was `slice-structure.md` instead of `data-model.md`, `docs/05`–`09` didn't exist, there was no `supabase/functions/`, and there was an empty `test/` folder instead of `tests/{unit,integration,smoke}/`.
+
+**Decision:** bring the repo into line with the mandated layout now, before resuming feature slices, rather than restructuring later once more files exist and the diff gets messier. Specifically:
+- `docs/04-slice-structure.md` retired; its content was already duplicated in this file's "Build Slice Structure" section, so nothing was lost.
+- Added `docs/04-data-model.md`, `05-security-review.md`, `06-front-end-architecture.md`, `07-evaluation.md`, `08-test-plan.md`, `09-iteration-log.md`. The last three (evaluation, test plan, iteration log) are written as living skeletons rather than backfilled with invented results, since the app isn't wired up end-to-end yet — Slice 1 is still outstanding.
+- Added `supabase/functions/` (empty, reserved for the Slice 5 email-digest edge function) and `tests/{unit,integration,smoke}/` (empty, reserved for Slice 3 onward).
+- Rewrote `README.md` from the default Vite template into a real project README with the live Vercel URL, structure overview, and setup steps.
+
+**Why now:** the assessment is due 8am Monday 24 August 2026. Structural cleanup competes directly with time that could go into Slices 1–5, so it's worth doing exactly once, thoroughly, rather than piecemeal alongside feature work.

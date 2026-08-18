@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# ExpiryMate
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A household food-expiry tracker. Users sign up, log the food items in their kitchen (name, category, storage location, printed expiry date, quantity, and whether it's opened), and the app works out an adjusted expiry date from USDA cold-storage guidance, flagging anything expiring soon or already unsafe to eat.
 
-Currently, two official plugins are available:
+**Live:** https://expiry-mate.vercel.app
+**Course context:** built for Year 12 Software Engineering, Assessment Task 3 (Software Engineering Project).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech stack
 
-## React Compiler
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript 6, Vite 8 |
+| Backend / DB | Supabase (Postgres, Auth, Row Level Security) |
+| Hosting | Vercel (auto-deploys from `main`) |
+| Styling | Plain CSS, no UI library |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+You'll also need a `.env.local` file in the project root with your Supabase project URL and anon key (see below) — it isn't committed to the repo, since it's git-ignored, so it has to be created locally.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Type-check with `tsc` then build for production |
+| `npm run lint` | Run ESLint |
+| `npm run preview` | Preview a production build locally |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Environment variables needed in `.env.local`:
+
 ```
+VITE_SUPABASE_URL=<your Supabase project URL>
+VITE_SUPABASE_ANON_KEY=<your Supabase anon/publishable key>
+```
+
+The anon key is safe to expose client-side — it carries no privileges beyond what Row Level Security grants. Never put a service-role key here.
+
+## Project structure
+
+```
+your-project/
+├── README.md                        this file
+├── docs/                            the folio — planning, decisions, and evidence
+│   ├── 01-problem-statement.md      need, opportunity, scope
+│   ├── 02-requirements.md           functional and non-functional requirements
+│   ├── 03-architecture.md           design, request lifecycle, diagrams
+│   ├── 04-data-model.md             schema, ERD, relationships
+│   ├── 05-security-review.md        threat model, RLS reasoning, defences
+│   ├── 06-front-end-architecture.md component tree, CSS, accessibility
+│   ├── 07-evaluation.md             the evaluation report
+│   ├── 08-test-plan.md              test layers, coverage
+│   ├── 09-iteration-log.md          UAT feedback, deployment iteration
+│   ├── decisions.md                 decisions and trade-offs log (includes the build slice plan)
+│   └── ai-use-log.md                substantive Claude Code interactions
+├── src/
+│   ├── components/                  Auth, AddItemForm, ItemList
+│   └── lib/                         Supabase client setup
+├── supabase/
+│   ├── migrations/                  schema history, applied in order
+│   └── functions/                   edge functions (reserved for expiry-notification email digest)
+└── tests/
+    ├── unit/                        pure logic (adjusted-expiry, status calculation)
+    ├── integration/                 tests against a real Supabase schema (RLS, constraints)
+    └── smoke/                       manual post-deploy checklist
+```
+
+## Where things stand
+
+The build follows a six-slice plan (App Shell → Full Schema Forms → Adjusted Expiry Logic → Styling → Notifications → Nice-to-haves), documented in `docs/decisions.md`. Current progress and the reasoning behind each slice's scope live there rather than being duplicated here — check that file for the up-to-date status.
+
+## Database schema
+
+See `docs/04-data-model.md` for the full schema and ERD. In short: one `items` table, owned per-user via a foreign key to `auth.users`, protected by Row Level Security so a user can only ever see or modify their own rows.
+
+## Security
+
+See `docs/05-security-review.md` for the full threat model and a checklist against the assessment's security floor (auth, RLS, no service-role keys client-side, email verification, input validation, no plaintext sensitive data).

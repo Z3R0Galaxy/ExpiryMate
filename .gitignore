@@ -14,6 +14,9 @@ dist-ssr
 *.local
 .env.local
 
+# Scratch folder for files staged for manual deletion (see 18/8/26 restructure)
+_to_delete/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
