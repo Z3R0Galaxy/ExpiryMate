@@ -43,3 +43,13 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Accepted:** the `App.tsx` rewrite and the migration file, after checking the component wiring matches the actual prop signatures already in `Auth.tsx`, `AddItemForm.tsx`, and `ItemList.tsx` (no changes needed there for this slice) rather than assuming Claude got the interface right.
 
 **Pending, not yet accepted as "working":** the actual sign-in/sign-out/add-item flow hasn't been exercised in a real browser, and the RLS migration hasn't been run against the live Supabase project. Both are logged as open in `09-iteration-log.md` rather than assumed complete just because the code compiles.
+
+## 18/8/26 (Slice 1 — debugging the live test)
+
+**Prompt:** ran `npm run dev` and tested sign-up for real. Hit three separate failures in sequence and asked Claude to diagnose each rather than guessing myself: a "Failed to fetch" error on sign-up, then a "succeeded" sign-up with no confirmation email, then a confirmation link that redirected to `localhost` and wouldn't load on a phone.
+
+**Response:** Claude walked through each one by directing me to specific places in the Supabase dashboard rather than guessing blind — the project health breakdown (which showed the "Unhealthy" top-level badge was actually just Edge Functions, unused by this app, and a red herring), the Users list (which revealed I was re-using an already-confirmed test account from May, so no new email was ever going to be sent), and finally Authentication → URL Configuration, which had the actual bug: Site URL pointed at `localhost:5173` instead of the deployed app.
+
+**Accepted:** all three diagnoses were verified against what the dashboard actually showed before acting on them, not taken on faith — e.g. checked the health breakdown to confirm Auth/DB/PostgREST were genuinely healthy before ruling out "project is down" as the cause. Fixed the Site URL in Supabase to point at `https://expiry-mate.vercel.app` with `localhost:5173/**` as an additional redirect, per Claude's suggestion, which is now the permanent setting, not a workaround — recorded in `decisions.md`.
+
+**Result:** full sign-up → email confirmation → sign-in → add item → see it in the list, working end-to-end against the live Supabase project. Slice 1 is genuinely verified now, not just "compiles."

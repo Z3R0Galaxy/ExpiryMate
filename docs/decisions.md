@@ -192,3 +192,13 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 - Rewrote `README.md` from the default Vite template into a real project README with the live Vercel URL, structure overview, and setup steps.
 
 **Why now:** the assessment is due 8am Monday 24 August 2026. Structural cleanup competes directly with time that could go into Slices 1–5, so it's worth doing exactly once, thoroughly, rather than piecemeal alongside feature work.
+
+---
+
+## Auth redirect URL fix (decided 18/8/26)
+
+**Context:** testing Slice 1's sign-up flow surfaced a real misconfiguration, not just a testing inconvenience. Supabase's Auth "Site URL" was set to `http://localhost:5173` — the confirmation email link worked fine when opened on the same laptop running the dev server, but would silently redirect anyone else (a phone, another device, or a marker signing up against the deployed app) to an unreachable localhost address after confirming.
+
+**Decision:** set Site URL to the live deployment, `https://expiry-mate.vercel.app`, in Supabase dashboard → Authentication → URL Configuration, and add `http://localhost:5173/**` as an additional redirect URL so local dev keeps working alongside the production flow. This is the correct permanent setting, not a temporary one — it should stay this way even after Slices 2–5 are done, since the deployed app is what actually gets marked.
+
+**Why it matters beyond just fixing a bug:** this is exactly the kind of thing that's easy to miss if the app is only ever tested by the one person developing it on their own machine, and worth a line in the Part B report (Section 2, testing methods) as a genuine example of what testing against a real device/deploy surfaces that local-only testing wouldn't.

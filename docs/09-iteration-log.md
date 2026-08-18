@@ -14,4 +14,16 @@ Repository audit against the assessment's mandated structure (this session). No 
 
 ## 18/8/26 (Slice 1 — App Shell)
 
-`App.tsx` rewritten to wire `Auth`, `AddItemForm`, and `ItemList` together with real Supabase session management (`getSession` on mount, `onAuthStateChange` subscription, Sign Out button). Migration `20260818000000_split_items_rls_policies.sql` written to replace the single broad RLS policy with four per-operation ones. Verified `tsc -b --force` compiles clean with no type errors. **Not yet verified:** the actual sign-in/sign-out/add-item flow in a real browser, and the RLS migration hasn't been run against the live Supabase project yet — both need doing before Slice 1 is genuinely "done" rather than just "compiles."
+`App.tsx` rewritten to wire `Auth`, `AddItemForm`, and `ItemList` together with real Supabase session management (`getSession` on mount, `onAuthStateChange` subscription, Sign Out button). Migration `20260818000000_split_items_rls_policies.sql` written to replace the single broad RLS policy with four per-operation ones. Verified `tsc -b --force` compiles clean with no type errors. **Not yet verified (at time of writing):** the actual sign-in/sign-out/add-item flow in a real browser, and the RLS migration hadn't been run against the live Supabase project yet.
+
+## 18/8/26 (Slice 1 — verified end-to-end)
+
+Ran `npm run dev` and tested the real flow. Hit three separate issues along the way, each diagnosed and fixed rather than worked around:
+
+1. **Sign-up threw "Failed to fetch."** Checked the Supabase project dashboard — status showed "Unhealthy," which looked alarming, but the breakdown showed Database/PostgREST/Auth all Healthy; only Edge Functions was unhealthy, and the app doesn't use Edge Functions. Turned out to be transient/environmental, not a real project issue — retried and the request went through.
+2. **Sign-up "succeeded" but no confirmation email arrived.** Checked Authentication → Users in the Supabase dashboard and found the email used was an already-registered, already-confirmed account from May — Supabase silently no-ops re-sending confirmation for an existing confirmed email (by design, to avoid leaking account existence), so there was nothing wrong, just a stale test email being reused. Fixed by testing with a fresh email via `+` addressing.
+3. **Confirmation link opened on phone redirected to `localhost:5173`, which doesn't load on a phone.** This one was a genuine misconfiguration, not just a testing artifact: Supabase's Auth "Site URL" was set to `localhost:5173`, meaning the exact same broken redirect would happen to a real user signing up on the deployed Vercel app. Fixed in Supabase dashboard → Authentication → URL Configuration: Site URL set to `https://expiry-mate.vercel.app`, with `http://localhost:5173/**` added as an additional redirect URL so local dev still works.
+
+After the URL fix: signed up, confirmed via email, signed in, added a food item, saw it appear in the list. **Slice 1 is genuinely done** — not just "compiles," the whole auth + CRUD loop works end-to-end against the live Supabase project.
+
+**Still outstanding from Slice 1's scope:** the RLS policy-split migration (`20260818000000_split_items_rls_policies.sql`) still needs to be run in the Supabase SQL Editor — it wasn't part of this test pass.
