@@ -61,3 +61,7 @@ Feedback on the first pass: cluttered UI, wanted a nicer palette with dark mode,
 ## 18/8/26 (Slice 4 second revision — meta grid)
 
 Screenshot showed the middle-dot meta line wrapping with a stray leading dot on the second line. Replaced it with a small label/value grid (one row per fact) instead of a wrapped inline sentence; the warning message gets its own full-width row. `tsc -b --force` and `eslint` both pass clean. Still needs a real browser check.
+
+## 18/8/26 (Slice 4 third revision — card polish)
+
+General "make each card look better" pass: rounded status accent bar (via `::before` + `overflow:hidden` instead of a plain border), icon-only circular Edit/Delete buttons matching the theme toggle's style, a small dot on the status badge, uppercase micro-labels in the meta grid, and a subtle hover lift. `tsc -b --force` and `eslint` both pass clean. **Genuinely not yet verified visually** — this environment can't render the app in a browser, so this is a design judgement call, not something checked before delivery. A real screenshot is the next step.

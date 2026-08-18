@@ -201,31 +201,54 @@ html, body {
 .item-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0.9rem;
+  gap: 1.1rem;
   align-items: start;
 }
 
 .item-row {
+  position: relative;
+  overflow: hidden;
   background-color: var(--color-surface);
-  border-radius: var(--radius);
-  border-left: 3px solid var(--color-border);
+  border-radius: 14px;
   box-shadow: var(--shadow);
-  padding: 0.95rem 1.1rem;
+  padding: 1.15rem 1.3rem 1.1rem 1.5rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.item-row.status-fresh { border-left-color: var(--color-fresh-text); }
-.item-row.status-soon { border-left-color: var(--color-soon-text); }
-.item-row.status-expired { border-left-color: var(--color-expired-text); }
-.item-row.status-warning { border-left-color: var(--color-warning-text); }
+.item-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.07), 0 8px 24px rgb(0 0 0 / 0.07);
+}
+
+/* Status accent as its own layer rather than a plain border-left — sits
+ * flush with the card's rounded corners at any radius. */
+.item-row::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background-color: var(--color-border);
+}
+
+.item-row.status-fresh::before { background-color: var(--color-fresh-text); }
+.item-row.status-soon::before { background-color: var(--color-soon-text); }
+.item-row.status-expired::before { background-color: var(--color-expired-text); }
+.item-row.status-warning::before { background-color: var(--color-warning-text); }
+
+[data-theme='dark'] .item-row:hover {
+  border-color: var(--color-text-muted);
+}
 
 .item-top {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
 }
 
 .item-name {
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -233,30 +256,37 @@ html, body {
 
 .item-actions {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-shrink: 0;
 }
 
-.item-actions button {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.78rem;
-  font-weight: 500;
+/* Icon-only circular buttons, matching the theme toggle's shape/language
+ * so every "small utility action" in the app looks like the same family
+ * of control. */
+.icon-button {
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   background-color: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
 }
 
-.item-actions button:hover {
+.icon-button:hover {
   background-color: var(--color-surface-alt);
   color: var(--color-text);
 }
 
-.item-actions button:last-child {
+.icon-button-danger {
   color: var(--color-danger);
-  border-color: var(--color-danger);
+  border-color: transparent;
 }
 
-.item-actions button:last-child:hover {
+.icon-button-danger:hover {
   background-color: var(--color-expired-bg);
   color: var(--color-danger-hover);
 }
@@ -265,23 +295,28 @@ html, body {
  * each fact gets its own row so it reads as one tidy block regardless of
  * how many facts there are or how narrow the card gets. */
 .item-meta {
-  margin: 0.65rem 0 0;
-  padding-top: 0.65rem;
+  margin: 0.85rem 0 0;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--color-border);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 0.3rem 1rem;
-  font-size: 0.82rem;
+  gap: 0.45rem 1rem;
+  font-size: 0.85rem;
 }
 
 .item-meta-row {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 0.5rem;
 }
 
 .item-meta-row dt {
   margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
@@ -307,13 +342,24 @@ html, body {
 /* Status badge (shared with the fresh/soon/expired/warning colours) --- */
 
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
 }
 
 .status-badge.status-fresh { background-color: var(--color-fresh-bg); color: var(--color-fresh-text); }

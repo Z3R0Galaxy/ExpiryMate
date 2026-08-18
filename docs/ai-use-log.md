@@ -141,3 +141,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** still needs a real browser check, same as the rest of Slice 4.
+
+## 18/8/26 (Slice 4 third revision — raise the card's polish)
+
+**Prompt:** "can you make the ui of each card look way better? have each card look really good" — a general polish request rather than a specific fix.
+
+**Response:** Claude made several coordinated changes rather than one isolated tweak: moved the status colour accent from a plain border to a rounded `::before` bar, turned Edit/Delete into icon-only circular buttons matching the dark-mode toggle's existing shape language, added a small coloured dot to the status badge, restyled the meta grid's labels as small uppercase micro-labels, and added a subtle hover lift on each card.
+
+**Flagged directly rather than glossed over:** Claude cannot currently render the app in a real browser in this environment to check how any of this actually looks — this was stated plainly as a real limitation rather than implying the result had been visually checked. This pass is a design judgement call verified only by compiling/linting cleanly; a real screenshot after pushing is what will actually confirm whether it looks good.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** the actual look, in a real browser — genuinely pending this time, not just a formality.

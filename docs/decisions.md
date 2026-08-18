@@ -299,6 +299,22 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 
 ---
 
+## Slice 4 third revision: raise the item card's visual polish (decided 18/8/26)
+
+**Context:** "make the ui of each card look way better" — a general polish request, not tied to a specific complaint, since the structural/decluttering fixes above were already accepted. Treated as a design pass Claude has license to make its own calls on, rather than something needing a clarifying question first, since there was no genuine fork to resolve — just "make it look more finished."
+
+**Decision — several small changes together, aimed at one cohesive result:**
+- **Status accent moved off a plain `border-left` onto an absolutely-positioned `::before` bar** (with the card set to `overflow: hidden`), so the coloured accent strip sits flush with the card's rounded corners at any radius, rather than a border that doesn't necessarily clip the same way.
+- **Edit/Delete became icon-only circular buttons** (pencil / trash outline icons, `aria-label` + `title` kept for accessibility) using the same shape language as the dark-mode toggle button, so every small utility control in the app now reads as one consistent family rather than mismatched button styles.
+- **Status badge gets a small solid dot** before the text (`currentColor`, so it always matches the badge's own colour) — a small, standard "traffic-light" visual cue reinforcing the colour coding.
+- **Meta grid labels restyled as small uppercase micro-labels** (Category, Storage, etc.) with the value in normal-weight text beside/below it — reads more like a considered dashboard than plain paired text.
+- **Subtle hover lift** on each card (`translateY(-2px)` plus a slightly stronger shadow) for a bit of tactile feedback on desktop; harmless on touch devices since `:hover` simply doesn't fire there.
+- Card radius increased slightly (14px) and padding increased for more breathing room, in keeping with the earlier "minimal, not cluttered" feedback.
+
+**A real limitation, stated plainly:** Claude can verify this compiles and lints cleanly, but cannot currently render the app in a real browser to check how it actually looks — the sandboxed environment's browser tooling has been unreliable this session (see the general session context), and the live app depends on a real Supabase connection this sandbox doesn't have. This pass is a best-effort design judgement call, not something visually verified before delivery — a screenshot after pushing is genuinely the fastest way to catch anything that reads worse in practice than intended, same as it caught the wrapped-meta-line issue.
+
+**Verified:** `tsc -b --force` and `eslint` both pass clean. Not yet browser-tested.
+
 ## Leftovers date field relabelling (decided 18/8/26)
 
 **Context:** raised directly — if an item's category is Leftovers, there's no printed expiry date to read off a label, since it's homemade food. The algorithm in this file already anticipated this (the Leftovers section notes "the user enters the date prepared rather than a printed expiry date"), but the form itself never reflected that: it always showed a single date field labelled "Printed expiry date" regardless of category, which would confuse anyone trying to log a home-cooked meal.
