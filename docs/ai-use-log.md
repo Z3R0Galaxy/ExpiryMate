@@ -233,3 +233,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** whether each of the 11 icons is actually recognisable at card size — flagged directly as a real open question, since this environment can't render or screenshot the result before delivery.
+
+## 18/8/26 (README rewrite)
+
+**Prompt:** "please make the read me file very proper and good."
+
+**Response:** rewrote `README.md` from a short functional summary into a full project README: a contents list, a features section reflecting everything actually built across all six slices, an accurate tech-stack table (versions checked against `package.json` rather than assumed), setup/scripts/environment-variable instructions, the project structure tree, a section specifically explaining the adjusted-expiry algorithm as the app's core distinguishing feature, a database-schema section with the ERD, a security summary, a testing summary, a documentation index linking every file in `docs/`, a project-status checklist per slice, and a closing section disclosing AI use and pointing to this log, per the assessment's disclosure requirement.
+
+**A real gap flagged rather than glossed over:** while reading through `docs/` to write accurate one-line descriptions for the documentation index, found that `03-architecture.md`, `06-front-end-architecture.md`, `07-evaluation.md`, and `08-test-plan.md` still describe a pre-Slice-1 state of the app (e.g. "`App.tsx` doesn't render any of them yet," "both CSS files are currently empty") — clearly written early and never revisited as slices actually landed, unlike `CLAUDE.md` and `decisions.md`, which have been kept current throughout this session. Rather than silently writing README descriptions that imply those four docs are up to date, added an explicit note in the README's documentation section flagging this and naming `CLAUDE.md`/`decisions.md` as the reliable current source of truth instead. Not fixed in this pass — out of scope for "rewrite the README" and a genuine editorial decision for the four files' own content, not just a status update.
+
+**Accepted:** the rewritten README as delivered.
+
+**Verified before accepting:** cross-checked the tech-stack table and script names against the real `package.json` (via `device_bash`) rather than restating what an earlier README said; confirmed every file path linked from the README actually exists in the repo.
