@@ -149,22 +149,41 @@ function ItemRow({
               <button onClick={() => onDelete(item.id)}>Delete</button>
             </div>
           </div>
-          <div className="item-meta">
-            <span>{item.category}</span>
-            <span>{item.storage_location}</span>
-            <span>
-              {item.category === 'Leftovers' ? 'prepared' : 'expires'} {item.expiry_date}
-            </span>
+          <dl className="item-meta">
+            <div className="item-meta-row">
+              <dt>Category</dt>
+              <dd>{item.category}</dd>
+            </div>
+            <div className="item-meta-row">
+              <dt>Storage</dt>
+              <dd>{item.storage_location}</dd>
+            </div>
+            <div className="item-meta-row">
+              <dt>{item.category === 'Leftovers' ? 'Prepared' : 'Expires'}</dt>
+              <dd>{item.expiry_date}</dd>
+            </div>
             {result.safe ? (
-              <span>
-                adjusted {result.adjustedDate} ({daysRemaining} day{daysRemaining === 1 ? '' : 's'})
-              </span>
+              <div className="item-meta-row">
+                <dt>Adjusted</dt>
+                <dd>{result.adjustedDate} ({daysRemaining} day{daysRemaining === 1 ? '' : 's'})</dd>
+              </div>
             ) : (
-              <span className="item-warning">{result.message}</span>
+              <div className="item-meta-row item-meta-warning">
+                <dt>Warning</dt>
+                <dd>{result.message}</dd>
+              </div>
             )}
-            <span>qty {item.quantity}</span>
-            {item.is_opened && <span>opened {item.date_opened}</span>}
-          </div>
+            <div className="item-meta-row">
+              <dt>Qty</dt>
+              <dd>{item.quantity}</dd>
+            </div>
+            {item.is_opened && (
+              <div className="item-meta-row">
+                <dt>Opened</dt>
+                <dd>{item.date_opened}</dd>
+              </div>
+            )}
+          </dl>
         </div>
       )}
     </li>

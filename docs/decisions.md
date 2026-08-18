@@ -289,6 +289,16 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 
 ---
 
+## Slice 4 second revision: item card meta as a label/value grid (decided 18/8/26)
+
+**Context:** a screenshot of the real, rendered card showed the actual problem with the meta row's inline middle-dot layout — when the line wrapped, the `::before` separator on the wrapped item wrapped with it, landing as a stray leading "·" at the start of the second line. Asked what exactly should change; the answer wasn't about removing information, it was "why have all that text at the bottom unformatted? make it all look good and together" — i.e. the run-on wrapped sentence read as unformatted regardless of the stray dot, not that any specific field needed to go.
+
+**Decision:** replaced the inline middle-dot-separated line with a small `<dl>` label/value grid — each fact (Category, Storage, Expires/Prepared, Adjusted, Qty, Opened) gets its own row with a muted label and a right-aligned value, laid out via `grid-template-columns: repeat(auto-fit, minmax(130px, 1fr))` so it reads as a tidy block of facts rather than a sentence that happens to wrap. The unsafe/not-recommended warning message is a full sentence rather than a short value, so it gets its own full-width row instead of being squeezed into the value column. A hairline top border separates this fact grid from the name/actions row above it, reinforcing that it's one cohesive card rather than stacked, disconnected pieces.
+
+**Verified:** `tsc -b --force` and `eslint` both pass clean. Still pending a real browser check of the new layout, same as the rest of this slice.
+
+---
+
 ## Leftovers date field relabelling (decided 18/8/26)
 
 **Context:** raised directly — if an item's category is Leftovers, there's no printed expiry date to read off a label, since it's homemade food. The algorithm in this file already anticipated this (the Leftovers section notes "the user enters the date prepared rather than a printed expiry date"), but the form itself never reflected that: it always showed a single date field labelled "Printed expiry date" regardless of category, which would confuse anyone trying to log a home-cooked meal.

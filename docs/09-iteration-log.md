@@ -57,3 +57,7 @@ Confirmed working: Eggs and Frozen categories, storage/opened toggles, adjusted 
 ## 18/8/26 (Slice 4 revision — minimal look, dark mode, full-width desktop)
 
 Feedback on the first pass: cluttered UI, wanted a nicer palette with dark mode, wanted the layout to use the full desktop screen while still fitting a phone. Reworked the item card into a cleaner two-row layout, added `useTheme.ts` (manual light/dark toggle, persisted, avoids a flash-of-wrong-theme via a small inline script in `index.html`), and changed `.app-header` to a full-bleed sticky bar with `.item-list` as a responsive grid (multiple columns on wide screens, one column on narrow). `tsc -b --force` and `eslint` both pass clean. **Not yet verified:** hasn't been opened in a real browser — need to check both themes, the toggle persisting across a reload, the grid at desktop width, and the mobile layout at a genuinely narrow width.
+
+## 18/8/26 (Slice 4 second revision — meta grid)
+
+Screenshot showed the middle-dot meta line wrapping with a stray leading dot on the second line. Replaced it with a small label/value grid (one row per fact) instead of a wrapped inline sentence; the warning message gets its own full-width row. `tsc -b --force` and `eslint` both pass clean. Still needs a real browser check.

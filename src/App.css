@@ -261,23 +261,47 @@ html, body {
   color: var(--color-danger-hover);
 }
 
+/* A small label/value grid instead of a run-on, wrapping line of text —
+ * each fact gets its own row so it reads as one tidy block regardless of
+ * how many facts there are or how narrow the card gets. */
 .item-meta {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-wrap: wrap;
+  margin: 0.65rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.3rem 1rem;
   font-size: 0.82rem;
+}
+
+.item-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.item-meta-row dt {
+  margin: 0;
   color: var(--color-text-muted);
 }
 
-.item-meta span:not(:first-child)::before {
-  content: '·';
-  margin: 0 0.45rem;
-  color: var(--color-border);
+.item-meta-row dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
 }
 
-.item-meta .item-warning {
+/* The warning message is a full sentence, not a short value, so it gets
+ * its own full-width row instead of squeezing into the value column. */
+.item-meta-row.item-meta-warning {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.item-meta-row.item-meta-warning dd {
   color: var(--color-warning-text);
-  font-weight: 500;
+  text-align: left;
 }
 
 /* Status badge (shared with the fresh/soon/expired/warning colours) --- */

@@ -129,3 +129,15 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed file.
 
 **Not yet verified:** hasn't been opened in a real browser — need to check both light and dark themes, the toggle persisting across a reload, the grid actually showing multiple columns on a wide screen, and the mobile layout at a genuinely narrow width. Logged as open in `09-iteration-log.md`.
+
+## 18/8/26 (Slice 4 second revision — meta row as a grid, not wrapped text)
+
+**Prompt:** shared a screenshot of the rendered card showing the middle-dot-separated meta line wrapping with a stray leading "·" on the second line, and asked to "remove the bottom text bit." Claude asked a clarifying question about which specific field to drop (adjusted date vs. quantity) before touching anything, since deleting the wrong thing would lose real information. The actual answer clarified it wasn't about removing a field at all — it was that the wrapped run of text looked unformatted, full stop.
+
+**Response:** replaced the inline separated text with a small label/value grid (one row per fact: Category, Storage, Expires/Prepared, Adjusted, Qty, Opened), so it reads as a set of facts rather than a sentence that wraps unpredictably. The unsafe/not-recommended warning message gets its own full-width row since it's a sentence, not a short value.
+
+**Accepted:** the grid layout, after Claude asked first rather than guessing which field the complaint was actually about — the free-text answer ("make it all look good and together") confirmed it was purely a formatting complaint, not a request to drop information, which the original multiple-choice question hadn't fully anticipated.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** still needs a real browser check, same as the rest of Slice 4.
