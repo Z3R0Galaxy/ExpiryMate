@@ -48,14 +48,16 @@ src/
   hooks/
     useItems.ts         — centralises all Supabase reads/writes for items
     useTheme.ts          — manual light/dark toggle, persisted to localStorage (Slice 4)
+    useAnimatedModal.ts — shared "grows from where you clicked" open/close/animation state (Slice 4)
   lib/
     supabase.ts         — Supabase client initialisation (anon key only)
     validateItem.ts     — shared client-side validation for add + edit forms
     adjustedExpiry.ts   — getAdjustedExpiry (Slice 3 algorithm), getDaysRemaining, getExpiryStatus
   components/
     Auth.tsx            — Email/password sign-up & sign-in form
-    AddItemForm.tsx     — full item schema, category/storage/quantity/opened/date-opened
-    ItemList.tsx        — full item schema, adjusted-expiry status badges, memoised per row
+    AddItemForm.tsx     — full item schema, category/storage/quantity/opened/date-opened, opens from App.tsx's "+" button (Slice 4)
+    AnimatedModal.tsx   — shared portal/backdrop/escape/scroll-lock modal shell, used by both the add-item and item-detail flows (Slice 4)
+    ItemList.tsx        — full item schema, adjusted-expiry status badges/countdown, toolbar (search/filter/sort), grouped sections
 supabase/
   migrations/
     20260507000000_create_items.sql              — items table + RLS policy
@@ -107,7 +109,13 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 
 ### `AddItemForm.tsx`
 - Props: `onAdd: (input: ItemInput) => Promise<{ error?: string }>`
-- Collects all required fields: name, category, storage location, printed expiry date, quantity, opened status, date opened (conditionally)
+- Collects all required fields: name, category, storage location, printed expiry date, quantity, opened status, date opened (conditionally) — every field has its own visible `field-label` title
+- No longer rendered inline on the dashboard (Slice 4 fifth revision) — `App.tsx` opens it inside `AnimatedModal` from a fixed "+" button
+
+### `useAnimatedModal.ts` / `AnimatedModal.tsx`
+- Shared open/visible/origin state machine + portal/backdrop/escape/scroll-lock shell, extracted once the add-item flow needed the same "grows from where you clicked" animation as the item-detail modal
+- `useAnimatedModal()` returns `{ open, visible, origin, openFrom, close }`; `openFrom(sourceEl)` captures `sourceEl.getBoundingClientRect()` as the animation's origin point
+- Used by both `App.tsx` (add-item modal) and `ItemList.tsx` (item-detail modal)
 
 ### `adjustedExpiry.ts` (`src/lib/`)
 - `getAdjustedExpiry(item)` — pure function implementing the full Adjusted Expiry Date Algorithm (`decisions.md`) for all 11 categories, returns `{ safe: true, adjustedDate }` or `{ safe: false, message }` for unsafe/not-recommended combinations
@@ -116,15 +124,16 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 ### `ItemList.tsx`
 - Props: `items`, `loading`, `onUpdate`, `onDelete` (all from `useItems`, passed down via `App.tsx`)
 - Collapsed cards (`ItemCard`) are minimal and click-to-expand: status badge, a large countdown (days left/ago, or a warning label if the item has no safe adjusted date), and the name — nothing else, no Edit/Delete on the collapsed card
-- Clicking a card opens `ItemDetailModal` (rendered via `createPortal` into `document.body`), centred, with a "grows from where you clicked" transform animation built from `getBoundingClientRect()` + CSS transitions (no animation library). Shows every remaining fact as its own stat tile, plus Edit/Delete as icon buttons; Edit swaps the modal's content to the inline-edit form in place
-- Status/countdown derive from `getAdjustedExpiry`'s adjusted date via a shared `useCardStatus` hook, memoised per item
-- Inline edit mode (now inside the modal) exposes the full field set, same validation as the add form
+- Clicking a card opens `ItemDetailModal` via the shared `AnimatedModal` (rendered via `createPortal` into `document.body`), centred, with a "grows from where you clicked" transform animation built from `getBoundingClientRect()` + CSS transitions (no animation library). Shows every remaining fact as its own stat tile, plus Edit/Delete as icon buttons; Edit swaps the modal's content to the inline-edit form in place, with every field now having its own visible `field-label` title
+- Status/countdown derive from `getAdjustedExpiry`'s adjusted date via a plain `computeStatusInfo(item)` function, memoised once at the list level (`itemsWithStatus`), not per-card
+- A toolbar above the cards offers a search box (matches name), three filter dropdowns (storage location, category, status), and a two-way sort toggle restricted to place (Fridge/Freezer/Pantry) or status (Expired/Soon/Fresh). Filtered items are split into sections: unsafe/warning items always form their own section at the top regardless of sort mode, followed by one section per non-empty group in the active sort mode, each headed by a small inline SVG icon
+- Inline edit mode (inside the modal) exposes the full field set, same validation as the add form
 
 ## Current State (as of 18/8/26)
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
 - **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. Also includes the Leftovers date-field relabelling fix (18/8/26). See `docs/09-iteration-log.md`.
 - **Slice 3 (Adjusted Expiry Logic) is fully done and verified.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. Eggs migration run against the live project; browser-tested (Eggs, Frozen, storage/opened toggles all confirmed working).
-- **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised once already based on feedback: minimal two-row item card (no more per-field pill badges), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), and a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
+- **Slice 4 (Styling) is code-complete, not yet browser-tested.** Revised several times based on feedback: minimal two-row item card became a click-to-expand card (countdown/status/name collapsed, everything else in a centred animated modal), a manual dark-mode toggle (`src/hooks/useTheme.ts`, persisted, flash-free via a small inline script in `index.html`), a full-bleed desktop layout (`.item-list` as a responsive grid, sticky full-width header) that still collapses to one column on a phone, and most recently: the add-item form moved off the dashboard behind a "+" FAB button, a toolbar with search/filter/sort was added to `ItemList.tsx` (warnings always pinned to their own top section), and every form field (add + edit) now has a visible title. A real gap was also caught and fixed along the way — `App.css` was never actually imported anywhere, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.

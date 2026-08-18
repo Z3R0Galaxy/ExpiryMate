@@ -76,29 +76,36 @@ export function AddItemForm({ onAdd }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="add-item-form">
-      <input
-        type="text"
-        placeholder="Item name (e.g. Milk)"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        required
-      />
+      <label className="field-label">
+        Item name
+        <input
+          type="text"
+          placeholder="e.g. Milk"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+        />
+      </label>
 
-      <select
-        aria-label="Category"
-        value={category}
-        onChange={e => setCategory(e.target.value as FoodCategory)}
-      >
-        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
+      <label className="field-label">
+        Category
+        <select
+          value={category}
+          onChange={e => setCategory(e.target.value as FoodCategory)}
+        >
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </label>
 
-      <select
-        aria-label="Storage location"
-        value={storageLocation}
-        onChange={e => setStorageLocation(e.target.value as StorageLocation)}
-      >
-        {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
+      <label className="field-label">
+        Storage location
+        <select
+          value={storageLocation}
+          onChange={e => setStorageLocation(e.target.value as StorageLocation)}
+        >
+          {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </label>
 
       <label className="field-label">
         {dateFieldLabel}
@@ -112,37 +119,47 @@ export function AddItemForm({ onAdd }: Props) {
         />
       </label>
 
-      <input
-        aria-label="Quantity"
-        type="number"
-        min={1}
-        max={999}
-        value={quantity}
-        onChange={e => setQuantity(e.target.value)}
-        required
-      />
-
-      <label className="checkbox-label">
+      <label className="field-label">
+        Quantity
         <input
-          type="checkbox"
-          checked={isOpened}
-          onChange={e => {
-            setIsOpened(e.target.checked)
-            if (!e.target.checked) setDateOpened('')
-          }}
-        />
-        Opened
-      </label>
-
-      {isOpened && (
-        <input
-          aria-label="Date opened"
-          type="date"
-          value={dateOpened}
-          onChange={e => setDateOpened(e.target.value)}
-          max={today()}
+          type="number"
+          min={1}
+          max={999}
+          value={quantity}
+          onChange={e => setQuantity(e.target.value)}
           required
         />
+      </label>
+
+      {/* A div, not a label — the checkbox already has its own label
+          below, and a label can't validly wrap another label. */}
+      <div className="field-label">
+        Opened?
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={isOpened}
+            onChange={e => {
+              setIsOpened(e.target.checked)
+              if (!e.target.checked) setDateOpened('')
+            }}
+          />
+          {isOpened ? 'Yes' : 'No'}
+        </label>
+      </div>
+
+      {isOpened && (
+        <label className="field-label">
+          Date opened
+          <input
+            aria-label="Date opened"
+            type="date"
+            value={dateOpened}
+            onChange={e => setDateOpened(e.target.value)}
+            max={today()}
+            required
+          />
+        </label>
       )}
 
       {error && <p className="error">{error}</p>}

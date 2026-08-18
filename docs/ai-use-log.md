@@ -167,3 +167,17 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
 
 **Not yet verified:** the actual click-through experience, the animation, and the modal at a phone-sized viewport — all genuinely pending a real browser check.
+
+## 18/8/26 (Slice 4 fifth revision — add button, sort/filter, labelled edit fields)
+
+**Prompt:** a bundled request — move `AddItemForm` off the dashboard behind an intuitive "+" button, make the cards sortable (by place, or by expiry status) and filterable, always float warnings to the top regardless of sort mode, and give every field in the edit-form its own visible title matching the existing "Printed expiry date" label style (two screenshots of the edit modal showing untitled fields were attached).
+
+**Response:** before building, Claude asked two questions rather than assuming: which filter dimensions to offer, and how to present the sort groupings. The user picked all four filter dimensions offered (storage, category, status, search) and asked for grouped sections with icons — going beyond Claude's own "Recommended" option of grouped-with-headers but no icons. Built: a shared `useAnimatedModal`/`AnimatedModal` extraction (so the add-item flow reuses the exact same "grows from where you clicked" modal as the item-detail view instead of a second copy), a `.fab` "+" button in `App.tsx` opening `AddItemForm` in that shared modal, a toolbar in `ItemList.tsx` with search + three filter dropdowns + a two-way sort toggle (place vs. status), warnings carved out into their own always-first section, and hand-drawn inline SVG icons per section heading. Also added visible titles to every edit-form field, fixing an invalid nested-`<label>` bug caught along the way (the "Opened?" wrapper is now a `<div>`, not a `<label>`, since it already contains the checkbox's own label).
+
+**Accepted:** the full structure, following both confirmed answers exactly (all four filters; icons on section headers).
+
+**Flagged directly:** added a defensive CSS override so labelled input/select values don't inherit the small, muted styling meant for the label text above them — reasoned through from how the base stylesheet cascades fonts, not something visually confirmed, since (as with the rest of Slice 4) this environment still can't render the app in a browser.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean on every changed/new file.
+
+**Not yet verified:** the add button/modal, the sort toggle, each filter, search, warnings-always-on-top, and the field labels all still need a real click-through — genuinely pending, including a phone-sized check given the toolbar now has five controls.

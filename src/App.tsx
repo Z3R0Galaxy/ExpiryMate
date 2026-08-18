@@ -7,6 +7,9 @@ import { AddItemForm } from './components/AddItemForm'
 import { ItemList } from './components/ItemList'
 import { useItems } from './hooks/useItems'
 import { useTheme } from './hooks/useTheme'
+import { useAnimatedModal } from './hooks/useAnimatedModal'
+import { AnimatedModal } from './components/AnimatedModal'
+import type { ItemInput } from './hooks/useItems'
 
 interface AuthenticatedAppProps {
   userId: string
@@ -17,6 +20,16 @@ interface AuthenticatedAppProps {
 // actually have a signed-in user, and cleanly unmounts on sign out.
 function AuthenticatedApp({ userId, onSignOut }: AuthenticatedAppProps) {
   const { items, loading, error, addItem, updateItem, deleteItem } = useItems(userId)
+  const addModal = useAnimatedModal()
+
+  // Only close the add-item modal on a successful add — on a validation or
+  // Supabase error the form should stay open with its error message visible,
+  // same as it did when it lived inline on the dashboard.
+  async function handleAdd(input: ItemInput) {
+    const result = await addItem(input)
+    if (!result.error) addModal.close()
+    return result
+  }
 
   return (
     <div className="app-shell">
@@ -28,10 +41,36 @@ function AuthenticatedApp({ userId, onSignOut }: AuthenticatedAppProps) {
         </div>
       </header>
       <main className="app-main">
-        <AddItemForm onAdd={addItem} />
         {error && <p className="error">{error}</p>}
         <ItemList items={items} loading={loading} onUpdate={updateItem} onDelete={deleteItem} />
       </main>
+
+      <button
+        type="button"
+        className="fab"
+        onClick={e => addModal.openFrom(e.currentTarget)}
+        aria-label="Add item"
+        title="Add item"
+      >
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+
+      {addModal.open && (
+        <AnimatedModal visible={addModal.visible} origin={addModal.origin} onClose={addModal.close}>
+          <div className="item-modal-header">
+            <div className="item-modal-header-actions" />
+            <button type="button" className="icon-button" onClick={addModal.close} aria-label="Close" title="Close">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <h2 className="item-modal-name">Add Item</h2>
+          <AddItemForm onAdd={handleAdd} />
+        </AnimatedModal>
+      )}
     </div>
   )
 }
