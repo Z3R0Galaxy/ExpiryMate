@@ -45,3 +45,11 @@ Raised while reviewing Slice 2: for a Leftovers item there's no printed expiry d
 ## 18/8/26 (Eggs migration run)
 
 Ran `20260818020000_add_eggs_category.sql` in the Supabase SQL Editor — confirmed working. `Eggs` is now a real, selectable category on the live project. The browser test of the actual add/edit flow (Eggs, Frozen, storage/opened toggles) is still outstanding.
+
+## 18/8/26 (Slice 3 browser test)
+
+Confirmed working: Eggs and Frozen categories, storage/opened toggles, adjusted date + badge/warning text all update correctly in a real browser. Slice 3 is fully closed out — code, migration, and live verification all done.
+
+## 18/8/26 (Slice 4 — Styling, code complete)
+
+`src/index.css` and `src/App.css` written per the plan (reset/typography/variables in the former, layout in the latter). Found and fixed a real gap: `App.css` was never imported anywhere, so the new styles would have done nothing without adding `import './App.css'` to `App.tsx`. `tsc -b --force` and `eslint` both pass clean. **Not yet verified:** hasn't been opened in a real browser — need to check the auth screen, the item list/cards, the status badge colours (including the new warning colour), and the mobile breakpoint (560px) actually render as intended.

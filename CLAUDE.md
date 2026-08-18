@@ -41,23 +41,30 @@ docs/
   decisions.md                — slice plan, algorithm spec, all major decisions
   ai-use-log.md               — every substantive AI interaction, prompt/response/accepted-or-not
 src/
-  App.tsx               — Bare placeholder (renders a personal message, not the app) — Slice 1 not started
-  main.tsx              — React entry point
-  index.css             — Global styles (currently empty) — Slice 4
-  App.css               — App-level styles (currently empty) — Slice 4
+  App.tsx               — session-managed shell: Auth vs. AuthenticatedApp, imports App.css
+  main.tsx              — React entry point, imports index.css
+  index.css             — reset, base typography, colour variables (Slice 4)
+  App.css               — layout for auth screen, app shell, forms, item list/cards (Slice 4)
+  hooks/
+    useItems.ts         — centralises all Supabase reads/writes for items
   lib/
     supabase.ts         — Supabase client initialisation (anon key only)
+    validateItem.ts     — shared client-side validation for add + edit forms
+    adjustedExpiry.ts   — getAdjustedExpiry (Slice 3 algorithm), getDaysRemaining, getExpiryStatus
   components/
     Auth.tsx            — Email/password sign-up & sign-in form
-    AddItemForm.tsx     — Only handles name + expiry_date so far — needs full schema (Slice 2)
-    ItemList.tsx        — Only handles name + expiry_date so far — needs full schema (Slice 2)
+    AddItemForm.tsx     — full item schema, category/storage/quantity/opened/date-opened
+    ItemList.tsx        — full item schema, adjusted-expiry status badges, memoised per row
 supabase/
   migrations/
-    20260507000000_create_items.sql     — items table + RLS policy
-    20260601000000_add_item_fields.sql  — adds category, storage_location, quantity, is_opened, date_opened
+    20260507000000_create_items.sql              — items table + RLS policy
+    20260601000000_add_item_fields.sql           — adds category, storage_location, quantity, is_opened, date_opened
+    20260818000000_split_items_rls_policies.sql  — RLS: one broad policy -> four per-operation policies
+    20260818010000_add_items_index.sql           — composite index on (user_id, expiry_date)
+    20260818020000_add_eggs_category.sql         — adds Eggs to the food_category enum
   functions/           — empty, reserved for Slice 5 email digest
 tests/
-  unit/                — empty, reserved for Slice 3 (adjustedExpiry, getStatus)
+  unit/                — empty, reserved — adjustedExpiry.ts is written pure/testable, tests not yet written
   integration/         — empty, reserved for RLS/constraint tests
   smoke/               — empty, reserved for post-deploy manual checklist
 ```
@@ -114,9 +121,9 @@ Full schema detail and ERD: `docs/04-data-model.md`.
 ## Current State (as of 18/8/26)
 - **Slice 1 (App Shell) is fully done and verified.** Full sign-up → email confirmation → sign-in → add item → see it in the list works end-to-end against the live Supabase project. Also fixed a real bug: Auth's Site URL was pointed at `localhost:5173` — now points at `https://expiry-mate.vercel.app` (see `decisions.md`, "Auth redirect URL fix"). RLS-split migration run and confirmed.
 - **Slice 2 (Full Schema Forms) is code-complete, not yet browser-tested.** `tsc -b --force` and `eslint` both pass clean. The `(user_id, expiry_date)` index migration hasn't been run against the live project yet. Also includes the Leftovers date-field relabelling fix (18/8/26). See `docs/09-iteration-log.md`.
-- **Slice 3 (Adjusted Expiry Logic) is code-complete, not yet browser-tested.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` now shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. `tsc -b --force`, `eslint`, and a hand-run set of representative cases all pass. The Eggs migration hasn't been run against the live project yet.
+- **Slice 3 (Adjusted Expiry Logic) is fully done and verified.** `src/lib/adjustedExpiry.ts` implements all 11 categories (Eggs newly added — see `decisions.md`, "Category/algorithm reconciliation"); `ItemList` shows the adjusted date, days remaining, and status badge/warning derived from it, memoised per row. Eggs migration run against the live project; browser-tested (Eggs, Frozen, storage/opened toggles all confirmed working).
+- **Slice 4 (Styling) is code-complete, not yet browser-tested.** `src/index.css` (reset/typography/variables) and `src/App.css` (layout) written; a real gap was caught and fixed along the way — `App.css` was never actually imported, so `App.tsx` now imports it. `tsc -b --force` and `eslint` both pass clean.
 - What's live on Vercel is still the old placeholder until this work gets pushed and Vercel redeploys.
-- No CSS styles written yet — Slice 4.
 - `tests/{unit,integration,smoke}` exist as folders but are empty — tests get written as each slice's logic lands, not upfront. `adjustedExpiry.ts` is written as a pure function specifically so it's easy to unit test once that starts.
 - Repo structure, security floor, and the slice plan itself have all been reconciled against the actual assessment brief (see `docs/decisions.md`) — the plan below reflects that review, including the performance/security additions folded into Slices 1, 2, 3, and 5.
 
@@ -150,8 +157,8 @@ npm run preview   # preview production build
 ## Next Logical Steps
 1. ~~Slice 1 — App Shell~~ Fully done and verified 18/8/26, including the RLS-split migration.
 2. Slice 2 — Full Schema Forms: code-complete 18/8/26, plus the Leftovers relabelling fix. Still need to browser-test and run the `(user_id, expiry_date)` index migration.
-3. Slice 3 — Adjusted Expiry Logic: code-complete 18/8/26 (`getAdjustedExpiry`, memoised per row, 11 categories including the newly-added Eggs). Still need to browser-test and run the Eggs migration.
-4. Slice 4 — Styling.
+3. ~~Slice 3 — Adjusted Expiry Logic~~ Fully done and verified 18/8/26, including the Eggs migration and browser test.
+4. Slice 4 — Styling: code-complete 18/8/26 (`index.css` + `App.css`, plus the missing `App.css` import fix). Still need to browser-test.
 5. Slice 5 — Expiry Notifications, framed explicitly as a performance/UX decision in the report.
 6. Write the Part B report and prep the walk-through — these are separate from the slices and don't happen automatically just by finishing them.
 7. Slice 6 (Nice-to-Haves) now also includes auto-category suggestion from the item name (keyword-matching, no network call, always overridable) — see `decisions.md`, 18/8/26.

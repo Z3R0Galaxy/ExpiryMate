@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import './App.css'
 import { supabase } from './lib/supabase'
 import { Auth } from './components/Auth'
 import { AddItemForm } from './components/AddItemForm'

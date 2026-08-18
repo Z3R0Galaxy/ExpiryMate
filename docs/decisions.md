@@ -254,6 +254,22 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 
 ---
 
+## Slice 4 implementation notes (decided 18/8/26)
+
+**Split kept as planned:** `src/index.css` holds the reset, base typography, and colour variables (`:root` custom properties); `src/App.css` holds layout for the auth screen, the signed-in app shell, the add-item form, and the item list/cards. Component markup wasn't touched — every class name styled here already existed in the JSX from Slices 1–3, per the plan in the "Build Slice Structure" section above.
+
+**Real bug caught before it shipped:** `App.css` existed as an empty file since the very start of the project, but nothing ever actually imported it — `main.tsx` only imports `index.css`. Writing the layout styles into `App.css` would have silently done nothing without also adding `import './App.css'` to `App.tsx`, which this slice added. Worth noting because it's exactly the kind of gap that's invisible until someone actually looks at the rendered page.
+
+**Four distinct hues for the status badge, not a 3-colour scale plus grey:** Fresh/Soon/Expired are a green/amber/red time-based scale, but the Slice 3 "unsafe/not-recommended" warning state isn't a point on that scale — it's a different kind of message (food safety or storage advice, not "how much time is left"). Gave it its own colour (plum/violet) rather than reusing grey or red, so a warning badge doesn't get misread as "just a more severe Expired."
+
+**No external fonts or UI library:** matches the tech stack constraint already in `CLAUDE.md` ("Plain CSS, no UI library") — typography uses the system font stack (`-apple-system`, Segoe UI, Roboto, etc.), so there's no extra network request for a web font and no dependency on a CSS framework loading correctly.
+
+**Accessibility touches worth naming in Part B:** visible `:focus-visible` outlines on every interactive element (inputs, selects, buttons, links) rather than relying on the browser default, which some browsers suppress by default on click but this preserves for keyboard navigation; and a single mobile breakpoint (560px) that collapses the two-column add/edit forms to one column and lets the item-name/badge row wrap, rather than assuming a desktop-width screen.
+
+**Not yet verified:** hasn't been opened in a real browser yet — checking that the layout, colours, and mobile breakpoint actually look right (not just that the CSS parses and the class names line up) is a real browser check, not something `tsc`/`eslint` can confirm. Logged as open in `09-iteration-log.md`.
+
+---
+
 ## Leftovers date field relabelling (decided 18/8/26)
 
 **Context:** raised directly — if an item's category is Leftovers, there's no printed expiry date to read off a label, since it's homemade food. The algorithm in this file already anticipated this (the Leftovers section notes "the user enters the date prepared rather than a printed expiry date"), but the form itself never reflected that: it always showed a single date field labelled "Printed expiry date" regardless of category, which would confuse anyone trying to log a home-cooked meal.

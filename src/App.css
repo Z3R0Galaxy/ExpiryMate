@@ -1,0 +1,287 @@
+/* ExpiryMate — layout styles (Slice 4)
+ *
+ * Component-level layout: the auth screen, the signed-in app shell, the
+ * add-item form, and the item list/cards. Colours and resets live in
+ * index.css — this file is about arrangement and spacing.
+ */
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--color-text-muted);
+}
+
+/* Auth screen ------------------------------------------------------------ */
+
+.auth-container {
+  max-width: 380px;
+  margin: 10vh auto 0;
+  padding: 2rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.toggle-auth {
+  background: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 0.25rem;
+}
+
+.toggle-auth:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+/* App shell ---------------------------------------------------------- */
+
+.app-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sign-out {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.sign-out:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Add-item form ------------------------------------------------------ */
+
+.add-item-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.add-item-form input,
+.add-item-form select {
+  width: 100%;
+}
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  grid-column: 1 / -1;
+}
+
+.checkbox-label input {
+  width: auto;
+}
+
+.add-item-form .error {
+  grid-column: 1 / -1;
+}
+
+.add-item-form button[type='submit'] {
+  grid-column: 1 / -1;
+}
+
+/* Item list ------------------------------------------------------------ */
+
+.empty {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-row {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.item-row.status-fresh { border-left-color: var(--color-fresh-text); }
+.item-row.status-soon { border-left-color: var(--color-soon-text); }
+.item-row.status-expired { border-left-color: var(--color-expired-text); }
+.item-row.status-warning { border-left-color: var(--color-warning-text); }
+
+.item-view {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+}
+
+.item-name {
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.item-category,
+.item-storage,
+.item-quantity,
+.item-opened {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+
+.item-date,
+.item-adjusted {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.item-warning {
+  font-size: 0.85rem;
+  color: var(--color-warning-text);
+  font-weight: 500;
+}
+
+.item-view button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.item-view button:last-of-type {
+  background-color: transparent;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.item-view button:last-of-type:hover {
+  background-color: var(--color-expired-bg);
+  color: var(--color-danger-hover);
+}
+
+/* Status badge (shared with the fresh/soon/expired/warning colours) --- */
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.status-badge.status-fresh { background-color: var(--color-fresh-bg); color: var(--color-fresh-text); }
+.status-badge.status-soon { background-color: var(--color-soon-bg); color: var(--color-soon-text); }
+.status-badge.status-expired { background-color: var(--color-expired-bg); color: var(--color-expired-text); }
+.status-badge.status-warning { background-color: var(--color-warning-bg); color: var(--color-warning-text); }
+
+/* Inline edit form ------------------------------------------------------ */
+
+.item-edit {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.item-edit input,
+.item-edit select {
+  width: 100%;
+}
+
+.item-edit .checkbox-label {
+  grid-column: 1 / -1;
+}
+
+.item-edit .error {
+  grid-column: 1 / -1;
+}
+
+.item-edit button {
+  padding: 0.5rem 1rem;
+}
+
+.item-edit button:last-of-type {
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.item-edit button:last-of-type:hover {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Responsive — mobile ---------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .auth-container {
+    margin-top: 4vh;
+    max-width: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .app-shell {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .add-item-form,
+  .item-edit {
+    grid-template-columns: 1fr;
+  }
+
+  .item-name {
+    margin-right: 0;
+    width: 100%;
+  }
+}

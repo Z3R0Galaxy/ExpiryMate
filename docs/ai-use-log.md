@@ -103,3 +103,17 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Response:** Claude explained the migration in plain terms (Eggs' algorithm rules existed but had nowhere to attach as a real category, so eggs were being logged under the wrong rules until this ran). For the date-field idea, Claude checked a real technical constraint before agreeing an approach: `<input type="date">` can't hold a partial value, so "pre-fill just the year" isn't achievable — the practical version is defaulting the whole field to today's date, which the user can still fully edit.
 
 **Accepted:** deferred to Slice 6 (same reasoning as the auto-category suggestion — good UX, not a Must Have, required slices take priority). Agreed approach: default `AddItemForm`'s date field to today's date instead of blank; leave `ItemList`'s inline edit form as-is since it already correctly defaults to the item's existing date. Recorded in `decisions.md` and `CLAUDE.md`. No code written yet — planning only.
+
+## 18/8/26 (Slice 4 — Styling)
+
+**Prompt:** "lets do slice 4" — go-ahead to build Slice 4 per the plan in `decisions.md`.
+
+**Response:** Claude wrote `src/index.css` (reset, base typography, colour variables) and `src/App.css` (layout for the auth screen, app shell, add-item form, and item list/cards), styling the class names already present in the JSX from Slices 1–3 without touching any component markup, except one necessary line.
+
+**Real issue caught:** while writing the layout styles, Claude found `App.css` had never actually been imported anywhere — `main.tsx` only imports `index.css` — so the new styles would have silently done nothing. Added `import './App.css'` to `App.tsx` to fix it, and flagged this directly rather than writing CSS into a file that wasn't wired up.
+
+**Accepted:** the four-hue status badge approach (giving the Slice 3 "unsafe/not-recommended" warning its own colour rather than reusing red or grey, so it doesn't read as a more severe "Expired"), the system-font-stack choice (no external font load, matches the "no UI library" tech-stack decision), and the accessibility touches (visible focus outlines, one mobile breakpoint). Recorded as implementation notes in `decisions.md`.
+
+**Verified before accepting:** `tsc -b --force` and `eslint` both pass clean.
+
+**Not yet verified:** hasn't been opened in a real browser — CSS parsing clean isn't the same as the layout actually looking right. Logged as open in `09-iteration-log.md`.
