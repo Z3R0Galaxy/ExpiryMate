@@ -437,6 +437,17 @@ html, body {
 }
 
 .item-card:hover {
+  /* Explicit background-color here isn't just a nice touch — without it,
+   * the global `button:hover { background-color: var(--color-primary-hover) }`
+   * rule in index.css (buttons are green/teal by default) wins the cascade,
+   * because .item-card itself only sets background-color at its base state,
+   * not on :hover, so `button:hover`'s higher-specificity, hover-scoped
+   * declaration takes over. That turned every card into a bright teal
+   * block on hover (especially jarring in dark mode) with text that was
+   * never designed to sit on that colour. Setting it explicitly here keeps
+   * the card's own surface tone and lets the existing lift + shadow do all
+   * the "you're hovering this" work instead. */
+  background-color: var(--color-surface-alt);
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgb(0 0 0 / 0.07), 0 8px 24px rgb(0 0 0 / 0.07);
 }
@@ -813,6 +824,18 @@ html, body {
    * comfortably fit two per line rather than dropping to one. */
   .item-list {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  /* .item-search's base rule is `flex: 1 1 200px`, written for the desktop
+   * toolbar where flex-direction is row — there, 200px is a sensible
+   * minimum *width*. Once .item-toolbar switches to flex-direction: column
+   * below, that same flex-basis applies to the main axis, which is now
+   * vertical, so the search box was stretching to a 200px-tall empty box
+   * instead of a normal single-line input. Resetting the basis to auto
+   * lets it size to its content's height again; align-items: stretch on
+   * .item-toolbar (below) still makes it fill the full width. */
+  .item-search {
+    flex-basis: auto;
   }
 
   .item-modal {
