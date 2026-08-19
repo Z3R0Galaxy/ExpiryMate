@@ -508,6 +508,13 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('status')
   const [storageFilter, setStorageFilter] = useState<StorageLocation | 'all'>('all')
   const [categoryFilter, setCategoryFilter] = useState<FoodCategory | 'all'>('all')
+  // Collapses the 3 filter selects + the sort-mode toggle behind a single
+  // "Filters" disclosure button on phone-width screens, where showing all
+  // four full-width in a row (or stacked) ate a lot of vertical space above
+  // the fold. Desktop ignores this entirely (see .item-toolbar-filters'
+  // `display: contents` base rule in App.css) — the row layout there
+  // already had room for everything, so there's nothing to collapse.
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<BadgeStatus | 'all'>('all')
   const [search, setSearch] = useState('')
 
@@ -624,6 +631,12 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
 
   const expandedItem = items.find(i => i.id === expandedId) ?? null
 
+  // Only counts the 3 selects tucked behind the "Filters" disclosure — the
+  // sort-mode toggle isn't a filter (it never hides items), and search has
+  // its own always-visible box, so neither belongs in this count.
+  const activeFilterCount = [storageFilter, categoryFilter, statusFilter]
+    .filter(value => value !== 'all').length
+
   return (
     <>
       <div className="item-toolbar">
@@ -635,48 +648,74 @@ export function ItemList({ items, loading, onUpdate, onDelete }: Props) {
           onChange={e => setSearch(e.target.value)}
           aria-label="Search items by name"
         />
-        <select
-          aria-label="Filter by storage location"
-          value={storageFilter}
-          onChange={e => setStorageFilter(e.target.value as StorageLocation | 'all')}
+
+        {/* Phone-only disclosure button — hidden on desktop, where
+         * .item-toolbar-filters below renders inline via `display: contents`
+         * and this toggle never needs to be shown or clicked at all. */}
+        <button
+          type="button"
+          className="filters-toggle"
+          onClick={() => setFiltersOpen(o => !o)}
+          aria-expanded={filtersOpen}
+          aria-controls="item-filters-panel"
         >
-          <option value="all">All storage</option>
-          {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select
-          aria-label="Filter by category"
-          value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value as FoodCategory | 'all')}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 6h16M8 12h8M11 18h2" />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && <span className="filters-count">{activeFilterCount}</span>}
+          <svg className="filters-toggle-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        <div
+          id="item-filters-panel"
+          className={`item-toolbar-filters${filtersOpen ? ' is-open' : ''}`}
         >
-          <option value="all">All categories</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select
-          aria-label="Filter by status"
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value as BadgeStatus | 'all')}
-        >
-          <option value="all">All statuses</option>
-          <option value="fresh">Fresh</option>
-          <option value="soon">Expiring soon</option>
-          <option value="expired">Expired</option>
-          <option value="warning">Unsafe</option>
-        </select>
-        <div className="sort-toggle" role="group" aria-label="Sort by">
-          <button
-            type="button"
-            className={sortMode === 'status' ? 'active' : ''}
-            onClick={() => setSortMode('status')}
+          <select
+            aria-label="Filter by storage location"
+            value={storageFilter}
+            onChange={e => setStorageFilter(e.target.value as StorageLocation | 'all')}
           >
-            By status
-          </button>
-          <button
-            type="button"
-            className={sortMode === 'place' ? 'active' : ''}
-            onClick={() => setSortMode('place')}
+            <option value="all">All storage</option>
+            {STORAGE_LOCATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select
+            aria-label="Filter by category"
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value as FoodCategory | 'all')}
           >
-            By place
-          </button>
+            <option value="all">All categories</option>
+            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select
+            aria-label="Filter by status"
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value as BadgeStatus | 'all')}
+          >
+            <option value="all">All statuses</option>
+            <option value="fresh">Fresh</option>
+            <option value="soon">Expiring soon</option>
+            <option value="expired">Expired</option>
+            <option value="warning">Unsafe</option>
+          </select>
+          <div className="sort-toggle" role="group" aria-label="Sort by">
+            <button
+              type="button"
+              className={sortMode === 'status' ? 'active' : ''}
+              onClick={() => setSortMode('status')}
+            >
+              By status
+            </button>
+            <button
+              type="button"
+              className={sortMode === 'place' ? 'active' : ''}
+              onClick={() => setSortMode('place')}
+            >
+              By place
+            </button>
+          </div>
         </div>
       </div>
 

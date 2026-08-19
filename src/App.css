@@ -295,6 +295,21 @@ html, body {
   width: auto;
 }
 
+/* Filters disclosure — exists only for the phone layout. On a wide screen
+ * the toggle button stays hidden and .item-toolbar-filters uses
+ * `display: contents`, which makes the wrapper itself invisible to layout
+ * so its children (the 3 selects + sort toggle) act as if they were direct
+ * children of .item-toolbar — i.e. the desktop row looks exactly as it did
+ * before this wrapper existed. The mobile media query below is what
+ * actually turns this into a collapsible panel. */
+.filters-toggle {
+  display: none;
+}
+
+.item-toolbar-filters {
+  display: contents;
+}
+
 .sort-toggle {
   display: flex;
   margin-left: auto;
@@ -849,6 +864,62 @@ html, body {
   .item-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  /* The 3 filter selects + sort toggle used to render as 4 separate
+   * full-width rows stacked under the search box — a lot of vertical space
+   * spent before a single item card was visible. Below 560px they're
+   * tucked behind this disclosure button instead; .item-toolbar-filters
+   * (display: contents on desktop, see above) becomes a real flex column
+   * here, hidden until .is-open is toggled on. */
+  .filters-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    font-weight: 600;
+  }
+
+  .filters-toggle:hover {
+    background-color: var(--color-surface-alt);
+  }
+
+  .filters-toggle-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .filters-toggle[aria-expanded='true'] .filters-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .filters-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .item-toolbar-filters {
+    display: none;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .item-toolbar-filters.is-open {
+    display: flex;
   }
 
   .item-toolbar select {
