@@ -257,3 +257,35 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Accepted:** the file move and doc update, committed. The repair commands were handed to the user to run themselves, since this sandboxed session has no Supabase CLI credentials to run them directly.
 
 **Verified before accepting:** read every migration file's actual SQL directly (not assumed from filenames) to confirm which are/aren't idempotent and which enums/columns/policies each one touches, before concluding the replay would fail.
+
+## 18/8/26 (Migration repair completed, GitHub integration connected)
+
+**Prompt:** a series of terminal screenshots as the user ran the prepared `supabase migration repair` command locally — first showing it stuck at "Initialising login role...", then a clearer error asking for `SUPABASE_DB_PASSWORD`, then the user pasting their actual database password directly into chat and asking Claude to "work that in."
+
+**Response:** flagged the pasted password as now sitting in plaintext in the chat and recommended rotating it via Settings → Database once unblocked, then gave a `read -s SUPABASE_DB_PASSWORD` / `export SUPABASE_DB_PASSWORD` command specifically so the password would be entered without also landing in the user's shell history. When the next screenshot showed a new error — a connection timeout to the pooler host, not a login failure — diagnosed it as a network-level block (common on school/work wifi that only allows web ports) rather than a Supabase or credentials problem, confirmed with a plain `nc -zv` port check the user ran against 5432 and 6543 (both timed out), and suggested switching networks. That resolved it: `supabase migration list` then showed the intended end state exactly (4 migrations repaired/applied, the index migration still correctly pending), and the user finished connecting Supabase's GitHub "Deploy to production" integration.
+
+**Accepted:** the repair result and the completed integration setup, confirmed safe by checking `migration list`'s output against the expected 4-applied/1-pending state before saying so.
+
+**Verified before accepting:** read the actual `migration list` table output (Local vs Remote columns) rather than assuming success from the command exiting cleanly.
+
+**Not yet done:** the user's database password was typed into a terminal and pasted into chat during this troubleshooting; rotating it via Settings → Database was recommended more than once but hasn't been confirmed as done.
+
+## 18/8/26 (Card hover contrast + mobile search box sizing)
+
+**Prompt:** "when you hover the mouse over a card the card changes to a really bright color that makes its hard to read. please change this to a better color that keeps the correct contrast" and, in the same message, "the website looks great on a laptop but not on a phone. please change this."
+
+**Response:** rather than guessing at a fix, cloned the actual repo into a disposable local sandbox and built a throwaway preview page rendering the real `ItemList`/`AddItemForm`/`ExpiryBanner` components with fake in-memory data (no Supabase login needed). Used Playwright to screenshot and interact with it at both desktop and phone viewport widths, in both themes — reproducing both bugs exactly as described before touching any code. Root-caused bug 1 to a global `button:hover` background rule in `index.css` overriding `.item-card`'s own background because the card's `:hover` state never set one itself; root-caused bug 2 to `.item-search`'s `flex: 1 1 200px` (a sensible width-basis on the desktop row layout) governing *height* instead once the mobile toolbar switches to `flex-direction: column`. Fixed both with small, targeted CSS additions to `App.css` — an explicit hover background on `.item-card:hover`, and a `flex-basis: auto` override for `.item-search` inside the existing mobile media query — then re-ran the same screenshots to confirm both fixes visually and confirmed desktop was pixel-identical to before.
+
+**Accepted:** both fixes as delivered and pushed.
+
+**Verified before accepting:** actual before/after screenshots (not just passing `tsc`/`eslint`) — the first time in this project a UI change was visually confirmed rather than only compiled and linted, made possible by building a disposable local preview since this sandbox can't log into the live Supabase-backed app directly.
+
+## 18/8/26 (Mobile filters collapsed behind a disclosure button)
+
+**Prompt:** a phone screenshot of the live app showing the search box followed by three filter dropdowns and the sort-mode toggle, each a full-width row — "can you make it so the 4 sorting lists can be folded into one tab that can be opened to show all of them. do this with the aim to clean up the ui."
+
+**Response:** wrapped the three selects and the sort toggle in a single `.item-toolbar-filters` div preceded by a `.filters-toggle` disclosure button (filter icon, label, active-filter-count badge, chevron). Used a pure-CSS split rather than a JS resize listener: the wrapper is `display: contents` and the toggle is `display: none` by default, so desktop renders exactly as before (the wrapper is invisible to layout); only inside the existing mobile media query does the toggle become visible and the wrapper become a real collapsible column. Search stays outside the wrapper, always visible.
+
+**Accepted:** the collapsed-by-default panel with a count badge, no clarifying question needed — a direct implementation of what was described, within the app's existing visual language.
+
+**Verified before accepting:** using the same disposable Playwright preview from the previous fix — screenshotted closed, open, and with a filter active (badge shows the count, panel re-collapses correctly), in both themes, plus confirmed desktop stayed pixel-identical. `tsc -b --force` and `eslint` both pass clean.
