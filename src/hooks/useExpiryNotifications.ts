@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Item } from './useItems'
 import { computeStatusInfo } from '../lib/itemStatus'
+import { formatNameList } from '../lib/formatNameList'
 
 export interface ExpiringItem {
   id: string
@@ -61,9 +62,7 @@ export function useExpiryNotifications(items: Item[], loading: boolean) {
       const title = expiringItems.length === 1
         ? '1 item needs attention — ExpiryMate'
         : `${expiringItems.length} items need attention — ExpiryMate`
-      const body = names.length <= 5
-        ? names.join(', ')
-        : `${names.slice(0, 5).join(', ')} and ${names.length - 5} more`
+      const body = formatNameList(names)
 
       new Notification(title, { body })
     }

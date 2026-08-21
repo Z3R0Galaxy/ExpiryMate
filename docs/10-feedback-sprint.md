@@ -141,12 +141,52 @@ actually lands in the intended bucket rather than just looking plausible. See
 `decisions.md`, "Feedback Sprint database seed" for the full approach and the
 real bugs this two-way check caught before the file was finalised.
 
-**Not yet run.** Like every migration on this project, this needs to be run by
-hand in the Supabase SQL Editor against the live project — it hasn't been
-run yet as of writing this. The script includes a commented-out `delete from
-items where user_id = ...` line for clearing this account's existing test
-items first, for anyone who wants a clean ~135-item dataset rather than this
-seed landing on top of whatever's already in the account.
+**Run.** Confirmed run by hand in the Supabase SQL Editor against the live
+project. The script's commented-out `delete from items where user_id = ...`
+cleanup line was left as-is (not needed/used) — the seed landed on top of
+whatever was already in the account.
+
+**Account mismatch found and fixed.** After the real UI was built, none of
+the seeded items actually showed up in the app. Turned out both this seed
+and the original Slice 1 `seed.sql` had been written against a different
+account of the user's than the one signed into the app — the insert
+succeeded, but Row Level Security correctly hid every row from the account
+being used to check it. Fixed with a single `update` re-parenting all 155
+previously-inserted rows onto the correct account (rather than re-running
+either seed and duplicating the data), and corrected the hardcoded UUID in
+both seed files. See `decisions.md`, "Feedback Sprint seed account
+mismatch," for the full diagnosis and fix.
+
+## Real UI build
+
+With the seed run, `App.tsx`/`ItemList.tsx` were rewritten and two new
+components (`Dashboard`, `PlaceDashboard`) added, matching the wireframe's
+agreed structure: a Dashboard landing page, a scoped PlaceDashboard per
+storage location, and the full item list (now with a card/table view toggle
+and a single flat urgency sort, no more grouped sections) reached
+deliberately from either. Full reasoning for every decision made while
+building this — dropping the old grouped-sections UI, reusing the existing
+item modal for table rows instead of a new inline expand-row, the new
+"Needs attention" filter, dropping the table header's stickiness, and the
+validated storage-location colour palette — is in `decisions.md`, "Feedback
+Sprint: real UI build."
+
+Built and verified in a disposable sandbox with its own `npm ci`: `tsc -b
+--force`, `eslint .`, and `npm run build` all pass clean. Beyond that, a
+disposable Playwright harness rendered the real components against a
+~120-item generated dataset and screenshotted the whole flow — dashboard
+(light + dark), place-dashboards, both list views, every breadcrumb depth,
+and the full mobile flow (including tapping a table row to confirm it opens
+the existing modal) — with zero console/page errors. One real bug was
+caught and fixed this way: a status pill's `white-space: nowrap` fought the
+mobile table's column width and pushed "Expiring soon" off the edge instead
+of wrapping.
+
+**Not yet done:** confirming the real, Supabase-connected app renders
+correctly against the actual live 135-item seeded dataset — the Playwright
+pass above used a generated mock dataset in an isolated harness, not the
+real account's data, since this sandboxed session has no Supabase
+credentials to check that directly.
 
 ## Plan of attack
 
@@ -162,8 +202,8 @@ seed landing on top of whatever's already in the account.
 
 - [x] Rough wireframe built
 - [x] Wireframe reviewed and agreed
-- [ ] Database seeded
-- [ ] Real UI built
+- [x] Database seeded
+- [x] Real UI built
 - [ ] Integrated and verified against seeded data
 
 AI use for this sprint is logged in `ai-use-log.md` under the same date, and each

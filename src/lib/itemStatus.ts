@@ -26,13 +26,20 @@ export const STATUS_CLASS: Record<BadgeStatus, string> = {
 export interface StatusInfo {
   result: AdjustedExpiryResult
   badgeStatus: BadgeStatus
+  /** Signed days remaining (negative = past due), or null for a 'warning'
+   * item that has no adjusted date at all. countdownValue below is the
+   * unsigned display version of this — daysRemaining is what sorting/
+   * ranking logic (see ../lib/dashboardStats.ts) actually needs, since it
+   * has to distinguish "3 days left" from "3 days ago" rather than treat
+   * both as the same magnitude. */
+  daysRemaining: number | null
   countdownValue: number | null
   countdownLabel: string | null
 }
 
 /** Plain function, not a hook — cheap enough to call per item; callers that
  * need it for a whole list should memoise the mapped array themselves,
- * keyed on the `items` reference (see ItemList's `itemsWithStatus`). */
+ * keyed on the `items` reference (see ../hooks/useItemsWithStatus.ts). */
 export function computeStatusInfo(item: Item): StatusInfo {
   const result = getAdjustedExpiry({
     category: item.category,
@@ -50,5 +57,5 @@ export function computeStatusInfo(item: Item): StatusInfo {
     ? null
     : `day${countdownValue === 1 ? '' : 's'} ${isPast ? 'ago' : 'left'}`
 
-  return { result, badgeStatus, countdownValue, countdownLabel }
+  return { result, badgeStatus, daysRemaining, countdownValue, countdownLabel }
 }

@@ -91,49 +91,263 @@ html, body {
   text-decoration: underline;
 }
 
-/* App shell — full width on a desktop screen, comfortable max-width for
- * the content grid so text/cards don't stretch absurdly wide on an
- * ultrawide monitor, single column on a phone. --------------------------- */
+/* Password visibility toggle (25/8/26) — an eye/eye-off icon button
+ * inset into the password field's right edge, same visual language as
+ * the search field's inset icon. The button itself needs its background/
+ * border reset since it's a real <button>, which would otherwise pick up
+ * the global primary-coloured button styling. */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: none;
+}
+
+.password-toggle:hover {
+  background-color: transparent;
+  color: var(--color-text);
+}
+
+/* App shell — a persistent left sidebar plus a main content column
+ * (Feedback Sprint, 21/8/26 reference-matched redesign), replacing the
+ * old top app-header. Comfortable max-width inside the content column so
+ * text/cards don't stretch absurdly wide on an ultrawide monitor, single
+ * column with the sidebar collapsed to a top bar on a phone (see the
+ * responsive section below). --------------------------------------------- */
 
 .app-shell {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
 }
 
-.app-header {
+/* Brand mark — a small coloured badge reusing the same leaf glyph as the
+ * Produce category icon (components/icons.tsx) and the favicon, so the
+ * wordmark has a real, consistent visual identity behind it rather than
+ * being plain text next to a set of controls. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Sidebar — profile block, primary nav, theme/sign-out footer. Always the
+ * dark navy tokens defined in index.css, independent of [data-theme]. --- */
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
   position: sticky;
   top: 0;
-  z-index: 10;
-  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem 1.1rem;
+  background-color: var(--color-sidebar-bg);
+  color: var(--color-sidebar-text);
+  transition: width 0.2s var(--ease);
+}
+
+/* Collapsed (25/8/26) — a user-toggled desktop state (see Sidebar.tsx),
+ * separate from the below-900px responsive collapse. Icons stay, every
+ * text label is simply not rendered (rather than hidden with CSS) so
+ * there's nothing left in the layout to squeeze or overflow. */
+.sidebar.collapsed {
+  width: 76px;
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+}
+
+.sidebar-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem clamp(1rem, 4vw, 3rem);
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  gap: 0.5rem;
 }
 
-.app-header-actions {
+.sidebar.collapsed .sidebar-top {
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sidebar-collapse-toggle {
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-}
-
-.sign-out {
+  justify-content: center;
+  border-radius: 50%;
   background-color: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  color: var(--color-sidebar-text-muted);
+  border: 1px solid var(--color-sidebar-border);
 }
 
-.sign-out:hover {
-  background-color: var(--color-surface-alt);
-  color: var(--color-text);
+.sidebar-collapse-toggle:hover {
+  background-color: var(--color-sidebar-surface);
+  color: var(--color-sidebar-text);
+}
+
+.sidebar.collapsed .sidebar-profile {
+  justify-content: center;
+  padding: 0.6rem;
+}
+
+.sidebar.collapsed .sidebar-nav-item,
+.sidebar.collapsed .sidebar-footer-button {
+  justify-content: center;
+}
+
+.sidebar-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-sidebar-text);
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 0.75rem;
+  background-color: var(--color-sidebar-surface);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.sidebar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sidebar-profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.sidebar-profile-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-profile-email {
+  font-size: 0.75rem;
+  color: var(--color-sidebar-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background-color: transparent;
+  color: var(--color-sidebar-text-muted);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-align: left;
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.sidebar-nav-item svg {
+  flex-shrink: 0;
+}
+
+.sidebar-nav-item:hover {
+  background-color: var(--color-sidebar-surface);
+  color: var(--color-sidebar-text);
+}
+
+.sidebar-nav-item.active {
+  background-color: var(--color-sidebar-active);
+  color: var(--color-sidebar-text);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-sidebar-border);
+}
+
+.sidebar-footer-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background-color: transparent;
+  color: var(--color-sidebar-text-muted);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-align: left;
+  transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.sidebar-footer-button:hover {
+  background-color: var(--color-sidebar-surface);
+  color: var(--color-sidebar-text);
 }
 
 .app-main {
   flex: 1;
+  min-width: 0;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -141,6 +355,666 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+}
+
+/* Only on the two dashboard views (see App.tsx) — UI feedback pass seven,
+ * 21/8/26. This is the actual anchor the "fill the whole screen" chain
+ * below (`.dash-grid`, `.dash-charts-row`, `.chart-card`/`.attention-card`,
+ * `.donut-row`/`.bar-chart`/`.attention-panel-content`/`.attention-list`,
+ * all `flex: 1; min-height: 0`) depends on — confirmed empirically with a
+ * Playwright harness that `.app-shell`'s `min-height: 100vh` alone is
+ * NOT a definite height for flexbox/grid purposes (a minimum is a floor,
+ * not something a descendant can be sized against), so without this the
+ * whole flex-basis-0 chain has nothing definite to distribute and every
+ * level just grows to fit its content's full natural size instead — which
+ * is exactly the "list keeps growing, page scrolls, panel never scrolls
+ * internally" bug this was meant to fix. `height: 100vh` here is a real,
+ * definite value the chain can actually stretch against. `overflow-y:
+ * auto` is a defensive backstop, not the intended scroll surface — the
+ * design goal is that `.attention-list` is the only thing that actually
+ * needs to scroll; this only kicks in if something unexpectedly doesn't
+ * fit (e.g. an unusually short window). Reverted below 900px, where
+ * `.dash-grid` and friends already fall back to their natural
+ * content-driven sizing (see that breakpoint's comment). */
+.app-main-fill {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Page heading — replaces the old multi-level "Dashboard › Fridge ›
+ * All items" breadcrumb trail (25/8/26): one plain-text title for what
+ * the user is looking at, plus one always-the-same "Home" button to get
+ * back, instead of a chain of clickable segments to parse. Sits above the
+ * place-dashboard/list content only — the dashboard itself has nowhere to
+ * go "back" to, so it renders neither. -------------------------------- */
+
+.page-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.back-home-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.back-home-button:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.page-heading-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Dashboard / place-dashboard — the landing page and its per-place summary.
+ * Ports the structure agreed in the wireframe (docs/wireframes/
+ * feedback-sprint-dashboard-wireframe.html): stat tiles, a status/storage
+ * donut pair, and a needs-attention panel. ---------------- */
+
+/* Capped and centred (UI feedback pass four, 21/8/26) — `.app-main` already
+ * caps at 1400px, but that's wider than the space actually left once the
+ * sidebar takes its share, so on a wide monitor the dashboard's cards used
+ * to stretch edge-to-edge with no breathing room on either side. A tighter
+ * max-width centred with `margin: 0 auto` keeps the cards a comfortable
+ * reading width and visually centred in the remaining space instead of
+ * pinned to it. Scoped to the dashboard grids specifically, not
+ * `.app-main` itself — ItemList's table/toolbar genuinely wants the full
+ * available width. */
+.dash-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  /* Fills `.app-main`'s full available height on desktop (UI feedback pass
+   * seven, 21/8/26) — `.app-main` gets a definite height from the flex
+   * stretch chain rooted at `.app-shell` (see its own comment), and since
+   * `.dash-grid` is `.app-main`'s only child on the dashboard, `flex: 1`
+   * lets it claim all of that instead of only its own content height,
+   * which is what let the charts/attention row end short with blank page
+   * background below it. Reset to `flex: none` below 900px, where
+   * `.app-shell` itself switches to a column layout (sidebar on top) and
+   * this whole fill-the-screen mechanism no longer applies. */
+  flex: 1;
+  min-height: 0;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.75rem;
+}
+
+/* Stat tiles — fixed 21/8/26 (Feedback Sprint) to sit flush against each
+ * other with no gap, matching the reference: the row itself is now the
+ * single card (background/radius/shadow, clipped with overflow:hidden so
+ * the tiles' square corners don't poke past the row's rounded ones), and
+ * each tile is separated from its neighbour by a hairline border instead
+ * of a margin. See docs/decisions.md. */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  /* Fixes a real bug from UI feedback pass seven (21/8/26): once `.dash-
+   * grid` got a flex-basis-0 sibling (`.dash-charts-row`/`.attention-card`,
+   * both `flex: 1`) inside a now height-constrained parent, this row —
+   * being the one sibling with a normal (auto) flex-basis — absorbed 100%
+   * of any shortfall between the two, and because `overflow: hidden` (set
+   * above, for the rounded-corner clipping trick) disables a flex item's
+   * usual "never shrink below your own content" protection, the browser
+   * was free to squash this row well below the stat tiles' real content
+   * height instead of just giving the attention panel less room — clipping
+   * the tile numbers, confirmed happening at every viewport height tested,
+   * not just short ones. `flex-shrink: 0` pins this row to its natural
+   * content height unconditionally, so any shortfall lands on the flexible
+   * sibling (which can shrink safely) instead of here. */
+  flex-shrink: 0;
+}
+
+/* Stat tiles are real <button>s (25/8/26 — clicking one jumps to that
+ * status's items), so this resets everything the global `button` rule in
+ * index.css would otherwise impose (background colour, border, centred
+ * text, pointer) back to how a plain tile should look. `.stat-total`
+ * below still wins the background-colour fight since it's a later rule of
+ * equal specificity. */
+.stat-tile {
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.12s var(--ease), box-shadow 0.12s var(--ease);
+}
+
+.stat-tile:last-child {
+  border-right: none;
+}
+
+/* First/last tile get the row's own corner radius (UI feedback pass four,
+ * 21/8/26) — previously only `.stat-row`'s `overflow: hidden` rounded
+ * their visible outer corners, while the tile's own box (and anything
+ * drawn relative to it, like `.stat-tile-active`'s ring below) stayed a
+ * plain rectangle. A ring inset into a rectangular box doesn't follow a
+ * rounding applied only by an ancestor's clip, so it read as a square
+ * corner sitting inside a rounded one. Setting the radius directly on the
+ * tile itself means any box-shadow on it — hover, active, both — actually
+ * curves at the same two corners the card as a whole does. */
+.stat-row .stat-tile:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.stat-row .stat-tile:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* Hover feedback stays inside the tile's own box — no transform/translate
+ * here (UI feedback pass four, 21/8/26). The tiles sit flush against each
+ * other with no gap in between (see `.stat-row`), so lifting one on hover
+ * used to visibly separate it from the row and reveal the page background
+ * in the gap underneath, with `.stat-tile-active`'s ring dragged along
+ * with it — a background colour change plus a small scale on the number
+ * itself (see `.stat-value` below) gives the same "you're hovering this"
+ * feedback without moving the tile out of the flow it's flush against. */
+.stat-tile:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.stat-tile:hover .stat-value {
+  transform: scale(1.08);
+}
+
+/* Marks whichever tile currently has its AttentionPanel expanded below
+ * (UI feedback pass three, 21/8/26) — an inset ring in the tile's own
+ * accent colour, so the "this is what's currently shown" state reads
+ * clearly without needing to re-read the panel's title every time. */
+.stat-tile-active {
+  background-color: var(--color-surface-alt);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.stat-total.stat-tile-active {
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.stat-value {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  transform-origin: left center;
+  transition: transform 0.15s var(--ease);
+}
+
+.stat-soon .stat-value { color: var(--color-soon-text); }
+.stat-expired .stat-value { color: var(--color-expired-text); }
+.stat-warning .stat-value { color: var(--color-warning-text); }
+
+/* The "hero" tile — a single accent tile among otherwise-neutral ones,
+ * matching the reference's dark "Earning" tile. Total items is the one
+ * number every other stat tile is a slice of, so it reads naturally as
+ * the tile that gets the emphasis treatment. */
+.stat-total {
+  background-color: var(--color-primary);
+  border-right-color: rgb(255 255 255 / 0.25);
+}
+
+.stat-total:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.stat-total .stat-label,
+.stat-total .stat-value {
+  color: #fff;
+}
+
+/* Charts row — revised 25/8/26 so the donut and bar-chart cards stack in
+ * their own column instead of sitting as two equal grid tracks beside the
+ * (usually taller) needs-attention card. A flat 3-column grid left a
+ * visible band of empty page background under the two shorter cards; two
+ * short cards stacked roughly matches one tall card's height instead,
+ * which is what actually closes that gap rather than just relocating it.
+ * See docs/decisions.md. */
+/* `align-items: stretch` (UI feedback pass seven, 21/8/26, replacing the
+ * earlier `start`) plus `flex: 1` on `.dash-grid` above are what actually
+ * fill the screen: this row now takes all the vertical room `.dash-grid`
+ * has, and `stretch` makes both grid tracks (the charts column and the
+ * attention card) match that same full height, instead of each sizing to
+ * its own content and leaving the shorter one's card padded out with dead
+ * page background. Reset in the 900px breakpoint below, where the grid
+ * drops to one column and the two tracks stack instead of sitting side by
+ * side. */
+.dash-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.dash-charts-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Once `.dash-charts-row` stretches this column to the attention card's
+ * full height (above), each chart card claims an equal half of it via
+ * `flex: 1` rather than sitting at its natural content height with the
+ * leftover room left blank underneath — see `.donut-row`'s and
+ * `.bar-chart`'s own `flex: 1` below for how each card's actual chart
+ * content then fills that claimed height instead of just padding around
+ * a fixed-size chart. */
+.dash-charts-col .chart-card {
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-card,
+.attention-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.1rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* `justify-content: space-between` (UI feedback pass six, 21/8/26) pushes
+ * the legend out to the card's right edge instead of letting it sit right
+ * next to the ring with a big block of unused card width beyond it — the
+ * ring anchors the left edge (`.donut-shape` has `flex-shrink: 0` below),
+ * the legend anchors the right, and the card's own width is what fills the
+ * gap between them, the same way the bar chart's columns already stretch
+ * to fill their card edge-to-edge. See `decisions.md`. */
+.donut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1.25rem;
+  /* Grows to fill `.chart-card`'s now-taller box (UI feedback pass seven,
+   * 21/8/26) — the ring itself stays a fixed size (`size` is a plain
+   * pixel prop on Donut, not something CSS should stretch/distort), but
+   * `align-items: center` above then centres it and the legend within
+   * whatever extra height this row claims, rather than leaving that
+   * height as blank space below them. */
+  flex: 1;
+}
+
+.donut-shape {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* The punched-out centre (Feedback Sprint, 21/8/26) — turns the ring into
+ * a real donut, with the real segment total shown inside rather than a
+ * decorative gap. Matches the card's own surface colour so it reads as a
+ * hole rather than an inner swatch. Revised UI feedback pass four,
+ * 21/8/26: the ring itself is now a real SVG (see Donut.tsx) instead of a
+ * CSS conic-gradient div, so the old flat `.donut` rule that sized that
+ * div is gone — `.donut-shape` (still below) is the only wrapper needed
+ * now, sizing both the `<svg>` and this hole together. */
+.donut-hole {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+/* Wraps whichever pair of value/label spans is currently showing (the
+ * running total, or a hovered segment's own count) so the AnimatePresence
+ * crossfade in Donut.tsx has one element to fade in/out — without this,
+ * the two spans would lay out one after another rather than stacked in
+ * place. */
+.donut-hole-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-hole-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.donut-hole-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.donut-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.35rem;
+  margin: 0 -0.35rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease);
+}
+
+/* Mirrors whichever ring segment is hovered (or this row itself is
+ * hovered) — Donut.tsx links the two through one `hovered` key, so
+ * pointing at either the ring or the legend highlights both (UI feedback
+ * pass four, 21/8/26). */
+.donut-legend-row-active {
+  background-color: var(--color-surface-alt);
+}
+
+.donut-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.donut-legend-count {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bar chart — added 21/8/26 (Feedback Sprint) to replace the dashboard's
+ * second donut; see BarChart.tsx for why a bar is the right form here.
+ * Redesigned UI feedback pass four, 21/8/26 to match the same polish as
+ * the Donut rewrite: a recessive background rail behind each bar (so the
+ * empty part of even the shortest bar still reads as "part of the
+ * chart", not blank card background — dataviz skill's recessive-grid
+ * rule), a baseline rule under all the bars, rounded top corners and a
+ * direct value label above each bar (dataviz skill's mark spec), and a
+ * hover layer: pointing at one bar (or its own tooltip) dims the others
+ * slightly and scales up its value label, the same "point at one, the
+ * rest recede" interaction the Donut's ring/legend pair already uses. */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  /* Was a fixed 160px (UI feedback pass seven, 21/8/26) — now grows to
+   * fill whatever height `.chart-card` has claimed, with a floor so the
+   * plot never gets so short the bars read as flat. `.bar-chart-col`'s
+   * own `height: 100%` (below) is what turns this into taller bars rather
+   * than just a taller empty margin above them — each bar's `heightPct`
+   * is still a plain CSS percentage computed in `BarChart.tsx`. */
+  flex: 1;
+  min-height: 120px;
+  padding-top: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bar-chart-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease);
+}
+
+.bar-chart-col-dimmed {
+  opacity: 0.45;
+}
+
+.bar-chart-value {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transform-origin: center bottom;
+}
+
+.bar-chart-track {
+  flex: 1;
+  width: 100%;
+  max-width: 46px;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--color-surface-alt);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+/* Was a flat `backgroundColor` (UI feedback pass seven, 21/8/26) — this
+ * reads as a richer, more "designed" bar without touching the underlying
+ * `--color-place-*` hues, which are already the dataviz skill's validated
+ * 3-series reference palette (confirmed byte-identical to
+ * references/palette.md) and shouldn't be swapped for different colours
+ * just to look "nicer" — that would trade away their confirmed
+ * colourblind/contrast separation. `color-mix()` derives a lighter top and
+ * darker bottom stop from `--bar-color` (set inline per-segment in
+ * BarChart.tsx) at render time, so it works whether that value is a
+ * literal hex or a `var(--color-place-*)` reference. The baseline (bottom)
+ * corner stays square per the skill's mark spec — only the far end is
+ * rounded — so `border-radius` only touches the top here, matching
+ * `.bar-chart-track` above. `filter: brightness()` on hover (rather than a
+ * box-shadow glow) is what's safe under the track's `overflow: hidden`:
+ * a shadow would just get clipped, but a filter doesn't expand the paint
+ * area. */
+.bar-chart-fill {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bar-color) 82%, white),
+    var(--bar-color) 60%,
+    color-mix(in srgb, var(--bar-color) 88%, black)
+  );
+  transition: filter 0.15s var(--ease);
+}
+
+.bar-chart-col:hover .bar-chart-fill {
+  filter: brightness(1.08);
+}
+
+.bar-chart-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* Scrolls internally instead of being truncated with "and N more" (UI
+   * feedback pass seven, 21/8/26) — now that `.attention-card` fills a
+   * fixed full-screen height (see `.dash-charts-row`/`.chart-card` above)
+   * rather than growing to fit its content, a long list needs somewhere
+   * to go; `flex: 1` claims the space `.attention-panel-content` (below)
+   * isn't using for its header/footer, and `min-height: 0` is required
+   * for `overflow-y: auto` to actually kick in inside a flex column
+   * instead of the list just pushing the card taller. */
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 0.25rem;
+}
+
+/* Wraps each AnimatePresence state's content (the default "needs
+ * attention" list and the "selected status" list) so it fills the card's
+ * full height as a flex column: title/header stays put, `.attention-list`
+ * (above) takes the middle and scrolls, and `.view-all-button` stays
+ * pinned at the bottom rather than scrolling out of view (UI feedback
+ * pass seven, 21/8/26). */
+.attention-panel-content {
+  display: flex;
+  flex-direction: column;
+  /* `flex: 1` here, not `height: 100%` (fixed after empirically testing
+   * this in a Playwright harness, UI feedback pass seven, 21/8/26) — a
+   * percentage height only resolves once its ancestor (`.attention-card`)
+   * has a DEFINITE height, but that's exactly what's still being computed
+   * during the flexbox "hypothetical size" pass this sits inside; when it
+   * can't resolve, `height: 100%` falls back to content-based sizing,
+   * which let this (and the `.attention-list` inside it) grow to fit every
+   * row instead of stretching to a fixed height and scrolling — the whole
+   * page grew instead of the list. `flex: 1` (implying `flex-basis: 0%`)
+   * plus `min-height: 0` participates in the same flex-basis-0 chain as
+   * every other link (`.dash-grid`, `.dash-charts-row`, `.chart-card`,
+   * `.donut-row`), which is what lets the stretch propagate correctly. */
+  flex: 1;
+  min-height: 0;
+}
+
+/* Rows are real buttons now (UI feedback pass four, 21/8/26) — clicking
+ * one opens the same ItemDetailModal a card/table row in ItemList does,
+ * so the visual styling that used to live on the plain `<li>` moved onto
+ * this button, reset from the global `button` defaults the same way
+ * `.stat-tile` and `.item-card` already are. */
+.attention-row-button {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  background-color: var(--color-surface-alt);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.12s var(--ease), box-shadow 0.12s var(--ease);
+}
+
+.attention-row-button:hover {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow);
+}
+
+.attention-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.attention-days {
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.attention-days-soon { color: var(--color-soon-text); }
+.attention-days-expired { color: var(--color-expired-text); }
+.attention-days-warning { color: var(--color-warning-text); }
+
+.empty-note {
+  padding: 1rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* AttentionPanel's expanded (status-selected) state — added UI feedback
+ * pass three, 21/8/26. The header pairs the panel's title with a small
+ * close button (reuses `.icon-button`, just sized down) that collapses
+ * back to the default "Needs attention" list. */
+.attention-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.attention-panel-header .section-title {
+  margin-bottom: 0;
+}
+
+.attention-panel-close {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
+/* A proper bordered button with a trailing arrow icon, not an underlined
+ * text link (25/8/26) — a link styled like an afterthought reads as less
+ * discoverable than a real button, especially once the stat tiles above
+ * became clickable buttons too; this now matches that same visual
+ * language instead of being the one differently-styled affordance on the
+ * page. See docs/decisions.md. */
+.view-all-button {
+  margin-top: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  /* Defensive (UI feedback pass seven, 21/8/26) — sits inside the new
+   * `.attention-panel-content` flex column below the now-scrolling
+   * `.attention-list`, so it must never shrink to make room for a long
+   * list; that's `.attention-list`'s own `overflow-y: auto` job. */
+  flex-shrink: 0;
+}
+
+.view-all-button:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-text-muted);
+}
+
+.view-all-button svg {
+  flex-shrink: 0;
 }
 
 /* Add-item form ------------------------------------------------------ */
@@ -226,46 +1100,13 @@ html, body {
   padding: 2rem 0;
 }
 
-/* Expiry banner — the always-visible fallback for Slice 5's notification,
- * since a browser Notification can be denied/blocked/missed. Uses the
- * "soon" amber colour rather than a neutral one, since everything it
- * lists is by definition within 7 days of its adjusted expiry (or past
- * it) — the same urgency the status badge would show. ------------------- */
-
-.expiry-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-soon-bg);
-  color: var(--color-soon-text);
-  border-radius: var(--radius);
-}
-
-.expiry-banner-icon {
-  flex-shrink: 0;
-}
-
-.expiry-banner-text {
-  flex: 1;
-  font-size: 0.9rem;
-  overflow-wrap: anywhere;
-}
-
-.expiry-banner .icon-button {
-  color: inherit;
-  border-color: transparent;
-  flex-shrink: 0;
-}
-
-.expiry-banner .icon-button:hover {
-  background-color: rgb(0 0 0 / 0.08);
-  color: inherit;
-}
-
-[data-theme='dark'] .expiry-banner .icon-button:hover {
-  background-color: rgb(255 255 255 / 0.08);
-}
+/* .expiry-banner* rules removed 25/8/26 — the on-page banner they styled
+ * is no longer rendered (the dashboard's "Needs attention" card already
+ * covers the same information; see App.tsx and docs/decisions.md).
+ * ExpiryBanner.tsx itself is left in place, unused, rather than deleted —
+ * this sandbox can write files but not delete them on the user's device;
+ * `git rm src/components/ExpiryBanner.tsx` is the optional cleanup step,
+ * called out in the delivery notes. */
 
 .item-list {
   display: grid;
@@ -285,9 +1126,29 @@ html, body {
   gap: 0.6rem;
 }
 
-.item-search {
+/* Wraps the search input with an inset icon — a plain text input reads as
+ * a generic form field; a leading magnifying-glass glyph is one of the
+ * cheapest, most recognisable "this is a search box" signals real product
+ * UIs use, and it was previously missing here entirely. */
+.search-field {
+  position: relative;
   flex: 1 1 200px;
   min-width: 160px;
+  display: flex;
+  align-items: center;
+}
+
+.search-field-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.item-search {
+  flex: 1;
+  min-width: 0;
+  padding-left: 2.15rem;
 }
 
 .item-toolbar select {
@@ -310,7 +1171,13 @@ html, body {
   display: contents;
 }
 
-.sort-toggle {
+/* Card/table view toggle — always visible (unlike the 3 selects, it isn't
+ * tucked behind the phone-width "Filters" disclosure), since how items are
+ * displayed matters on every screen size. Replaces the old by-status/
+ * by-place sort-mode toggle: the flat urgency sort below is now the only
+ * order, so there's nothing left to toggle there — see docs/decisions.md,
+ * "Feedback Sprint: real UI build". */
+.view-toggle {
   display: flex;
   margin-left: auto;
   border: 1px solid var(--color-border);
@@ -318,7 +1185,7 @@ html, body {
   overflow: hidden;
 }
 
-.sort-toggle button {
+.view-toggle button {
   padding: 0.45rem 0.9rem;
   background-color: transparent;
   color: var(--color-text-muted);
@@ -326,45 +1193,82 @@ html, body {
   border-radius: 0;
   font-size: 0.85rem;
   font-weight: 600;
+  transition: background-color 0.12s var(--ease), color 0.12s var(--ease);
 }
 
-.sort-toggle button:hover {
+.view-toggle button:hover {
   background-color: var(--color-surface-alt);
   color: var(--color-text);
 }
 
-.sort-toggle button.active {
+.view-toggle button.active {
   background-color: var(--color-primary);
   color: #fff;
 }
 
-/* Grouped sections — each sort mode/warning bucket gets its own labelled
- * section instead of one flat grid, so the grouping itself is legible. --- */
+/* Table (list) view — an alternative to the card grid above, for scanning
+ * many items at once at ~100+ item volume. No sticky header: the sidebar
+ * is already `position: sticky; top: 0` on its own axis, and without a
+ * bounded-height scroll container here a sticky table header would compete
+ * for the same vertical space on page scroll — simpler to drop stickiness
+ * here than coordinate a `top` offset against it. ------------------------- */
 
-.item-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
 }
 
-.item-group-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.85rem;
-  font-size: 0.95rem;
+.item-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 720px;
+}
+
+.item-table th,
+.item-table td {
+  text-align: left;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.item-table thead th {
+  background-color: var(--color-surface-alt);
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--color-text-muted);
 }
 
-.item-group-title svg {
-  flex-shrink: 0;
+.item-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
-/* The "Unsafe" warning section gets its own accent colour on the heading
- * so it reads as distinct even before any card is scanned. */
-.item-group-warning .item-group-title {
-  color: var(--color-warning-text);
+.item-table tbody tr.item-row {
+  cursor: pointer;
+  transition: background-color 0.12s var(--ease);
+}
+
+.item-table tbody tr.item-row:hover,
+.item-table tbody tr.item-row:focus-visible {
+  background-color: var(--color-surface-alt);
+}
+
+.item-row-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.item-row-name svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 /* Add-item FAB — fixed bottom-right, opens the add-item form in the same
@@ -386,7 +1290,7 @@ html, body {
   color: #fff;
   border: none;
   box-shadow: 0 4px 10px rgb(0 0 0 / 0.2), 0 8px 24px rgb(0 0 0 / 0.15);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
 .fab:hover {
@@ -409,6 +1313,7 @@ html, body {
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   flex-shrink: 0;
+  transition: background-color 0.12s var(--ease), color 0.12s var(--ease), border-color 0.12s var(--ease);
 }
 
 .icon-button:hover {
@@ -443,12 +1348,12 @@ html, body {
   font: inherit;
   font-weight: 400;
   border: none;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   padding: 1.5rem 1.1rem 1.25rem;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), background-color 0.15s var(--ease);
 }
 
 .item-card:hover {
@@ -534,6 +1439,7 @@ html, body {
   font-size: 2.5rem;
   font-weight: 750;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .item-countdown-label {
@@ -596,14 +1502,14 @@ html, body {
   max-height: min(600px, 90vh);
   overflow-y: auto;
   background-color: var(--color-surface);
-  border-radius: 20px;
-  box-shadow: 0 12px 24px rgb(0 0 0 / 0.15), 0 24px 48px rgb(0 0 0 / 0.15);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   padding: 1.25rem 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+  transition: transform 0.22s var(--ease), opacity 0.22s ease;
 }
 
 .item-modal-header {
@@ -648,7 +1554,7 @@ html, body {
 
 .item-stat-tile {
   background-color: var(--color-surface-alt);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 0.6rem 0.75rem;
 }
 
@@ -664,6 +1570,7 @@ html, body {
 .item-stat-tile dd {
   margin: 0;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .item-stat-value-icon {
@@ -795,7 +1702,8 @@ html, body {
 [data-theme='dark'] .auth-container,
 [data-theme='dark'] .add-item-form,
 [data-theme='dark'] .item-card,
-[data-theme='dark'] .item-modal {
+[data-theme='dark'] .item-modal,
+[data-theme='dark'] .stat-row {
   border: 1px solid var(--color-border);
 }
 
@@ -812,6 +1720,120 @@ html, body {
   .add-item-form {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-tile:nth-child(2) {
+    border-right: none;
+  }
+
+  /* Reverts the desktop-only "fill the screen" stretch chain (UI feedback
+   * pass seven, 21/8/26) — below this width `.app-shell` switches to
+   * `flex-direction: column` (see the sidebar rules just below), which
+   * breaks the row-direction stretch the whole mechanism depends on, so
+   * forcing a height here would just squish or clip content on short
+   * screens instead of filling anything meaningfully. Falling back to the
+   * original content-driven sizing keeps mobile/tablet on its existing,
+   * already-safe natural-page-scroll behaviour. */
+  .app-main-fill {
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .dash-grid {
+    flex: none;
+  }
+
+  .dash-charts-row {
+    grid-template-columns: 1fr;
+    flex: none;
+    align-items: start;
+  }
+
+  .dash-charts-col .chart-card {
+    flex: none;
+  }
+
+  .bar-chart {
+    flex: none;
+    height: 160px;
+    min-height: 0;
+  }
+
+  /* Sidebar collapses to a compact horizontal top bar below tablet width —
+   * a fixed 250px side panel is too heavy a tax on the content width here.
+   * Every destination stays reachable, just icon-only (each button keeps
+   * its aria-label/title so nothing becomes unlabelled). */
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    overflow-x: auto;
+  }
+
+  /* The desktop-only collapse toggle (see Sidebar.tsx) has nothing to do
+   * here — the responsive collapse above already forces icon-only
+   * regardless of that state, so these re-assert the normal mobile-bar
+   * width/padding/direction over the higher-specificity `.collapsed`
+   * rules (equal specificity to those, but declared later, so this wins)
+   * rather than leaving a narrow 76px bar if the user happened to collapse
+   * the sidebar at desktop width before resizing down. */
+  .sidebar.collapsed {
+    width: 100%;
+    padding: 0.65rem 1rem;
+  }
+
+  .sidebar.collapsed .sidebar-top {
+    flex-direction: row;
+  }
+
+  .sidebar-collapse-toggle {
+    display: none;
+  }
+
+  .sidebar-profile,
+  .sidebar.collapsed .sidebar-profile {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .sidebar-profile-text {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    gap: 0.15rem;
+  }
+
+  .sidebar-nav-item span,
+  .sidebar-footer-button span {
+    display: none;
+  }
+
+  .sidebar-nav-item,
+  .sidebar-footer-button {
+    padding: 0.55rem;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    margin-top: 0;
+    margin-left: auto;
+    padding-top: 0;
+    border-top: none;
+  }
 }
 
 /* Responsive — mobile ---------------------------------------------------- */
@@ -821,8 +1843,13 @@ html, body {
     max-width: none;
   }
 
-  .app-header {
-    padding: 0.85rem 1rem;
+  .sidebar {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar-title {
+    display: none;
   }
 
   .app-main {
@@ -849,7 +1876,7 @@ html, body {
    * instead of a normal single-line input. Resetting the basis to auto
    * lets it size to its content's height again; align-items: stretch on
    * .item-toolbar (below) still makes it fill the full width. */
-  .item-search {
+  .search-field {
     flex-basis: auto;
   }
 
@@ -891,7 +1918,7 @@ html, body {
   .filters-toggle-chevron {
     margin-left: auto;
     flex-shrink: 0;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s var(--ease);
   }
 
   .filters-toggle[aria-expanded='true'] .filters-toggle-chevron {
@@ -926,16 +1953,85 @@ html, body {
     width: 100%;
   }
 
-  .sort-toggle {
+  .view-toggle {
     margin-left: 0;
   }
 
-  .sort-toggle button {
+  .view-toggle button {
     flex: 1;
   }
 
   .fab {
     width: 3.25rem;
     height: 3.25rem;
+  }
+
+  /* Mobile table view: keep only the columns that matter at a glance
+   * (Name, Days left, Status) — the rest are still reachable by tapping
+   * the row, which opens the same ItemDetailModal used by cards, rather
+   * than a separate inline expand-row mechanism. Dropping the desktop
+   * 720px min-width is what actually lets the 3 remaining columns fill
+   * the real phone width instead of sitting inside an off-screen table. */
+  .item-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .item-table th.col-collapsible,
+  .item-table td.col-collapsible {
+    display: none;
+  }
+
+  .item-table th:nth-child(1),
+  .item-table td:nth-child(1) {
+    width: 46%;
+  }
+
+  .item-table th:nth-child(2),
+  .item-table td:nth-child(2) {
+    width: 24%;
+  }
+
+  .item-table th:nth-child(3),
+  .item-table td:nth-child(3) {
+    width: 30%;
+  }
+
+  .item-table th,
+  .item-table td {
+    white-space: normal;
+  }
+
+  /* The status pill's own `white-space: nowrap` (set for the card/modal
+   * pill shape) fights the 30%-wide Status column here, pushing "Expiring
+   * soon" past the cell edge instead of wrapping. Table-view specifically
+   * needs it to wrap and centre like the wireframe's .status-pill did. */
+  .item-table .status-badge {
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* Dashboard/place-dashboard on phone: everything drops to one column.
+   * Stays gapless (gap: 0, not the pre-redesign 0.6rem) — the 900px query
+   * above already suppresses the divider that would otherwise dangle at
+   * the row's right edge. */
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+
+  .dash-charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .donut-row {
+    flex-direction: column;
+    align-items: flex-start;
+    /* Override the desktop `justify-content: space-between` above — in a
+     * column direction that property acts on the vertical axis, which
+     * would shove the legend down to the bottom of the row with a gap
+     * instead of sitting directly under the ring. */
+    justify-content: flex-start;
   }
 }

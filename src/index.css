@@ -2,8 +2,13 @@
  *
  * Split from App.css per decisions.md: this file holds the reset, base
  * typography, and the colour variables everything else is built from.
- * App.css holds layout for the specific screens/components. No UI library —
- * plain CSS per the project's tech stack.
+ * App.css holds layout for the specific screens/components. Styling itself
+ * is still plain CSS custom properties — no component/utility CSS library
+ * (e.g. Tailwind) was introduced, since the existing token system already
+ * covers that job. `framer-motion` was added (UI feedback pass three,
+ * 21/8/26, at the user's explicit encouragement to use UI libraries where
+ * they help) for animation specifically — see AttentionPanel.tsx and the
+ * stat tiles in Dashboard.tsx/PlaceDashboard.tsx.
  *
  * Dark mode: variables are redefined under [data-theme="dark"], set on
  * <html> by the inline script in index.html (avoids a flash on load) and
@@ -21,13 +26,23 @@
   --color-text: #201f1c;
   --color-text-muted: #746f66;
 
-  --color-primary: #0f8a72;
-  --color-primary-hover: #0b6e5b;
+  /* Primary — a richer indigo-violet (25/8/26 palette pass) replacing the
+   * previous flat teal. #4f46e5/#4338ca is Tailwind's indigo-600/700 pair,
+   * chosen (not eyeballed) because indigo-600 on white text clears 4.5:1 —
+   * the same accessible-with-white-text property the old teal had, just a
+   * more considered hue. See docs/decisions.md, "Feedback Sprint: colour
+   * palette pass." */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
   --color-danger: #c1392b;
   --color-danger-hover: #a12e22;
 
-  /* Status badges — four distinct hues so a safety/not-recommended warning
-   * never reads as just another shade of the time-based scale. */
+  /* Status badges — briefly re-hued (25/8/26) into a green→amber→orange→red
+   * severity ramp, then reverted (UI feedback pass three, 21/8/26) at the
+   * user's explicit request back to the original green/yellow/red/purple
+   * set below — despite the severity-ramp argument for changing it, this is
+   * a preference call for the user's own app, and the original set was
+   * clearer to them than the ramp. See docs/decisions.md. */
   --color-fresh-bg: #e4f6ef;
   --color-fresh-text: #106a4f;
   --color-soon-bg: #fbf1dd;
@@ -37,8 +52,53 @@
   --color-warning-bg: #f1e8f7;
   --color-warning-text: #6a3494;
 
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 10px rgb(0 0 0 / 0.04);
-  --radius: 10px;
+  /* Storage-location categorical palette (Feedback Sprint, 21/8/26) — used
+   * only for the dashboard's by-storage donut and its legend swatches, a
+   * separate concern from the status colours above. Blue/orange/aqua,
+   * drawn from the dataviz skill's reference categorical theme's first 3
+   * slots and re-validated with scripts/validate_palette.js for this exact
+   * trio in both light and dark mode (light mode gets a contrast WARN,
+   * satisfied by the always-visible legend text). See docs/decisions.md. */
+  --color-place-fridge: #2a78d6;
+  --color-place-freezer: #eb6834;
+  --color-place-pantry: #1baf7a;
+
+  /* Elevation — two tiers. --shadow is the default for anything sitting
+   * flush on the page background (cards, tiles); --shadow-lg is for
+   * anything that floats above other content (the item modal). Kept as
+   * named tokens rather than one-off values per component so every
+   * "floating surface" in the app reads as the same depth language. */
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.06), 0 3px 14px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 12px 24px rgb(0 0 0 / 0.14), 0 24px 48px rgb(0 0 0 / 0.14);
+
+  /* Radius scale — three steps instead of one flat 10px everywhere, so
+   * small chips/tiles, ordinary cards, and the big "hero" surfaces (item
+   * card, modal) each get a radius proportional to their own size rather
+   * than all sharing one value that reads slightly too sharp on the big
+   * surfaces and slightly too soft on the small ones. */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 20px;
+
+  /* Shared easing curve for hover/press motion — a gentle overshoot-free
+   * deceleration rather than the browser's default linear/ease, used
+   * consistently so every hover lift and button press feels like the same
+   * physical material. Already used ad hoc by the modal's open animation;
+   * promoted to a token so the rest of the app's small motions match it. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Sidebar — a persistent dark navy panel (Feedback Sprint, 21/8/26),
+   * matching the admin-template reference the user supplied. Deliberately
+   * defined only here, not redefined under [data-theme='dark'] below — the
+   * sidebar stays this same navy in both themes, since the light/dark
+   * toggle is meant to affect the main content surfaces, not this panel.
+   * See docs/decisions.md. */
+  --color-sidebar-bg: #12172a;
+  --color-sidebar-surface: #1b2138;
+  --color-sidebar-active: #232b47;
+  --color-sidebar-border: #262d47;
+  --color-sidebar-text: #eef0f7;
+  --color-sidebar-text-muted: #8891ab;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -56,11 +116,13 @@
   --color-text: #e9e7e2;
   --color-text-muted: #9a9690;
 
-  --color-primary: #35c9a4;
-  --color-primary-hover: #4fdab6;
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
   --color-danger: #e5776b;
   --color-danger-hover: #ee9086;
 
+  /* Reverted alongside the light-mode set above (UI feedback pass three,
+   * 21/8/26) — the original green/amber/red/purple dark-mode values. */
   --color-fresh-bg: rgb(53 201 164 / 0.14);
   --color-fresh-text: #57e0b8;
   --color-soon-bg: rgb(230 175 46 / 0.16);
@@ -70,7 +132,12 @@
   --color-warning-bg: rgb(178 120 222 / 0.18);
   --color-warning-text: #d3a3f0;
 
+  --color-place-fridge: #3987e5;
+  --color-place-freezer: #d95926;
+  --color-place-pantry: #199e70;
+
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 12px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 24px rgb(0 0 0 / 0.45), 0 24px 48px rgb(0 0 0 / 0.5);
 }
 
 /* Reset ------------------------------------------------------------- */
@@ -109,19 +176,25 @@ img {
 /* Base typography ----------------------------------------------------- */
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
   font-size: 16px;
+  /* Digits stay a fixed width instead of each glyph's natural (proportional)
+   * width — the difference is invisible in prose but matters everywhere a
+   * number is the point: stat tiles, countdowns, table columns. Without it,
+   * e.g. "11 days" and "7 days" render at very slightly different widths
+   * and numbers in a column don't quite line up. */
+  font-variant-numeric: tabular-nums;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 h1 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 h2 {
@@ -163,16 +236,31 @@ button {
   color: #fff;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.12s ease;
+  transition: background-color 0.12s var(--ease), transform 0.1s var(--ease);
 }
 
 button:hover {
   background-color: var(--color-primary-hover);
 }
 
+/* A small press-down affordance on every plain button — most of this
+ * app's buttons (Sign Out, Cancel, the breadcrumb links, toolbar toggles)
+ * don't define their own hover/press motion, so without this they were
+ * purely a colour change on click, which reads as slightly inert. Any
+ * component that DOES define its own :hover/:active transform (.item-card,
+ * .fab) wins on specificity, so this only fills in the gap rather than
+ * fighting those. */
+button:active {
+  transform: scale(0.97);
+}
+
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+button:disabled:active {
+  transform: none;
 }
 
 /* Status/feedback text -------------------------------------------------- */
