@@ -22,7 +22,23 @@ export function Auth() {
     setLoading(true)
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
+      // Explicitly points the confirmation email's link at wherever this
+      // page is actually running (window.location.origin), rather than
+      // relying only on Supabase's dashboard-configured "Site URL" default.
+      // That default drifted back to localhost at some point after being
+      // fixed once already (see docs/decisions.md, "Auth redirect URL
+      // fix"), which is exactly the "the link takes them to a localhost
+      // site" bug this is closing — this way the redirect is correct
+      // whether someone signs up from the deployed app or from a local
+      // dev server, without depending on a dashboard setting staying put.
+      // Supabase still requires this exact origin to be present in the
+      // project's Auth → URL Configuration → Redirect URLs allow-list, or
+      // it silently falls back to the Site URL anyway — see decisions.md.
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      })
       if (error) setError(error.message)
       else setMessage('Check your email to confirm your account.')
     } else {
