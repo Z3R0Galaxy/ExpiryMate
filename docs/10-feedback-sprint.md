@@ -122,6 +122,32 @@ place-dashboard, the breadcrumb text, and the mobile row-expand interaction)
 before being treated as done — same verification standard as the real app's
 recent bug fixes.
 
+## Database seed
+
+With the wireframe agreed, the next plan-of-attack step is seeding the live
+database with a realistic volume of real data. The seed script lives at
+[`supabase/seed/feedback-sprint-seed.sql`](../supabase/seed/feedback-sprint-seed.sql) —
+135 items, seeded against the user's own real account, spread across every one
+of the 11 categories, all 3 storage locations, and all 4 statuses (fresh /
+expiring soon / expired / unsafe), deliberately not skewed to all-fresh.
+
+Rather than picking random dates and hoping they land in a sensible spread,
+each row's printed expiry date (or date opened, or date prepared for
+Leftovers) was computed by *inverting* the real Adjusted Expiry Date Algorithm
+(`decisions.md`) for a chosen target — e.g. "I want this item's ADJUSTED
+status to be 'expiring soon'" — then every row was checked *forward* through
+the same algorithm before being written to the SQL file, to confirm it
+actually lands in the intended bucket rather than just looking plausible. See
+`decisions.md`, "Feedback Sprint database seed" for the full approach and the
+real bugs this two-way check caught before the file was finalised.
+
+**Not yet run.** Like every migration on this project, this needs to be run by
+hand in the Supabase SQL Editor against the live project — it hasn't been
+run yet as of writing this. The script includes a commented-out `delete from
+items where user_id = ...` line for clearing this account's existing test
+items first, for anyone who wants a clean ~135-item dataset rather than this
+seed landing on top of whatever's already in the account.
+
 ## Plan of attack
 
 1. Build a rough, low-fidelity, clickable HTML wireframe (mock data, ~100 items)
@@ -135,7 +161,7 @@ recent bug fixes.
 ## Status
 
 - [x] Rough wireframe built
-- [ ] Wireframe reviewed and agreed
+- [x] Wireframe reviewed and agreed
 - [ ] Database seeded
 - [ ] Real UI built
 - [ ] Integrated and verified against seeded data
