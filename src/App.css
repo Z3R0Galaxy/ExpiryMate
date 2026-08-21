@@ -1234,6 +1234,12 @@ html, body {
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  /* Table cells don't need body's 1.5 line-height — at this font-size that
+   * inherited value adds ~7px of empty space above and below every row's
+   * text, on top of the 0.6rem padding, which is what actually produced
+   * the oversized vertical gap between rows. 1.2 keeps text vertically
+   * centred without the extra padding. */
+  line-height: 1.2;
 }
 
 .item-table thead th {

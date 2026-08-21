@@ -448,4 +448,14 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 
 **Not yet done:** delivering the fix to the user's repo, and the user's own confirmation that the tiles now render correctly.
 
+## 21/8/26 (Feedback Sprint: UI feedback pass eight)
+
+**Prompt:** "can you make dark mode the defult for the site and also fix the line gap issue in the list view" (with a screenshot of the mobile table view showing rows that looked more spaced-out than their content needed).
+
+**Response:** two independent fixes. `useTheme.ts`'s `getInitialTheme()` fallback (used only when there's no stored `expirymate-theme` value yet) changed from following the visitor's OS light/dark setting to always returning `'dark'`; the matching flash-prevention script in `index.html` was updated identically, since the two are documented as needing to agree. For the row-gap report, measured the actual `.item-table th, .item-table td` rule before changing anything rather than guessing — padding and cell content were both already reasonable, and the excess came from `body`'s global `line-height: 1.5` cascading into table cells (never overridden there), adding several extra pixels of line-box space above and below each cell's text on top of its padding. Added `line-height: 1.2` to that one rule, scoped to table cells only, rather than touching the global `line-height` (correct for prose elsewhere) or the padding (deliberate touch-target spacing, not the bug). Full reasoning for both in `docs/decisions.md`, "Feedback Sprint: UI feedback pass eight."
+
+**Verified before accepting:** this session had direct access to the user's own machine via the device bridge, so `tsc -b --force` and `eslint src` were run against the real project (its actual `node_modules`, not a disposable copy) rather than a cloud sandbox — both passed clean.
+
+**Accepted and delivered:** both files (`useTheme.ts`, `index.html`, `App.css`) were written directly onto the user's machine and confirmed in place before this entry was logged.
+
 **Not yet done:** delivering this batch's changed files to the user's repo, and the user's own read on whether the animations land as "really nice" — animation feel is inherently something to judge live in the browser rather than from a static screenshot, so this is the one part of the four-point list that genuinely needs the user's own eyes on the running app.

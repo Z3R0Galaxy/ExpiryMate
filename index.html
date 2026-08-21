@@ -22,13 +22,13 @@
     <script>
       // Set the theme attribute before first paint, synchronously, so there's
       // no flash of the wrong theme while React mounts and useTheme() runs.
-      // Kept in sync with src/hooks/useTheme.ts's own fallback logic.
+      // Kept in sync with src/hooks/useTheme.ts's own fallback logic. Dark
+      // mode is the site default for first-time visitors with no stored
+      // preference — it no longer follows the OS light/dark setting.
       (function () {
         try {
           var stored = localStorage.getItem('expirymate-theme');
-          var theme = stored === 'light' || stored === 'dark'
-            ? stored
-            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          var theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}
       })();
