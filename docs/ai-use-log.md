@@ -468,4 +468,12 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 
 **Not yet done:** the user's own look at both changes on a real device — the row-height fix especially, since the harness's font metrics are an approximation of the real deployed Inter font, not a substitute for seeing it live.
 
+## 21/8/26 (Supabase SQL Editor query — list all users)
+
+**Prompt:** "make a query for the database to see al users."
+
+**Response:** provided two read-only SQL queries for the Supabase SQL Editor (not something the app itself exposes): a plain listing of `auth.users` (id/email/created_at/confirmed_at/last_sign_in_at), and a variant left-joining `public.items` with a `count()`/`group by` to show each user's item count in the same result — useful given the earlier seed-account mismatch (see "Feedback Sprint seed account mismatch" in `decisions.md`). Explicitly avoided `select *` on `auth.users` and noted why (it also holds `encrypted_password` and other sensitive columns) rather than handing over a query that would dump them. No code changed; not a design decision, so nothing added to `decisions.md`.
+
+**Accepted:** query given directly in chat, to be run manually in the Supabase SQL Editor — nothing to commit.
+
 **Not yet done:** delivering this batch's changed files to the user's repo, and the user's own read on whether the animations land as "really nice" — animation feel is inherently something to judge live in the browser rather than from a static screenshot, so this is the one part of the four-point list that genuinely needs the user's own eyes on the running app.
