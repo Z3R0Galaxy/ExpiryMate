@@ -1,0 +1,972 @@
+<!doctype html>
+<!--
+  ExpiryMate — Feedback Sprint rough wireframe
+  ---------------------------------------------
+  This is a throwaway, self-contained discussion draft, NOT part of the real
+  app and NOT wired to Supabase. Everything on screen is mock data generated
+  by a small seeded random-number generator below, so the same ~110-item
+  dataset appears every time this file is opened (useful for reviewing it
+  more than once without the numbers shifting under you).
+
+  Deliberately low-fidelity: grayscale surfaces, minimal status colour, no
+  icon set, no final chart palette. The point of this pass is to agree the
+  STRUCTURE (dashboard content, navigation, card/list toggle, list-view
+  density at ~100 items) before any visual polish gets invested. See
+  docs/10-feedback-sprint.md in the real repo for the discussion this came
+  out of.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ExpiryMate — Feedback Sprint wireframe</title>
+<style>
+  :root {
+    --bg: #ececec;
+    --surface: #ffffff;
+    --surface-alt: #f4f4f4;
+    --border: #b8b8b8;
+    --border-strong: #8a8a8a;
+    --text: #1c1c1c;
+    --text-muted: #6b6b6b;
+    --accent: #4a4a4a;
+
+    /* rough, unvalidated status tints — placeholders for the real palette pass */
+    --fresh: #3f7a4a;
+    --fresh-bg: #e6efe7;
+    --soon: #9a6a12;
+    --soon-bg: #f3ead6;
+    --expired: #9a3a34;
+    --expired-bg: #f2e2e0;
+    --unsafe: #6d3f8f;
+    --unsafe-bg: #ebe2f0;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  header.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .brand .tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #dcdcdc;
+    color: var(--text-muted);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+  }
+
+  .breadcrumb {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .breadcrumb button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .breadcrumb .current {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+  }
+
+  /* ---- generic building blocks -------------------------------------- */
+
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  h1, h2, h3 { margin: 0; }
+
+  .section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.75rem;
+  }
+
+  button.plain {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* ---- dashboard ------------------------------------------------------ */
+
+  .dash-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+  }
+
+  .stat-tile {
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .stat-tile .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+  }
+
+  .stat-tile .value {
+    font-size: 2rem;
+    font-weight: 750;
+  }
+
+  .stat-tile.fresh .value { color: var(--fresh); }
+  .stat-tile.soon .value { color: var(--soon); }
+  .stat-tile.expired .value { color: var(--expired); }
+  .stat-tile.unsafe .value { color: var(--unsafe); }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1rem;
+  }
+
+  .chart-card, .attention-card {
+    padding: 1.1rem;
+  }
+
+  .donut-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .donut {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-row .count {
+    margin-left: auto;
+    font-weight: 700;
+  }
+
+  .attention-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .attention-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface-alt);
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+  .attention-list .name { font-weight: 600; flex: 1; }
+  .attention-list .days { font-size: 0.78rem; font-weight: 700; }
+  .attention-list .days.expired { color: var(--expired); }
+  .attention-list .days.soon { color: var(--soon); }
+  .attention-list .days.unsafe { color: var(--unsafe); }
+
+  .attention-card .view-all {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--accent);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .quicknav-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+  }
+
+  .quicknav-tile {
+    padding: 1rem;
+    text-align: left;
+    background: var(--surface-alt);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .quicknav-tile:hover { background: #e9e9e9; }
+
+  .quicknav-tile .place { font-weight: 700; }
+  .quicknav-tile .count { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* ---- toolbar (list pages) ------------------------------------------- */
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .toolbar input, .toolbar select {
+    font: inherit;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+  }
+
+  .toolbar input[type="search"] { flex: 1 1 200px; min-width: 160px; }
+  .toolbar select { width: auto; }
+
+  .view-toggle {
+    display: flex;
+    margin-left: auto;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .view-toggle button {
+    padding: 0.4rem 0.9rem;
+    background: var(--surface);
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .view-toggle button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .result-count {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  /* ---- card view -------------------------------------------------------- */
+
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .item-card {
+    position: relative;
+    overflow: hidden;
+    padding: 0.9rem 0.9rem 0.75rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .item-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--border-strong);
+  }
+
+  .item-card.status-fresh::before { background: var(--fresh); }
+  .item-card.status-soon::before { background: var(--soon); }
+  .item-card.status-expired::before { background: var(--expired); }
+  .item-card.status-unsafe::before { background: var(--unsafe); }
+
+  .item-card .badge {
+    align-self: flex-start;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+
+  .item-card.status-fresh .badge { background: var(--fresh-bg); color: var(--fresh); }
+  .item-card.status-soon .badge { background: var(--soon-bg); color: var(--soon); }
+  .item-card.status-expired .badge { background: var(--expired-bg); color: var(--expired); }
+  .item-card.status-unsafe .badge { background: var(--unsafe-bg); color: var(--unsafe); }
+
+  .item-card .days {
+    font-size: 1.4rem;
+    font-weight: 750;
+  }
+
+  .item-card .name {
+    font-weight: 650;
+  }
+
+  .item-card .meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ---- list (table) view ------------------------------------------------ */
+
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+
+  table.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 720px;
+  }
+
+  table.item-table th, table.item-table td {
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  table.item-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-alt);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+  }
+
+  table.item-table tbody tr:hover { background: var(--surface-alt); }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+  }
+
+  .status-pill.status-fresh { background: var(--fresh-bg); color: var(--fresh); }
+  .status-pill.status-soon { background: var(--soon-bg); color: var(--soon); }
+  .status-pill.status-expired { background: var(--expired-bg); color: var(--expired); }
+  .status-pill.status-unsafe { background: var(--unsafe-bg); color: var(--unsafe); }
+
+  .empty-note {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  /* ---- responsive ------------------------------------------------------- */
+
+  @media (max-width: 900px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .quicknav-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    main { padding: 1.1rem 0.75rem 2.5rem; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .quicknav-row { grid-template-columns: repeat(2, 1fr); }
+    .donut-row { flex-direction: column; align-items: flex-start; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar input[type="search"] { flex-basis: auto; }
+    .toolbar select { width: 100%; }
+    .item-table th, .item-table td { white-space: normal; }
+    .view-toggle { margin-left: 0; }
+    .view-toggle button { flex: 1; }
+    .item-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+
+    /* Mobile list view: keep only the columns that matter at a glance
+       (name, days left, status) and let the rest fold into a per-row
+       detail panel the user opens on demand — same "don't overload the
+       screen by default" rule as the dashboard tiles below. The table's
+       desktop min-width (720px, so 8 columns don't get squashed) has to
+       be dropped here too — otherwise the 3 remaining columns just get
+       stretched across an off-screen 720px table instead of filling the
+       actual phone width, and Status silently scrolls out of view. */
+    table.item-table { min-width: 0; width: 100%; table-layout: fixed; }
+    .item-table th:nth-child(n+4), .item-table td:nth-child(n+4) { display: none; }
+    .item-table th:nth-child(1), .item-table td:nth-child(1) { width: 38%; }
+    .item-table th:nth-child(2), .item-table td:nth-child(2) { width: 24%; }
+    .item-table th:nth-child(3), .item-table td:nth-child(3) { width: 38%; }
+    .status-pill { white-space: normal; text-align: center; line-height: 1.2; }
+    .item-table tbody tr.item-row { cursor: pointer; }
+    .item-table tbody tr.item-row:active { background: var(--surface-alt); }
+    .item-row.is-expanded { background: var(--surface-alt); }
+    .item-row .expand-hint { color: var(--text-muted); font-size: 0.75rem; }
+    .item-detail-row td { background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+    .item-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.4rem 0.1rem;
+      font-size: 0.82rem;
+    }
+  }
+
+  footer.wf-note {
+    max-width: 1280px;
+    margin: 0 auto 2rem;
+    padding: 0 1.25rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">ExpiryMate <span class="tag">wireframe · rough draft</span></div>
+  <nav class="breadcrumb" id="breadcrumb"></nav>
+</header>
+
+<main id="main"></main>
+
+<footer class="wf-note">
+  Rough wireframe for the Feedback Sprint discussion — mock data (~110 generated items), not connected to Supabase. Built to agree structure before visual polish.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- seeded RNG so the mock dataset is stable on reload ---------- */
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rand = mulberry32(20260821);
+  function pick(arr) { return arr[Math.floor(rand() * arr.length)]; }
+  function randInt(min, max) { return Math.floor(rand() * (max - min + 1)) + min; }
+
+  /* ---------- mock data model ---------- */
+  const CATEGORIES = {
+    Dairy: ["Whole Milk", "Greek Yoghurt", "Cheddar Cheese", "Butter", "Cream Cheese"],
+    Eggs: ["Free-Range Eggs", "Egg Whites"],
+    Meat: ["Chicken Breast", "Ground Beef", "Pork Chops", "Bacon"],
+    Seafood: ["Salmon Fillet", "Prawns", "Tinned Tuna"],
+    Produce: ["Spinach", "Carrots", "Apples", "Bananas", "Tomatoes", "Broccoli"],
+    Bakery: ["Sourdough Bread", "Bagels", "Dinner Rolls"],
+    Frozen: ["Frozen Peas", "Frozen Berries", "Ice Cream", "Frozen Pizza"],
+    Beverages: ["Orange Juice", "Almond Milk", "Cold Brew Coffee"],
+    Condiments: ["Ketchup", "Mayonnaise", "Soy Sauce", "Mustard"],
+    Snacks: ["Tortilla Chips", "Trail Mix", "Crackers"],
+    Leftovers: ["Leftover Pasta", "Leftover Curry", "Leftover Rice"],
+  };
+  const CATEGORY_STORAGE = {
+    Dairy: ["Fridge"], Eggs: ["Fridge"], Meat: ["Fridge", "Freezer"],
+    Seafood: ["Fridge", "Freezer"], Produce: ["Fridge", "Pantry"],
+    Bakery: ["Pantry", "Freezer"], Frozen: ["Freezer"],
+    Beverages: ["Fridge", "Pantry"], Condiments: ["Fridge", "Pantry"],
+    Snacks: ["Pantry"], Leftovers: ["Fridge", "Freezer"],
+  };
+  const categoryNames = Object.keys(CATEGORIES);
+
+  function statusFromDays(days) {
+    if (days < 0) return "expired";
+    if (days <= 7) return "soon";
+    return "fresh";
+  }
+
+  const ITEMS = [];
+  const TOTAL_ITEMS = 112;
+  for (let i = 0; i < TOTAL_ITEMS; i++) {
+    const category = pick(categoryNames);
+    const name = pick(CATEGORIES[category]);
+    const storage = pick(CATEGORY_STORAGE[category]);
+    const unsafe = rand() < 0.035; // ~3.5% deliberately unsafe combos, same idea as the real app's warning state
+    const days = randInt(-12, 130);
+    const status = unsafe ? "unsafe" : statusFromDays(days);
+    const expiryDate = new Date(2026, 7, 21 + days); // relative to 21/8/26, this file's "today"
+    ITEMS.push({
+      id: i,
+      name: name + (i % 7 === 0 ? "" : ""), // keep names readable, no forced numbering
+      category, storage, status,
+      days: unsafe ? null : days,
+      quantity: randInt(1, 4),
+      opened: rand() < 0.4,
+      expiryDate: expiryDate.toISOString().slice(0, 10),
+    });
+  }
+
+  /* ---------- tiny app state ---------- */
+  const state = {
+    view: "dashboard",      // 'dashboard' | 'place-dashboard' | 'list'
+    filterPlace: "all",     // 'all' | 'Fridge' | 'Freezer' | 'Pantry' | 'expiring'
+    search: "",
+    categoryFilter: "all",
+    statusFilter: "all",
+    sortMode: "status",
+    viewMode: "card",       // 'card' | 'list'
+  };
+
+  const STATUS_COLORS = { fresh: "#3f7a4a", soon: "#9a6a12", expired: "#9a3a34", unsafe: "#6d3f8f" };
+  const STATUS_LABELS = { fresh: "Fresh", soon: "Expiring soon", expired: "Expired", unsafe: "Unsafe" };
+  // Rough-pass placeholder hues, deliberately pushed further apart in hue
+  // than a first attempt (blue/teal/tan) — blue and teal sat too close
+  // together to tell apart at a glance. Not yet run through the dataviz
+  // skill's validator; that's a next-pass task once the structure here is
+  // agreed, not before.
+  const PLACE_COLORS = { Fridge: "#3a6ea5", Freezer: "#7a4fa0", Pantry: "#a58a3a" };
+
+  function counts() {
+    const byStatus = { fresh: 0, soon: 0, expired: 0, unsafe: 0 };
+    const byPlace = { Fridge: 0, Freezer: 0, Pantry: 0 };
+    ITEMS.forEach(it => { byStatus[it.status]++; byPlace[it.storage]++; });
+    return { byStatus, byPlace };
+  }
+
+  function donutBackground(segments) {
+    // segments: [{value, color}]
+    const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
+    let acc = 0;
+    const stops = segments.map(seg => {
+      const start = (acc / total) * 360;
+      acc += seg.value;
+      const end = (acc / total) * 360;
+      return `${seg.color} ${start}deg ${end}deg`;
+    });
+    return `conic-gradient(${stops.join(", ")})`;
+  }
+
+  function el(html) {
+    const t = document.createElement("template");
+    t.innerHTML = html.trim();
+    return t.content.firstChild;
+  }
+
+  function navigateTo(view, place) {
+    state.view = view;
+    if (place !== undefined) state.filterPlace = place;
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function renderBreadcrumb() {
+    const bc = document.getElementById("breadcrumb");
+    if (state.view === "dashboard") { bc.innerHTML = `<span class="current">Dashboard</span>`; return; }
+
+    if (state.view === "place-dashboard") {
+      bc.innerHTML = `<button onclick="__wf.go('dashboard')">Dashboard</button> &nbsp;›&nbsp; <span class="current">${state.filterPlace}</span>`;
+      return;
+    }
+
+    // list view — 3 levels when we arrived here from a place-dashboard
+    // (Dashboard › Fridge › All Fridge items), 2 levels for "all"/"expiring"
+    // since those are already an explicit "show me everything" choice with
+    // no intermediate summary to hop back to.
+    const isPlace = ["Fridge", "Freezer", "Pantry"].includes(state.filterPlace);
+    const label = state.filterPlace === "all" ? "All items"
+      : state.filterPlace === "expiring" ? "Expiring soon"
+      : `All ${state.filterPlace} items`;
+    if (isPlace) {
+      bc.innerHTML = `<button onclick="__wf.go('dashboard')">Dashboard</button> &nbsp;›&nbsp; <button onclick="__wf.go('place-dashboard', '${state.filterPlace}')">${state.filterPlace}</button> &nbsp;›&nbsp; <span class="current">${label}</span>`;
+    } else {
+      bc.innerHTML = `<button onclick="__wf.go('dashboard')">Dashboard</button> &nbsp;›&nbsp; <span class="current">${label}</span>`;
+    }
+  }
+
+  // Priority: unsafe first (food-safety alert, not a countdown), then
+  // expiring-soon ordered by fewest days left, then expired ordered by
+  // most-recently-expired first. A plain ascending sort on `days` alone
+  // put every expired item (very negative) ahead of every soon item
+  // (0-7), which meant a full 8-item "needs attention" list could show
+  // only expired items and never surface anything actually still soon
+  // to expire — this rank-then-secondary-sort fixes that. Shared by the
+  // main dashboard and each place-dashboard so both agree on priority.
+  function buildNeedsAttention(items, limit) {
+    const rank = status => (status === "unsafe" ? 0 : status === "soon" ? 1 : 2);
+    return items
+      .filter(it => it.status !== "fresh")
+      .sort((a, b) => {
+        const r = rank(a.status) - rank(b.status);
+        if (r !== 0) return r;
+        if (a.status === "soon") return a.days - b.days;
+        if (a.status === "expired") return b.days - a.days;
+        return 0;
+      })
+      .slice(0, limit);
+  }
+
+  // Default read order everywhere items are listed: "how close to
+  // expiring" as one scale. Unsafe items are a food-safety alert rather
+  // than a countdown, so they're pinned to the front instead of being
+  // slotted in by a `days` value they don't really have; everything else
+  // sorts ascending by `days`, which reads as most-overdue-expired →
+  // closest-to-expiring-soon → furthest-away-fresh.
+  function sortByUrgency(items) {
+    const unsafe = items.filter(it => it.status === "unsafe");
+    const rest = items.filter(it => it.status !== "unsafe").sort((a, b) => a.days - b.days);
+    return [...unsafe, ...rest];
+  }
+
+  function renderDashboard() {
+    const { byStatus, byPlace } = counts();
+    const needsAttention = buildNeedsAttention(ITEMS, 8);
+
+    const statusSegments = [
+      { key: "fresh", value: byStatus.fresh },
+      { key: "soon", value: byStatus.soon },
+      { key: "expired", value: byStatus.expired },
+      { key: "unsafe", value: byStatus.unsafe },
+    ];
+    const placeSegments = [
+      { key: "Fridge", value: byPlace.Fridge },
+      { key: "Freezer", value: byPlace.Freezer },
+      { key: "Pantry", value: byPlace.Pantry },
+    ];
+
+    const statusDonutBg = donutBackground(statusSegments.map(s => ({ value: s.value, color: STATUS_COLORS[s.key] })));
+    const placeDonutBg = donutBackground(placeSegments.map(s => ({ value: s.value, color: PLACE_COLORS[s.key] })));
+
+    const wrap = el(`<div class="dash-grid"></div>`);
+
+    wrap.appendChild(el(`
+      <div class="stat-row">
+        <div class="box stat-tile"><span class="label">Total items</span><span class="value">${ITEMS.length}</span></div>
+        <div class="box stat-tile soon"><span class="label">Expiring soon</span><span class="value">${byStatus.soon}</span></div>
+        <div class="box stat-tile expired"><span class="label">Expired</span><span class="value">${byStatus.expired}</span></div>
+        <div class="box stat-tile unsafe"><span class="label">Unsafe</span><span class="value">${byStatus.unsafe}</span></div>
+      </div>
+    `));
+
+    const twoCol = el(`<div class="two-col"></div>`);
+
+    const chartsCard = el(`<div class="box chart-card"></div>`);
+    chartsCard.appendChild(el(`<div class="section-title">Status breakdown</div>`));
+    const donutRow1 = el(`<div class="donut-row"></div>`);
+    donutRow1.appendChild(el(`<div class="donut" style="background:${statusDonutBg}"></div>`));
+    const legend1 = el(`<div class="legend"></div>`);
+    statusSegments.forEach(s => legend1.appendChild(el(`
+      <div class="legend-row"><span class="swatch" style="background:${STATUS_COLORS[s.key]}"></span>${STATUS_LABELS[s.key]}<span class="count">${s.value}</span></div>
+    `)));
+    donutRow1.appendChild(legend1);
+    chartsCard.appendChild(donutRow1);
+
+    chartsCard.appendChild(el(`<div class="section-title" style="margin-top:1.25rem">By storage location</div>`));
+    const donutRow2 = el(`<div class="donut-row"></div>`);
+    donutRow2.appendChild(el(`<div class="donut" style="background:${placeDonutBg}"></div>`));
+    const legend2 = el(`<div class="legend"></div>`);
+    placeSegments.forEach(s => legend2.appendChild(el(`
+      <div class="legend-row"><span class="swatch" style="background:${PLACE_COLORS[s.key]}"></span>${s.key}<span class="count">${s.value}</span></div>
+    `)));
+    donutRow2.appendChild(legend2);
+    chartsCard.appendChild(donutRow2);
+
+    twoCol.appendChild(chartsCard);
+
+    const attentionCard = el(`<div class="box attention-card"></div>`);
+    attentionCard.appendChild(el(`<div class="section-title">Needs attention</div>`));
+    const list = el(`<ul class="attention-list"></ul>`);
+    needsAttention.forEach(it => {
+      const daysLabel = it.status === "unsafe" ? "Unsafe" : it.days < 0 ? `${Math.abs(it.days)}d ago` : `${it.days}d left`;
+      list.appendChild(el(`
+        <li><span class="name">${it.name}</span><span class="days ${it.status}">${daysLabel}</span></li>
+      `));
+    });
+    attentionCard.appendChild(list);
+    const viewAllBtn = el(`<button type="button" class="view-all">View all expiring →</button>`);
+    viewAllBtn.addEventListener("click", () => navigateTo("list", "expiring"));
+    attentionCard.appendChild(viewAllBtn);
+    twoCol.appendChild(attentionCard);
+
+    wrap.appendChild(twoCol);
+
+    wrap.appendChild(el(`<div class="section-title" style="margin-top:0.25rem">Jump to a place</div>`));
+    const navRow = el(`<div class="quicknav-row"></div>`);
+    [["Fridge", byPlace.Fridge], ["Freezer", byPlace.Freezer], ["Pantry", byPlace.Pantry], ["All items", ITEMS.length]].forEach(([place, count]) => {
+      const tile = el(`<button type="button" class="box quicknav-tile plain"><span class="place">${place}</span><span class="count">${count} items</span></button>`);
+      // Fridge/Freezer/Pantry drop into a scoped mini-dashboard first,
+      // never straight to the full list — same "don't overload the UI by
+      // default" rule as everywhere else; the user opts into the full
+      // list from there. "All items" is already an explicit "show me
+      // everything" choice, so it skips straight to the list.
+      tile.addEventListener("click", () => {
+        if (place === "All items") navigateTo("list", "all");
+        else navigateTo("place-dashboard", place);
+      });
+      navRow.appendChild(tile);
+    });
+    wrap.appendChild(navRow);
+
+    return wrap;
+  }
+
+  // A deliberately smaller version of the main dashboard, scoped to one
+  // storage place. No charts here — the goal is a quick "is everything ok
+  // in the Fridge?" glance, not a second full dashboard. The user still
+  // has to actively click "View all X items" to reach the full list.
+  function renderPlaceDashboard(place) {
+    const placeItems = ITEMS.filter(it => it.storage === place);
+    const byStatus = { fresh: 0, soon: 0, expired: 0, unsafe: 0 };
+    placeItems.forEach(it => byStatus[it.status]++);
+    const needsAttention = buildNeedsAttention(placeItems, 8);
+
+    const wrap = el(`<div class="dash-grid"></div>`);
+
+    wrap.appendChild(el(`
+      <div class="stat-row">
+        <div class="box stat-tile"><span class="label">${place} items</span><span class="value">${placeItems.length}</span></div>
+        <div class="box stat-tile soon"><span class="label">Expiring soon</span><span class="value">${byStatus.soon}</span></div>
+        <div class="box stat-tile expired"><span class="label">Expired</span><span class="value">${byStatus.expired}</span></div>
+        <div class="box stat-tile unsafe"><span class="label">Unsafe</span><span class="value">${byStatus.unsafe}</span></div>
+      </div>
+    `));
+
+    const attentionCard = el(`<div class="box attention-card"></div>`);
+    attentionCard.appendChild(el(`<div class="section-title">Needs attention in ${place}</div>`));
+    if (needsAttention.length === 0) {
+      attentionCard.appendChild(el(`<p class="empty-note" style="padding:1rem 0">Nothing in ${place} needs attention right now.</p>`));
+    } else {
+      const list = el(`<ul class="attention-list"></ul>`);
+      needsAttention.forEach(it => {
+        const daysLabel = it.status === "unsafe" ? "Unsafe" : it.days < 0 ? `${Math.abs(it.days)}d ago` : `${it.days}d left`;
+        list.appendChild(el(`
+          <li><span class="name">${it.name}</span><span class="days ${it.status}">${daysLabel}</span></li>
+        `));
+      });
+      attentionCard.appendChild(list);
+    }
+    const viewAllBtn = el(`<button type="button" class="view-all">View all ${place} items →</button>`);
+    viewAllBtn.addEventListener("click", () => navigateTo("list", place));
+    attentionCard.appendChild(viewAllBtn);
+    wrap.appendChild(attentionCard);
+
+    return wrap;
+  }
+
+  function matchesFilter(it) {
+    if (state.filterPlace === "expiring" && it.status === "fresh") return false;
+    if (["Fridge", "Freezer", "Pantry"].includes(state.filterPlace) && it.storage !== state.filterPlace) return false;
+    if (state.categoryFilter !== "all" && it.category !== state.categoryFilter) return false;
+    if (state.statusFilter !== "all" && it.status !== state.statusFilter) return false;
+    if (state.search && !it.name.toLowerCase().includes(state.search.toLowerCase())) return false;
+    return true;
+  }
+
+  function renderList() {
+    const wrap = document.createElement("div");
+
+    const toolbar = el(`
+      <div class="toolbar">
+        <input type="search" placeholder="Search by name..." id="wf-search" value="${state.search}" />
+        <select id="wf-category">
+          <option value="all">All categories</option>
+          ${categoryNames.map(c => `<option value="${c}" ${state.categoryFilter === c ? "selected" : ""}>${c}</option>`).join("")}
+        </select>
+        <select id="wf-status">
+          <option value="all">All statuses</option>
+          <option value="fresh" ${state.statusFilter === "fresh" ? "selected" : ""}>Fresh</option>
+          <option value="soon" ${state.statusFilter === "soon" ? "selected" : ""}>Expiring soon</option>
+          <option value="expired" ${state.statusFilter === "expired" ? "selected" : ""}>Expired</option>
+          <option value="unsafe" ${state.statusFilter === "unsafe" ? "selected" : ""}>Unsafe</option>
+        </select>
+        <div class="view-toggle">
+          <button type="button" data-mode="card" class="${state.viewMode === "card" ? "active" : ""}">Card view</button>
+          <button type="button" data-mode="list" class="${state.viewMode === "list" ? "active" : ""}">List view</button>
+        </div>
+      </div>
+    `);
+    wrap.appendChild(toolbar);
+
+    // Default read order is "closest to expiring first" everywhere, in
+    // both card and list/table view — see sortByUrgency's comment.
+    const filtered = sortByUrgency(ITEMS.filter(matchesFilter));
+    wrap.appendChild(el(`<div class="result-count">${filtered.length} item${filtered.length === 1 ? "" : "s"}</div>`));
+
+    if (filtered.length === 0) {
+      wrap.appendChild(el(`<p class="empty-note">No items match the current filters.</p>`));
+    } else if (state.viewMode === "card") {
+      const grid = el(`<div class="item-grid"></div>`);
+      filtered.forEach(it => {
+        const daysLabel = it.status === "unsafe" ? "Unsafe" : it.days < 0 ? `${Math.abs(it.days)}d ago` : `${it.days}d left`;
+        grid.appendChild(el(`
+          <div class="box item-card status-${it.status}">
+            <span class="badge">${STATUS_LABELS[it.status]}</span>
+            <span class="days">${daysLabel}</span>
+            <span class="name">${it.name}</span>
+            <span class="meta">${it.category} · ${it.storage}</span>
+          </div>
+        `));
+      });
+      wrap.appendChild(grid);
+    } else {
+      const tableWrap = el(`<div class="table-scroll"></div>`);
+      // Column order matters here: Name / Days left / Status come first
+      // because on phone screens the mobile media query hides everything
+      // from the 4th column on, so those three are what's visible by
+      // default. The rest are still one tap away via the detail row below
+      // — same "minimise by default, expand on request" rule as the
+      // dashboard tiles, applied to the list view.
+      const table = el(`
+        <table class="item-table">
+          <thead><tr>
+            <th>Name</th><th>Days left</th><th>Status</th>
+            <th>Category</th><th>Storage</th><th>Expiry date</th><th>Qty</th><th>Opened</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      `);
+      const tbody = table.querySelector("tbody");
+      filtered.forEach(it => {
+        const daysLabel = it.status === "unsafe" ? "—" : it.days < 0 ? `${Math.abs(it.days)}d ago` : `${it.days}`;
+        const row = el(`
+          <tr class="item-row">
+            <td>${it.name}</td>
+            <td>${daysLabel}</td>
+            <td><span class="status-pill status-${it.status}">${STATUS_LABELS[it.status]}</span></td>
+            <td>${it.category}</td>
+            <td>${it.storage}</td>
+            <td>${it.expiryDate}</td>
+            <td>${it.quantity}</td>
+            <td>${it.opened ? "Yes" : "No"}</td>
+          </tr>
+        `);
+        const detailRow = el(`
+          <tr class="item-detail-row" hidden>
+            <td colspan="3">
+              <div class="item-detail">
+                <span><strong>Category:</strong> ${it.category}</span>
+                <span><strong>Storage:</strong> ${it.storage}</span>
+                <span><strong>Expiry date:</strong> ${it.expiryDate}</span>
+                <span><strong>Quantity:</strong> ${it.quantity}</span>
+                <span><strong>Opened:</strong> ${it.opened ? "Yes" : "No"}</span>
+              </div>
+            </td>
+          </tr>
+        `);
+        // Only phones get the click-to-expand behaviour — desktop already
+        // shows every column, so a click there would just be a confusing
+        // no-op.
+        row.addEventListener("click", () => {
+          if (window.innerWidth > 560) return;
+          detailRow.hidden = !detailRow.hidden;
+          row.classList.toggle("is-expanded", !detailRow.hidden);
+        });
+        tbody.appendChild(row);
+        tbody.appendChild(detailRow);
+      });
+      tableWrap.appendChild(table);
+      wrap.appendChild(tableWrap);
+    }
+
+    return wrap;
+  }
+
+  function render() {
+    renderBreadcrumb();
+    const main = document.getElementById("main");
+    main.innerHTML = "";
+    let content;
+    if (state.view === "dashboard") content = renderDashboard();
+    else if (state.view === "place-dashboard") content = renderPlaceDashboard(state.filterPlace);
+    else content = renderList();
+    main.appendChild(content);
+
+    if (state.view === "list") {
+      document.getElementById("wf-search").addEventListener("input", e => { state.search = e.target.value; render(); });
+      document.getElementById("wf-category").addEventListener("change", e => { state.categoryFilter = e.target.value; render(); });
+      document.getElementById("wf-status").addEventListener("change", e => { state.statusFilter = e.target.value; render(); });
+      document.querySelectorAll(".view-toggle button").forEach(btn => {
+        btn.addEventListener("click", () => { state.viewMode = btn.dataset.mode; render(); });
+      });
+    }
+  }
+
+  window.__wf = { go: (view, place) => navigateTo(view, place) };
+  render();
+})();
+</script>
+
+</body>
+</html>
