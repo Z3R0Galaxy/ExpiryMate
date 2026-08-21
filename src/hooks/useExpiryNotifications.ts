@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Item } from './useItems'
 import { computeStatusInfo } from '../lib/itemStatus'
-import { formatNameList } from '../lib/formatNameList'
 
 export interface ExpiringItem {
   id: string
@@ -58,11 +57,16 @@ export function useExpiryNotifications(items: Item[], loading: boolean) {
       }
       if (permission !== 'granted') return
 
-      const names = expiringItems.map(i => i.name)
-      const title = expiringItems.length === 1
-        ? '1 item needs attention — ExpiryMate'
-        : `${expiringItems.length} items need attention — ExpiryMate`
-      const body = formatNameList(names)
+      // Kept deliberately short (UI feedback pass eight, 21/8/26) — this
+      // used to spell out every expiring item's name (comma-separated, via
+      // formatNameList) in the notification body, which read as "too much
+      // text" for a system popup. The dashboard's own "Needs attention"
+      // card is where the full, scrollable list already lives; this
+      // notification's job is just to say "something needs a look."
+      const title = 'ExpiryMate'
+      const body = expiringItems.length === 1
+        ? `${expiringItems[0].name} needs your attention.`
+        : `${expiringItems.length} items need your attention.`
 
       new Notification(title, { body })
     }

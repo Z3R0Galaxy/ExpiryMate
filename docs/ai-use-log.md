@@ -458,4 +458,14 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 
 **Accepted and delivered:** both files (`useTheme.ts`, `index.html`, `App.css`) were written directly onto the user's machine and confirmed in place before this entry was logged.
 
+## 21/8/26 (Feedback Sprint: UI feedback pass eight — follow-up)
+
+**Prompt:** "the gap is still there also fix the notifiction to be more simple as write now it is too much text"
+
+**Response:** rather than guess a second time at the row-height fix, built a disposable Playwright harness reproducing the real `.item-table` markup and measured actual row heights at a phone-width viewport. The earlier `line-height: 1.2` change was real but small (~8px per row, ~13%) — most of a ~54px row was still the cell's own padding plus the status badge's own padding, so both were cut directly: `.item-table th`/`td` padding `0.6rem 0.85rem` → `0.45rem 0.75rem`, `.status-badge` padding `0.3rem 0.7rem 0.3rem 0.6rem` → `0.25rem 0.6rem 0.25rem 0.5rem`. Measured result: single-line rows down to ~40–49px from ~54px, on top of the earlier fix. Column widths and text-wrapping behaviour were deliberately left alone this pass — considered, but the harness's fallback font didn't reliably match the deployed Inter font closely enough to trust changing wrap behaviour without a real-device look first. Separately, simplified the browser notification: `useExpiryNotifications.ts` used to list every expiring item's name (comma-separated, via `formatNameList`, capped at 5 + "and N more") in the notification body — at real item counts this was a wall of text in a system popup. It's now a one-line sentence: the single item's name if there's only one, otherwise just a count ("`N` items need your attention."); the title dropped its own repeated count too, now just "ExpiryMate." Full reasoning for both in `docs/decisions.md`, "Feedback Sprint: UI feedback pass eight" (follow-up).
+
+**Verified before accepting:** `tsc -b --force` and `eslint src`, both run directly on the user's machine via the device bridge, passed clean.
+
+**Not yet done:** the user's own look at both changes on a real device — the row-height fix especially, since the harness's font metrics are an approximation of the real deployed Inter font, not a substitute for seeing it live.
+
 **Not yet done:** delivering this batch's changed files to the user's repo, and the user's own read on whether the animations land as "really nice" — animation feel is inherently something to judge live in the browser rather than from a static screenshot, so this is the one part of the four-point list that genuinely needs the user's own eyes on the running app.

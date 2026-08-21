@@ -1230,15 +1230,21 @@ html, body {
 .item-table th,
 .item-table td {
   text-align: left;
-  padding: 0.6rem 0.85rem;
+  /* Tightened from 0.6rem 0.85rem (UI feedback pass eight, 21/8/26) — the
+   * line-height fix alone (below) only trimmed a few px of inherited
+   * whitespace and the rows still read as too tall/spaced-out once seen
+   * on a real device. Padding itself was most of the remaining row
+   * height, so it's cut directly rather than relying on line-height
+   * alone. */
+  padding: 0.45rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   /* Table cells don't need body's 1.5 line-height — at this font-size that
    * inherited value adds ~7px of empty space above and below every row's
-   * text, on top of the 0.6rem padding, which is what actually produced
-   * the oversized vertical gap between rows. 1.2 keeps text vertically
-   * centred without the extra padding. */
+   * text, on top of the padding above, which was the first (insufficient
+   * on its own) fix for the oversized vertical gap between rows. 1.2
+   * keeps text vertically centred without the extra padding. */
   line-height: 1.2;
 }
 
@@ -1595,12 +1601,15 @@ html, body {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+  /* Trimmed slightly alongside the table row padding above (UI feedback
+   * pass eight, 21/8/26) — this badge is the tallest thing in a table row,
+   * so its own padding was part of what set the row-height floor. */
+  padding: 0.25rem 0.6rem 0.25rem 0.5rem;
   border-radius: 999px;
   white-space: nowrap;
 }
