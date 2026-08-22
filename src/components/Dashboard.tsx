@@ -89,11 +89,14 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
   const needsAttention = buildNeedsAttention(withStatus, withStatus.length)
   const selectedItems = selected === null ? [] : filterByStatus(withStatus, selected)
 
+  // 'warning'/Unsafe dropped from the donut (Feedback Sprint 2, 22/8/26) —
+  // an item can no longer be saved into an unsafe storage spot (see
+  // checkStorageSafety in validateItem.ts), so a dedicated "Unsafe" slice
+  // that should now always read 0 no longer belongs in the breakdown.
   const statusSegments: DonutSegment[] = [
     { key: 'fresh', label: STATUS_LABEL.fresh, value: statusCounts.fresh, color: 'var(--color-fresh-text)' },
     { key: 'soon', label: STATUS_LABEL.soon, value: statusCounts.soon, color: 'var(--color-soon-text)' },
     { key: 'expired', label: STATUS_LABEL.expired, value: statusCounts.expired, color: 'var(--color-expired-text)' },
-    { key: 'warning', label: STATUS_LABEL.warning, value: statusCounts.warning, color: 'var(--color-warning-text)' },
   ]
 
   const placeSegments: DonutSegment[] = STORAGE_LOCATIONS.map(loc => ({
@@ -165,17 +168,6 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
         >
           <span className="stat-label">Expired</span>
           <span className="stat-value">{statusCounts.expired}</span>
-        </motion.button>
-        <motion.button
-          {...tileProps}
-          type="button"
-          className={`stat-tile stat-warning${selected === 'warning' ? ' stat-tile-active' : ''}`}
-          onClick={() => toggle('warning')}
-          aria-pressed={selected === 'warning'}
-          aria-label={`View ${statusCounts.warning} unsafe items`}
-        >
-          <span className="stat-label">Unsafe</span>
-          <span className="stat-value">{statusCounts.warning}</span>
         </motion.button>
       </div>
 

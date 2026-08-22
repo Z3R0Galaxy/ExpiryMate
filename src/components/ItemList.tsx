@@ -198,7 +198,6 @@ export function ItemList({
             <option value="fresh">Fresh</option>
             <option value="soon">Expiring soon</option>
             <option value="expired">Expired</option>
-            <option value="warning">Unsafe</option>
           </select>
         </div>
 

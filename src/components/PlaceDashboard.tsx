@@ -120,17 +120,6 @@ export function PlaceDashboard({ items, place, onNavigate, onSelectStatus, onUpd
           <span className="stat-label">Expired</span>
           <span className="stat-value">{statusCounts.expired}</span>
         </motion.button>
-        <motion.button
-          {...tileProps}
-          type="button"
-          className={`stat-tile stat-warning${selected === 'warning' ? ' stat-tile-active' : ''}`}
-          onClick={() => toggle('warning')}
-          aria-pressed={selected === 'warning'}
-          aria-label={`View ${statusCounts.warning} unsafe ${place} items`}
-        >
-          <span className="stat-label">Unsafe</span>
-          <span className="stat-value">{statusCounts.warning}</span>
-        </motion.button>
       </div>
 
       <AttentionPanel

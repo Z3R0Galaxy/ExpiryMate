@@ -469,9 +469,12 @@ html, body {
  * of a margin. See docs/decisions.md. */
 .stat-row {
   display: grid;
-  /* 5 tiles as of Feedback Sprint 2 (22/8/26) — Total, Fresh, Expiring
-   * soon, Expired, Unsafe. */
-  grid-template-columns: repeat(5, 1fr);
+  /* 4 tiles: Total, Fresh, Expiring soon, Expired. "Unsafe" was dropped
+   * again (Feedback Sprint 2, 22/8/26) — an item can no longer be saved
+   * into an unsafe storage spot (see checkStorageSafety in
+   * validateItem.ts), so a tile that should now always read 0 no longer
+   * belongs here. */
+  grid-template-columns: repeat(4, 1fr);
   gap: 0;
   background-color: var(--color-surface);
   border-radius: var(--radius);
