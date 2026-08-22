@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Item, ItemInput } from './useItems'
 import { useAnimatedModal } from './useAnimatedModal'
-import { validateItemForm } from '../lib/validateItem'
+import { validateItemForm, checkStorageSafety } from '../lib/validateItem'
 import type { EditState } from '../components/ItemDetailModal'
 
 // Pulled out of ItemList.tsx (UI feedback pass four, 21/8/26) so the same
@@ -58,6 +58,21 @@ export function useItemDetail(
     const validationError = validateItemForm(edit)
     if (validationError) {
       setError(validationError)
+      return
+    }
+
+    // Matches AddItemForm.tsx's add-time check (Feedback Sprint 2,
+    // 22/8/26) — editing an item into an unsafe storage/category/opened
+    // combination is blocked the same way adding one into it is.
+    const safetyError = checkStorageSafety({
+      category: edit.category,
+      storage_location: edit.storage_location,
+      expiry_date: edit.expiry_date,
+      is_opened: edit.is_opened,
+      date_opened: edit.is_opened ? edit.date_opened : null,
+    })
+    if (safetyError) {
+      setError(safetyError)
       return
     }
 

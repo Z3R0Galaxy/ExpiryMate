@@ -9,6 +9,9 @@
  * readable error before a raw Postgres constraint violation reaches them.
  */
 
+import { getAdjustedExpiry } from './adjustedExpiry'
+import type { FoodCategory, StorageLocation } from '../hooks/useItems'
+
 export interface ItemFormValues {
   name: string
   expiry_date: string
@@ -68,4 +71,31 @@ export function validateItemForm(values: ItemFormValues): string | null {
   }
 
   return null
+}
+
+export interface StorageSafetyInput {
+  category: FoodCategory
+  storage_location: StorageLocation
+  expiry_date: string
+  is_opened: boolean
+  date_opened: string | null
+}
+
+/**
+ * Feedback Sprint 2 (22/8/26): previously the app would let you add or edit
+ * an item into a storage location the algorithm itself classifies as unsafe
+ * (e.g. raw meat in the pantry) — it would save fine and just show up on
+ * the dashboard/list with an "Unsafe" badge afterwards. Per the user's
+ * explicit request, that's now checked at save time instead: this runs the
+ * exact same `getAdjustedExpiry` the rest of the app uses for the "Unsafe"
+ * badge, and returns its warning message (which now always names the
+ * correct storage location — see adjustedExpiry.ts) when the combination
+ * of category/storage/opened isn't safe, so the caller can block the save
+ * and show the user where the item actually belongs. Returns null when
+ * the combination is safe. Shared by both AddItemForm.tsx and
+ * useItemDetail.ts's saveEdit so add and edit enforce the same rule.
+ */
+export function checkStorageSafety(values: StorageSafetyInput): string | null {
+  const result = getAdjustedExpiry(values)
+  return result.safe ? null : result.message
 }

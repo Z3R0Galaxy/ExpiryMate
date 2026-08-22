@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FoodCategory, ItemInput, StorageLocation } from '../hooks/useItems'
-import { validateItemForm, todayLocal } from '../lib/validateItem'
+import { validateItemForm, checkStorageSafety, todayLocal } from '../lib/validateItem'
 import { guessCategory } from '../lib/guessCategory'
 
 const CATEGORIES: FoodCategory[] = [
@@ -79,6 +79,22 @@ export function AddItemForm({ onAdd }: Props) {
     })
     if (validationError) {
       setError(validationError)
+      return
+    }
+
+    // Blocks adding an item classified unsafe in its current storage spot
+    // (Feedback Sprint 2, 22/8/26) — the message names the correct
+    // location, and the item isn't added until it's moved there or the
+    // storage/category/opened selection changes to a safe one.
+    const safetyError = checkStorageSafety({
+      category,
+      storage_location: storageLocation,
+      expiry_date: expiryDate,
+      is_opened: isOpened,
+      date_opened: isOpened ? dateOpened : null,
+    })
+    if (safetyError) {
+      setError(safetyError)
       return
     }
 

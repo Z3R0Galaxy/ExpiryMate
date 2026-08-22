@@ -91,7 +91,7 @@ function openedAnchor(item: AdjustedExpiryInput): string {
 function evalDairy(item: AdjustedExpiryInput): AdjustedExpiryResult {
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location === 'Pantry') {
-    return warn('Unsafe — dairy should not be stored in the pantry.')
+    return warn('Unsafe — dairy should not be stored in the pantry. Store it in the fridge or freezer instead.')
   }
   if (storage_location === 'Fridge') {
     if (!is_opened) return ok(expiry_date)
@@ -110,7 +110,7 @@ function evalMeatOrSeafood(
 ): AdjustedExpiryResult {
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location === 'Pantry') {
-    return warn(`Unsafe — ${categoryLabel.toLowerCase()} should not be stored in the pantry. Refrigerate or freeze it.`)
+    return warn(`Unsafe — ${categoryLabel.toLowerCase()} should not be stored in the pantry. Store it in the fridge or freezer instead.`)
   }
   if (storage_location === 'Fridge') {
     // Fridge rules apply regardless of whether it's been opened/sealed.
@@ -124,10 +124,10 @@ function evalMeatOrSeafood(
 function evalEggs(item: AdjustedExpiryInput): AdjustedExpiryResult {
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location === 'Freezer') {
-    return warn('Unsafe — eggs cannot be safely frozen in the shell.')
+    return warn('Unsafe — eggs cannot be safely frozen in the shell. Store them in the fridge instead.')
   }
   if (storage_location === 'Pantry') {
-    if (is_opened) return warn('Unsafe — cracked or separated eggs should not be stored in the pantry.')
+    if (is_opened) return warn('Unsafe — cracked or separated eggs should not be stored in the pantry. Store them in the fridge instead.')
     return ok(addDays(expiry_date, -14))
   }
   // Fridge
@@ -144,7 +144,7 @@ function evalProduce(item: AdjustedExpiryInput): AdjustedExpiryResult {
 function evalLeftovers(item: AdjustedExpiryInput): AdjustedExpiryResult {
   // expiry_date holds the "date prepared" for this category (see decisions.md).
   if (item.storage_location === 'Pantry') {
-    return warn('Unsafe — cooked meals/leftovers should not be stored in the pantry.')
+    return warn('Unsafe — cooked meals/leftovers should not be stored in the pantry. Store it in the fridge or freezer instead.')
   }
   const days = item.storage_location === 'Fridge' ? 4 : 90 // Freezer
   return ok(addDays(item.expiry_date, days))
@@ -153,7 +153,7 @@ function evalLeftovers(item: AdjustedExpiryInput): AdjustedExpiryResult {
 function evalBeverages(item: AdjustedExpiryInput): AdjustedExpiryResult {
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location === 'Freezer') {
-    return warn('Not recommended — freezing is not advised for most beverages.')
+    return warn('Not recommended — freezing is not advised for most beverages. Store it in the fridge or pantry instead.')
   }
   if (!is_opened) return ok(expiry_date)
   const days = storage_location === 'Fridge' ? 7 : 3 // Pantry
@@ -163,7 +163,7 @@ function evalBeverages(item: AdjustedExpiryInput): AdjustedExpiryResult {
 function evalCondiments(item: AdjustedExpiryInput): AdjustedExpiryResult {
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location === 'Freezer') {
-    return warn('Not recommended — freezing is not advised for most condiments and sauces.')
+    return warn('Not recommended — freezing is not advised for most condiments and sauces. Store it in the fridge or pantry instead.')
   }
   if (!is_opened) return ok(expiry_date)
   const days = storage_location === 'Fridge' ? 30 : 14 // Pantry
@@ -200,7 +200,7 @@ function evalFrozen(item: AdjustedExpiryInput): AdjustedExpiryResult {
   // food: the printed date is already calibrated for freezer storage.
   const { storage_location, is_opened, expiry_date } = item
   if (storage_location !== 'Freezer') {
-    return warn('Unsafe — this item is meant to stay frozen and will spoil quickly outside the freezer.')
+    return warn('Unsafe — this item is meant to stay frozen and will spoil quickly outside the freezer. Store it in the freezer instead.')
   }
   if (!is_opened) return ok(expiry_date)
   return ok(earlierOf(expiry_date, addDays(openedAnchor(item), 14)))
@@ -218,17 +218,17 @@ function evalFrozenMeals(item: AdjustedExpiryInput): AdjustedExpiryResult {
 
   if (!is_opened) {
     if (storage_location !== 'Freezer') {
-      return warn('Unsafe — this meal is meant to stay frozen until cooked and will spoil quickly outside the freezer.')
+      return warn('Unsafe — this meal is meant to stay frozen until cooked and will spoil quickly outside the freezer. Store it in the freezer instead.')
     }
     return ok(expiry_date)
   }
 
   // Opened/reheated — from here it's a leftover, not a frozen item.
   if (storage_location === 'Freezer') {
-    return warn('Unsafe — an opened meal should be refrigerated, not left in the freezer.')
+    return warn('Unsafe — an opened meal should be refrigerated, not left in the freezer. Store it in the fridge instead.')
   }
   if (storage_location === 'Pantry') {
-    return warn('Unsafe — an opened meal should not be stored in the pantry.')
+    return warn('Unsafe — an opened meal should not be stored in the pantry. Store it in the fridge instead.')
   }
   return ok(addDays(openedAnchor(item), 3))
 }
