@@ -165,22 +165,22 @@ export function AddItemForm({ onAdd }: Props) {
         />
       </label>
 
-      {/* A div, not a label — the checkbox already has its own label
-          below, and a label can't validly wrap another label. */}
-      <div className="field-label">
-        Opened?
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={isOpened}
-            onChange={e => {
-              setIsOpened(e.target.checked)
-              if (!e.target.checked) setDateOpened('')
-            }}
-          />
-          {isOpened ? 'Yes' : 'No'}
-        </label>
-      </div>
+      {/* Feedback Sprint 2 (22/8/26): was a stacked field-label ("Opened?"
+       * on its own line above a separate Yes/No checkbox row, matching
+       * every other field's vertical layout) — now a single row with the
+       * question and its checkbox side by side, per the user's explicit
+       * request. Checking it is what reveals the date field below. */}
+      <label className="opened-toggle">
+        <span>Opened?</span>
+        <input
+          type="checkbox"
+          checked={isOpened}
+          onChange={e => {
+            setIsOpened(e.target.checked)
+            if (!e.target.checked) setDateOpened('')
+          }}
+        />
+      </label>
 
       {isOpened && (
         <label className="field-label">

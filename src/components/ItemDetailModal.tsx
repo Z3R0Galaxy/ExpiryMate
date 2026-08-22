@@ -205,21 +205,22 @@ export function ItemDetailModal({
               onChange={e => setEdit({ ...edit, quantity: e.target.value })}
             />
           </label>
-          <div className="field-label">
-            Opened?
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={edit.is_opened}
-                onChange={e => setEdit({
-                  ...edit,
-                  is_opened: e.target.checked,
-                  date_opened: e.target.checked ? edit.date_opened : '',
-                })}
-              />
-              {edit.is_opened ? 'Yes' : 'No'}
-            </label>
-          </div>
+          {/* Matches AddItemForm.tsx's opened-toggle layout (Feedback
+           * Sprint 2, 22/8/26) — kept the same here rather than letting
+           * add and edit drift into two different layouts for the same
+           * field. */}
+          <label className="opened-toggle">
+            <span>Opened?</span>
+            <input
+              type="checkbox"
+              checked={edit.is_opened}
+              onChange={e => setEdit({
+                ...edit,
+                is_opened: e.target.checked,
+                date_opened: e.target.checked ? edit.date_opened : '',
+              })}
+            />
+          </label>
           {edit.is_opened && (
             <label className="field-label">
               Date opened

@@ -1070,15 +1070,21 @@ html, body {
   font-weight: 400;
 }
 
-.checkbox-label {
+/* "Opened?" toggle (Feedback Sprint 2, 22/8/26) — the question and its
+ * checkbox sit on one row, replacing the previous stacked field-label +
+ * separate Yes/No checkbox row. Checking it is what reveals the "Date
+ * opened" field right below (see AddItemForm.tsx/ItemDetailModal.tsx). */
+.opened-toggle {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
   grid-column: 1 / -1;
 }
 
-.checkbox-label input {
+.opened-toggle input {
   width: auto;
 }
 
@@ -1641,7 +1647,7 @@ html, body {
   width: 100%;
 }
 
-.item-edit .checkbox-label {
+.item-edit .opened-toggle {
   grid-column: 1 / -1;
 }
 
