@@ -526,3 +526,21 @@ Planned the build slice structure with Claude. Decided on six vertical slices or
 **Verified before accepting:** `tsc -b --force` and `eslint src`, both run directly on the user's machine via the device bridge, passed clean.
 
 **Not yet done:** running the new rename migration in the Supabase SQL Editor — until then, the live database's enum still says "Frozen Meals" while the app's code now says "Microwave Meals," so any item using this category will fail to save until the migration runs. `git push origin main` for this commit.
+
+## 22/8/26 (Documentation catch-up: is Feedback Sprint 2 documented everywhere?)
+
+**Prompt:** "is this revision sprint documented in all the relevnt docs?"
+
+**Response:** audited every doc the project treats as a living reference, not just `ai-use-log.md`/`decisions.md` (which were already current). Found three real gaps: `docs/09-iteration-log.md` had no entry at all past "UI feedback pass seven bug fix," despite `10-feedback-sprint.md` explicitly stating every concrete Feedback Sprint step gets one there; `CLAUDE.md`'s Key Components/Current State/Database Schema sections and `docs/04-data-model.md`'s category list/migrations table hadn't been updated since the same point; and `docs/02-requirements.md`'s unsafe-combination requirement still described the old warn-and-allow behaviour rather than Feedback Sprint 2's new block-on-save behaviour. Backfilled all four files. No app code changed.
+
+**Verified before accepting:** `tsc -b --force`/`eslint src` run (a no-op check, since only docs changed) — both passed clean.
+
+## 22/8/26 (Status-breakdown donut: closing the empty-card gap)
+
+**Prompt:** two screenshots of the dashboard's "Status breakdown" card at a wide viewport, showing the ring and legend pushed to opposite edges with a large empty strip between them, plus: "i still would like to close this gap, maybe makign the text bigger or somthing?"
+
+**Response:** `.donut-row`'s `justify-content: space-between` (from UI feedback pass six) anchored the ring to the card's left edge and the legend to its right, reasoning the card's own width would "fill the gap between them" the way the bar chart's bars stretch to fill theirs — that held at the widths tested at the time, but neither the ring (fixed pixel size) nor the legend (content-sized text) actually grows to fill a wide card, so the "gap between them" was just empty space. Switched to `justify-content: center`, treating the ring+legend as one unit so it centres with symmetric breathing room on both sides instead of one lopsided dead strip — that's the actual fix, independent of viewport width. Also sized up the legend per the user's own suggestion (font-size 0.85rem → 1.05rem, swatch 0.7rem → 0.9rem, more row/gap spacing) so the centred group carries more visual weight too. Deliberately left the ring's own pixel size and the punched-centre text alone — both are already sized to fit a fixed-diameter circle rendered at every viewport including phone width, so growing them risked overflow or squeezing the mobile legend (Feedback Sprint 2's own item 10) for no clear benefit, when the legend had no such ceiling to grow into.
+
+**Verified before accepting:** `tsc -b --force` and `eslint src`, both run directly on the user's machine via the device bridge, passed clean.
+
+**Not yet done:** the user's own look at the fix on a real wide screen — this is exactly the kind of change that reads differently live than reasoned about from CSS source, per this project's own established caution about visual changes. `git push origin main` for this commit.

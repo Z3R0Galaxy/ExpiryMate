@@ -771,3 +771,17 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Not yet done:** running the new rename migration in the Supabase SQL Editor, and `git push origin main` for this commit.
 
 ---
+
+## Status-breakdown donut: closing the empty-card gap (decided 22/8/26)
+
+**Context:** two screenshots at a wide viewport showed the "Status breakdown" card's ring and legend pushed to opposite edges with a large empty strip of card width between them, with the user asking to close the gap and suggesting bigger text as one option.
+
+**Decision — `justify-content: center`, not a bigger `space-between` gap:** UI feedback pass six's `justify-content: space-between` was reasoned as "the card's own width fills the gap between them," mirroring how the neighbouring bar chart's bars stretch to fill their card edge-to-edge. That reasoning doesn't actually hold for this pairing — the donut ring is a fixed pixel size (`size` is a plain prop, deliberately never CSS-stretched, see the component's own comments) and the legend is content-sized text, so neither element can grow into a wide card the way a bar can. At the narrower widths tested when pass six shipped, the resulting gap was small enough to read as fine; at a genuinely wide viewport it's just empty space. Centring the ring+legend group as one unit turns that same empty space into symmetric breathing room on both sides instead of one lopsided dead strip on the right — a fix that holds at any card width, not just the ones happened to be tested, unlike trying to tune `space-between`'s effective gap further.
+
+**Decision — grow the legend's type, not the ring's pixel size or the punched-centre text:** per the user's own suggestion to try bigger text, `.donut-legend`'s font-size went 0.85rem → 1.05rem, its row gap and swatch size grew to match, giving the centred group more visual weight of its own on top of the centring fix. The ring's own `size` prop (Dashboard.tsx, still 168px) and the punched centre's `.donut-hole-value`/`.donut-hole-label` were deliberately left alone: both render inside a fixed-diameter circle (`holeSize` is 60% of `size`) that's already sized close to what it can hold — hovering a segment shows its own label there (e.g. "Expiring soon"), and growing that text risked it overflowing the circle. The ring's pixel size is also rendered at every viewport including phone width (where the legend now sits beside it, not below — Feedback Sprint 2's own item 10), so growing it there risked squeezing that layout for a wide-desktop-only complaint. The legend has no such ceiling, so it absorbed the "bigger text" request instead.
+
+**Verified:** `tsc -b --force` and `eslint src`, run directly on the user's machine via the device bridge, passed clean.
+
+**Not yet done:** the user's own look at the fix on a real wide screen, and `git push origin main` for this commit.
+
+---
