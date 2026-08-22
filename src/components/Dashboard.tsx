@@ -23,7 +23,11 @@ export type NavTarget = StorageLocation | 'all' | 'attention'
 
 interface DashboardProps {
   items: Item[]
-  onNavigate: (view: 'list', target: 'attention') => void
+  /** Widened (Feedback Sprint 2, 22/8/26) from `(view: 'list', target:
+   * 'attention')` to also accept `'place-dashboard'` — clicking a bar in
+   * "Items by location" now navigates to that place's PlaceDashboard, the
+   * same destination the sidebar's Fridge/Freezer/Pantry links use. */
+  onNavigate: (view: 'list' | 'place-dashboard', target?: NavTarget) => void
   /** Called only from the expanded stat-tile panel's "See full list" button
    * (UI feedback pass three, 21/8/26) — clicking a stat tile itself no
    * longer navigates away, it expands the panel below in place instead.
@@ -181,12 +185,27 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
              * (whose bar chart has a fixed 160px plot height), reading as
              * unused vertical space rather than a deliberately compact
              * chart. 168px brings the two cards to comparable heights. */}
-            <Donut segments={statusSegments} size={168} />
+            {/* Feedback Sprint 2 (22/8/26): clicking a segment (ring arc or
+             * legend row) now does exactly what clicking the matching stat
+             * tile above does — expands the AttentionPanel to that status. */}
+            <Donut
+              segments={statusSegments}
+              size={168}
+              onSegmentClick={key => toggle(key as SelectedStat)}
+            />
           </div>
 
           <div className="chart-card">
             <h2 className="section-title">Items by location</h2>
-            <BarChart segments={placeSegments} ariaLabel="Item count by storage location" />
+            {/* Clicking a bar navigates to that place's PlaceDashboard —
+             * placeSegments' keys are always exactly the 3 StorageLocation
+             * values (built from STORAGE_LOCATIONS above), so the cast is
+             * safe. */}
+            <BarChart
+              segments={placeSegments}
+              ariaLabel="Item count by storage location"
+              onSegmentClick={key => onNavigate('place-dashboard', key as StorageLocation)}
+            />
           </div>
         </div>
 

@@ -14,6 +14,13 @@ interface DonutProps {
   /** What the punched-out centre shows below the total — defaults to
    * "items" but callers can rename it for a differently-scoped donut. */
   holeUnit?: string
+  /** Feedback Sprint 2 (22/8/26): clicking a segment (its ring arc or its
+   * legend row — the two are already linked through hover) now does
+   * whatever the caller's stat tiles do for that same key, e.g. Dashboard
+   * wires this to the same `toggle()` its "Fresh"/"Expiring soon"/etc.
+   * stat tiles call. Optional so a Donut used purely for display can skip
+   * it. */
+  onSegmentClick?: (key: string) => void
 }
 
 const STROKE = 16
@@ -39,7 +46,7 @@ const GAP = 3 // small blank gap between adjacent segments, in stroke-path units
  * data underneath all of this, not decoration — every segment keeps its
  * swatch, name, and exact count as plain text regardless of hover state.
  */
-export function Donut({ segments, size = 140, holeUnit = 'items' }: DonutProps) {
+export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick }: DonutProps) {
   const [hovered, setHovered] = useState<string | null>(null)
   const total = segments.reduce((sum, seg) => sum + seg.value, 0)
 
@@ -112,6 +119,7 @@ export function Donut({ segments, size = 140, holeUnit = 'items' }: DonutProps) 
                   style={{ cursor: 'pointer' }}
                   onMouseEnter={() => setHovered(seg.key)}
                   onMouseLeave={() => setHovered(null)}
+                  onClick={() => onSegmentClick?.(seg.key)}
                 />
               ))
             )}
@@ -154,6 +162,15 @@ export function Donut({ segments, size = 140, holeUnit = 'items' }: DonutProps) 
             className={`donut-legend-row${hovered === seg.key ? ' donut-legend-row-active' : ''}`}
             onMouseEnter={() => setHovered(seg.key)}
             onMouseLeave={() => setHovered(null)}
+            onClick={() => onSegmentClick?.(seg.key)}
+            role={onSegmentClick ? 'button' : undefined}
+            tabIndex={onSegmentClick ? 0 : undefined}
+            onKeyDown={onSegmentClick ? (e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onSegmentClick(seg.key)
+              }
+            }) : undefined}
           >
             <span className="donut-swatch" style={{ backgroundColor: seg.color }} aria-hidden="true" />
             <span className="donut-legend-label">{seg.label}</span>

@@ -6,6 +6,12 @@ import type { DonutSegment } from './Donut'
 interface BarChartProps {
   segments: DonutSegment[]
   ariaLabel: string
+  /** Feedback Sprint 2 (22/8/26): clicking a bar now does whatever the
+   * caller wants for that segment's key — Dashboard wires this to
+   * navigate to that storage location's PlaceDashboard, the same
+   * destination the sidebar's Fridge/Freezer/Pantry links go to. Optional
+   * so a BarChart used purely for display can skip it. */
+  onSegmentClick?: (key: string) => void
 }
 
 /**
@@ -28,7 +34,7 @@ interface BarChartProps {
  * series — no separate legend is needed alongside it; the native `title`
  * tooltip is kept as a plain-text fallback for the same information.
  */
-export function BarChart({ segments, ariaLabel }: BarChartProps) {
+export function BarChart({ segments, ariaLabel, onSegmentClick }: BarChartProps) {
   const [hovered, setHovered] = useState<string | null>(null)
   const max = Math.max(1, ...segments.map(seg => seg.value))
 
@@ -45,6 +51,15 @@ export function BarChart({ segments, ariaLabel }: BarChartProps) {
             title={`${seg.label}: ${seg.value}`}
             onMouseEnter={() => setHovered(seg.key)}
             onMouseLeave={() => setHovered(null)}
+            onClick={() => onSegmentClick?.(seg.key)}
+            role={onSegmentClick ? 'button' : undefined}
+            tabIndex={onSegmentClick ? 0 : undefined}
+            onKeyDown={onSegmentClick ? (e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onSegmentClick(seg.key)
+              }
+            }) : undefined}
           >
             <motion.span
               className="bar-chart-value"
