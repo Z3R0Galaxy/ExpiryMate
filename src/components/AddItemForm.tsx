@@ -5,7 +5,7 @@ import { guessCategory } from '../lib/guessCategory'
 
 const CATEGORIES: FoodCategory[] = [
   'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
-  'Frozen', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
+  'Frozen', 'Frozen Meals', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
 ]
 
 const STORAGE_LOCATIONS: StorageLocation[] = ['Fridge', 'Freezer', 'Pantry']

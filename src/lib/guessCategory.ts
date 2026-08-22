@@ -20,6 +20,18 @@ interface CategoryRule {
 // chicken, frozen peas, frozen bread) should read as Frozen, not its base
 // category.
 const RULES: CategoryRule[] = [
+  // Checked before the plain 'Frozen' rule below — these are more specific
+  // multi-word phrases (a "frozen lasagne" should read as a ready meal, not
+  // generic frozen food), so they need to win the top-to-bottom match race
+  // even though "frozen" itself would also match the broader rule after it.
+  {
+    category: 'Frozen Meals',
+    keywords: [
+      'frozen meal', 'frozen dinner', 'frozen lasagne', 'frozen lasagna',
+      'frozen pizza', 'frozen curry', 'frozen pie', 'ready meal', 'tv dinner',
+      'microwave meal', 'microwavable', 'microwaveable',
+    ],
+  },
   {
     category: 'Frozen',
     keywords: ['frozen', 'ice cream', 'icecream', 'ice-cream', 'popsicle', 'ice block'],

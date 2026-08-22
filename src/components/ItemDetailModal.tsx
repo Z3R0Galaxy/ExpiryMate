@@ -15,7 +15,7 @@ import { CategoryIcon } from './icons'
 
 const CATEGORIES: FoodCategory[] = [
   'Dairy', 'Eggs', 'Meat', 'Seafood', 'Produce', 'Bakery',
-  'Frozen', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
+  'Frozen', 'Frozen Meals', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
 ]
 
 // See validateItem.ts's todayLocal() — this used to be its own

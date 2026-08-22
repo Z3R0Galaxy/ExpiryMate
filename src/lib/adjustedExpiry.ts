@@ -206,6 +206,33 @@ function evalFrozen(item: AdjustedExpiryInput): AdjustedExpiryResult {
   return ok(earlierOf(expiry_date, addDays(openedAnchor(item), 14)))
 }
 
+function evalFrozenMeals(item: AdjustedExpiryInput): AdjustedExpiryResult {
+  // New category (Feedback Sprint 2, 22/8/26) — frozen/microwavable ready
+  // meals, split out from the plain "Frozen" category above. A ready meal
+  // is meant to be cooked once and eaten, not thawed and used like a raw
+  // ingredient, so once it's opened/reheated it behaves like a cooked
+  // leftover (short fridge life, shouldn't go back in the freezer) rather
+  // than "still frozen, just needs longer to use up" like evalFrozen's
+  // 14-day opened window. See docs/decisions.md.
+  const { storage_location, is_opened, expiry_date } = item
+
+  if (!is_opened) {
+    if (storage_location !== 'Freezer') {
+      return warn('Unsafe — this meal is meant to stay frozen until cooked and will spoil quickly outside the freezer.')
+    }
+    return ok(expiry_date)
+  }
+
+  // Opened/reheated — from here it's a leftover, not a frozen item.
+  if (storage_location === 'Freezer') {
+    return warn('Unsafe — an opened meal should be refrigerated, not left in the freezer.')
+  }
+  if (storage_location === 'Pantry') {
+    return warn('Unsafe — an opened meal should not be stored in the pantry.')
+  }
+  return ok(addDays(openedAnchor(item), 3))
+}
+
 // --- entry point ---------------------------------------------------------
 
 export function getAdjustedExpiry(item: AdjustedExpiryInput): AdjustedExpiryResult {
@@ -232,6 +259,8 @@ export function getAdjustedExpiry(item: AdjustedExpiryInput): AdjustedExpiryResu
       return evalBakery(item)
     case 'Frozen':
       return evalFrozen(item)
+    case 'Frozen Meals':
+      return evalFrozenMeals(item)
   }
 }
 

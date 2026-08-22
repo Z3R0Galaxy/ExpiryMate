@@ -131,6 +131,16 @@ export function CategoryIcon({ category, size = 16 }: { category: FoodCategory; 
           <path d="M12 2v20M5 6.5l14 11M19 6.5 5 17.5" />
         </svg>
       )
+    case 'Frozen Meals':
+      // A TV-dinner tray — divided compartments, distinct from the plain
+      // snowflake used for raw frozen ingredients above.
+      return (
+        <svg {...common}>
+          <rect x="3" y="7" width="18" height="14" rx="2" />
+          <path d="M3 7l3.5-4h11L21 7" />
+          <path d="M9 7v14M15 7v14" />
+        </svg>
+      )
     case 'Beverages':
       return (
         <svg {...common}>
