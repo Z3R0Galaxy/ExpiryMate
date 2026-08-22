@@ -184,7 +184,15 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
              * noticeably shorter than its "Items by location" neighbour
              * (whose bar chart has a fixed 160px plot height), reading as
              * unused vertical space rather than a deliberately compact
-             * chart. 168px brings the two cards to comparable heights. */}
+             * chart. 168px brings the two cards to comparable heights.
+             * Left at 168px rather than bumped further (22/8/26, "the gap
+             * is still there") — this is a fixed pixel size rendered at
+             * every viewport including phone width (see the Feedback
+             * Sprint 2 mobile-legend fix below), so growing it risks
+             * squeezing the legend on a narrow screen. The wide-card empty
+             * space this pass actually fixes is `.donut-row`'s
+             * `justify-content: center` (App.css) plus larger legend/hole
+             * type, not the ring's own size. */}
             {/* Feedback Sprint 2 (22/8/26): clicking a segment (ring arc or
              * legend row) now does exactly what clicking the matching stat
              * tile above does — expands the AttentionPanel to that status. */}

@@ -662,19 +662,33 @@ html, body {
   box-shadow: var(--shadow);
 }
 
-/* `justify-content: space-between` (UI feedback pass six, 21/8/26) pushes
- * the legend out to the card's right edge instead of letting it sit right
- * next to the ring with a big block of unused card width beyond it — the
- * ring anchors the left edge (`.donut-shape` has `flex-shrink: 0` below),
- * the legend anchors the right, and the card's own width is what fills the
- * gap between them, the same way the bar chart's columns already stretch
- * to fill their card edge-to-edge. See `decisions.md`. */
+/* Centred as one group, not stretched edge-to-edge (revised 22/8/26 —
+ * "the gap is still there"). UI feedback pass six anchored the ring to the
+ * card's left edge and the legend to its right (`justify-content:
+ * space-between`), on the reasoning that the card's own width would "fill
+ * the gap between them" the way the bar chart's bars stretch to fill
+ * theirs. That held at the card widths tested at the time, but a real
+ * screenshot on a wide monitor showed the actual failure mode: the ring
+ * and legend are both fixed/content-sized, so on a genuinely wide card the
+ * "gap between them" is just a large dead strip of nothing, not something
+ * either element grows into — unlike the bar chart, whose bars are
+ * designed to stretch. `justify-content: center` treats the ring+legend as
+ * one unit and centres it, turning that dead strip into symmetric
+ * breathing room on both sides — which reads as an intentional, generously
+ * spaced card rather than a rendering gap. The ring's own pixel size
+ * (Dashboard.tsx) and the punched centre's text (`.donut-hole-value`/
+ * `.donut-hole-label`) are deliberately left alone — both are already
+ * sized right up to what their fixed-diameter circle can hold without
+ * risking overflow — but the external legend has no such ceiling, so it's
+ * sized up instead (see `.donut-legend`/`.donut-swatch` below), giving the
+ * centred group more visual weight per the user's own suggestion to try
+ * bigger text. */
 .donut-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
-  gap: 1.25rem;
+  gap: 2rem;
   /* Grows to fill `.chart-card`'s now-taller box (UI feedback pass seven,
    * 21/8/26) — the ring itself stays a fixed size (`size` is a plain
    * pixel prop on Donut, not something CSS should stretch/distort), but
@@ -738,19 +752,23 @@ html, body {
   color: var(--color-text-muted);
 }
 
+/* Sized up (22/8/26, alongside the `.donut-row` centring change above) —
+ * bigger legend type gives the centred ring+legend group more visual
+ * weight of its own, so a wide card reads as generously laid out rather
+ * than under-filled, on top of the centring fix itself. */
 .donut-legend {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  gap: 0.65rem;
+  font-size: 1.05rem;
 }
 
 .donut-legend-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.15rem 0.35rem;
-  margin: 0 -0.35rem;
+  gap: 0.65rem;
+  padding: 0.3rem 0.5rem;
+  margin: 0 -0.5rem;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.15s var(--ease);
@@ -765,9 +783,9 @@ html, body {
 }
 
 .donut-swatch {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 2px;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
