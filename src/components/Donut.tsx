@@ -80,7 +80,19 @@ export function Donut({ segments, size = 140, holeUnit = 'items' }: DonutProps) 
                 strokeWidth={STROKE}
               />
             ) : (
-              arcs.map(({ seg, i, dasharray, dashoffset }) => (
+              // Feedback Sprint 2 (22/8/26): a zero-value segment still
+              // reported here (e.g. "Unsafe" with a count of 0) computes a
+              // zero-length arc, but `strokeLinecap="round"` on a
+              // zero-length dash still renders — the two round end-caps of
+              // a degenerate segment combine into a small solid dot right
+              // on the ring, at whatever angle that segment's slice starts.
+              // That's the "part of the chart still showing" bug: a status
+              // with genuinely no items was drawing a visible dot anyway.
+              // Filtering to only positive-value segments before rendering
+              // removes it; the legend row for a 0-count status is
+              // untouched, since a 0/0 count is correct to keep showing
+              // there as plain text.
+              arcs.filter(({ seg }) => seg.value > 0).map(({ seg, i, dasharray, dashoffset }) => (
                 <motion.circle
                   key={seg.key}
                   cx={viewBox / 2}
