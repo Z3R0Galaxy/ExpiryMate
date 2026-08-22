@@ -131,7 +131,7 @@ export function CategoryIcon({ category, size = 16 }: { category: FoodCategory; 
           <path d="M12 2v20M5 6.5l14 11M19 6.5 5 17.5" />
         </svg>
       )
-    case 'Frozen Meals':
+    case 'Microwave Meals':
       // A TV-dinner tray — divided compartments, distinct from the plain
       // snowflake used for raw frozen ingredients above.
       return (

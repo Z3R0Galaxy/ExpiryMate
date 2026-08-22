@@ -9,7 +9,7 @@ export type FoodCategory =
   | 'Produce'
   | 'Bakery'
   | 'Frozen'
-  | 'Frozen Meals'
+  | 'Microwave Meals'
   | 'Beverages'
   | 'Condiments'
   | 'Snacks'

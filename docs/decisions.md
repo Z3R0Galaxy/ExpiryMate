@@ -757,3 +757,17 @@ The adjustments below are expressed relative to the printed expiry date (for uno
 **Not yet done:** running the Frozen Meals Postgres migration against the live Supabase project (SQL Editor, manual step); `git push origin main` for all ten commits (push is blocked from this sandbox); and the user's own look at the two changes that read differently live than from source — the FAB's hover animation feel, and the mobile donut legend's actual fit at real phone widths.
 
 ---
+
+## Rename "Frozen Meals" to "Microwave Meals" (decided 22/8/26)
+
+**Context:** right after Feedback Sprint 2 shipped, the user asked to rename the new "Frozen Meals" category to "Microwave Meals" — and confirmed the sprint's `add value` migration had already been run against the live database, so items already exist tagged with the old name.
+
+**Decision — use `alter type ... rename value`, not a second `add value` plus a data backfill:** since the enum value is already live and rows already reference it, adding 'Microwave Meals' as a brand-new value and then updating every row's `category` column to point at it would work but is two steps (schema change, then a `update items set category = ...` data migration) with a window in between where the two values coexist. `rename value` (supported since Postgres 10) does both at once — it relabels the existing enum value in place, so every row already tagged 'Frozen Meals' reads as 'Microwave Meals' immediately, with nothing to backfill and no old value left dangling afterward. Captured as a new migration file (`20260822010000_rename_frozen_meals_to_microwave_meals.sql`) rather than editing the original `add value` migration in place, since that migration already ran — rewriting a migration that's already been applied would leave the migrations folder out of sync with what actually happened to the live schema.
+
+**Decision — rename every code-level reference to match, not just the enum:** the `FoodCategory` union member (`useItems.ts`), the category dropdowns (`AddItemForm.tsx`, `ItemDetailModal.tsx`, `ItemList.tsx`), the `guessCategory.ts` rule's `category` field (its keyword list was already written around "microwave"/"frozen meal" phrasing, so no keywords needed to change), the icon lookup (`icons.tsx`), and the `adjustedExpiry.ts` switch case plus its `evalFrozenMeals` function — renamed to `evalMicrowaveMeals` — were all updated together in one pass, so nothing in the running app still says the old name anywhere a user or the algorithm would see it. Left the original `add value` migration file and the Feedback Sprint 2 log/decision entries above untouched — they're a record of what was actually done at the time (the category genuinely was called "Frozen Meals" when it shipped), not something to retroactively rewrite.
+
+**Verified:** `tsc -b --force` and `eslint src`, run directly on the user's machine via the device bridge, passed clean.
+
+**Not yet done:** running the new rename migration in the Supabase SQL Editor, and `git push origin main` for this commit.
+
+---

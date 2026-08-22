@@ -206,8 +206,10 @@ function evalFrozen(item: AdjustedExpiryInput): AdjustedExpiryResult {
   return ok(earlierOf(expiry_date, addDays(openedAnchor(item), 14)))
 }
 
-function evalFrozenMeals(item: AdjustedExpiryInput): AdjustedExpiryResult {
-  // New category (Feedback Sprint 2, 22/8/26) — frozen/microwavable ready
+function evalMicrowaveMeals(item: AdjustedExpiryInput): AdjustedExpiryResult {
+  // New category (Feedback Sprint 2, 22/8/26; renamed from "Frozen Meals"
+  // to "Microwave Meals" the same sprint, before any other naming had a
+  // chance to spread — see docs/decisions.md) — frozen/microwavable ready
   // meals, split out from the plain "Frozen" category above. A ready meal
   // is meant to be cooked once and eaten, not thawed and used like a raw
   // ingredient, so once it's opened/reheated it behaves like a cooked
@@ -259,8 +261,8 @@ export function getAdjustedExpiry(item: AdjustedExpiryInput): AdjustedExpiryResu
       return evalBakery(item)
     case 'Frozen':
       return evalFrozen(item)
-    case 'Frozen Meals':
-      return evalFrozenMeals(item)
+    case 'Microwave Meals':
+      return evalMicrowaveMeals(item)
   }
 }
 

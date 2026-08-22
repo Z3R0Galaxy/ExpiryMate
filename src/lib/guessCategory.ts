@@ -25,7 +25,7 @@ const RULES: CategoryRule[] = [
   // generic frozen food), so they need to win the top-to-bottom match race
   // even though "frozen" itself would also match the broader rule after it.
   {
-    category: 'Frozen Meals',
+    category: 'Microwave Meals',
     keywords: [
       'frozen meal', 'frozen dinner', 'frozen lasagne', 'frozen lasagna',
       'frozen pizza', 'frozen curry', 'frozen pie', 'ready meal', 'tv dinner',
