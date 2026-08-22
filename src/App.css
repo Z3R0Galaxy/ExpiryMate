@@ -469,7 +469,9 @@ html, body {
  * of a margin. See docs/decisions.md. */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 5 tiles as of Feedback Sprint 2 (22/8/26) — Total, Fresh, Expiring
+   * soon, Expired, Unsafe. */
+  grid-template-columns: repeat(5, 1fr);
   gap: 0;
   background-color: var(--color-surface);
   border-radius: var(--radius);
@@ -580,6 +582,7 @@ html, body {
   transition: transform 0.15s var(--ease);
 }
 
+.stat-fresh .stat-value { color: var(--color-fresh-text); }
 .stat-soon .stat-value { color: var(--color-soon-text); }
 .stat-expired .stat-value { color: var(--color-expired-text); }
 .stat-warning .stat-value { color: var(--color-warning-text); }
@@ -1746,7 +1749,11 @@ html, body {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .stat-tile:nth-child(2) {
+  /* Was `:nth-child(2)` specifically, back when there were always exactly
+   * 4 tiles (2 full rows of 2). `:nth-child(2n)` (every tile in the
+   * right-hand column) stays correct now that a 5th ("Fresh") tile makes
+   * the last row a single tile spanning the left column only. */
+  .stat-tile:nth-child(2n) {
     border-right: none;
   }
 

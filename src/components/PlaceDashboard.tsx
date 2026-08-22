@@ -90,6 +90,17 @@ export function PlaceDashboard({ items, place, onNavigate, onSelectStatus, onUpd
         <motion.button
           {...tileProps}
           type="button"
+          className={`stat-tile stat-fresh${selected === 'fresh' ? ' stat-tile-active' : ''}`}
+          onClick={() => toggle('fresh')}
+          aria-pressed={selected === 'fresh'}
+          aria-label={`View ${statusCounts.fresh} fresh ${place} items`}
+        >
+          <span className="stat-label">Fresh</span>
+          <span className="stat-value">{statusCounts.fresh}</span>
+        </motion.button>
+        <motion.button
+          {...tileProps}
+          type="button"
           className={`stat-tile stat-soon${selected === 'soon' ? ' stat-tile-active' : ''}`}
           onClick={() => toggle('soon')}
           aria-pressed={selected === 'soon'}

@@ -136,6 +136,17 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
         <motion.button
           {...tileProps}
           type="button"
+          className={`stat-tile stat-fresh${selected === 'fresh' ? ' stat-tile-active' : ''}`}
+          onClick={() => toggle('fresh')}
+          aria-pressed={selected === 'fresh'}
+          aria-label={`View ${statusCounts.fresh} fresh items`}
+        >
+          <span className="stat-label">Fresh</span>
+          <span className="stat-value">{statusCounts.fresh}</span>
+        </motion.button>
+        <motion.button
+          {...tileProps}
+          type="button"
           className={`stat-tile stat-soon${selected === 'soon' ? ' stat-tile-active' : ''}`}
           onClick={() => toggle('soon')}
           aria-pressed={selected === 'soon'}
