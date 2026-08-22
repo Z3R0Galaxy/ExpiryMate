@@ -216,6 +216,9 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
         )}
       </main>
 
+      {/* Feedback Sprint 2 (22/8/26): hovering (or focusing) now slides the
+       * pill open to reveal an "Add item" label instead of staying a bare
+       * icon circle — see .fab/.fab-icon/.fab-label in App.css. */}
       <button
         type="button"
         className="fab"
@@ -223,9 +226,12 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
         aria-label="Add item"
         title="Add item"
       >
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <span className="fab-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </span>
+        <span className="fab-label">Add item</span>
       </button>
 
       {addModal.open && (

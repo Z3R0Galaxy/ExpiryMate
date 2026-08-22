@@ -1298,28 +1298,60 @@ html, body {
 /* Add-item FAB — fixed bottom-right, opens the add-item form in the same
  * animated modal used for the item detail view. -------------------------- */
 
+/* A bare icon circle that slides open on hover/focus to reveal an "Add
+ * item" label (Feedback Sprint 2, 22/8/26), rather than staying a plain
+ * icon-only button. `.fab` itself no longer has a fixed width — sized by
+ * its content instead (`.fab-icon`'s fixed circle plus `.fab-label`,
+ * collapsed to 0 width by default), so the pill grows only as far as the
+ * label actually needs. */
 .fab {
   position: fixed;
   right: clamp(1.25rem, 4vw, 2.5rem);
   bottom: clamp(1.25rem, 4vw, 2.5rem);
   z-index: 50;
-  width: 3.5rem;
   height: 3.5rem;
   padding: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  border-radius: 999px;
   background-color: var(--color-primary);
   color: #fff;
   border: none;
+  overflow: hidden;
   box-shadow: 0 4px 10px rgb(0 0 0 / 0.2), 0 8px 24px rgb(0 0 0 / 0.15);
   transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 
-.fab:hover {
-  transform: translateY(-2px) scale(1.04);
+.fab-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: max-width 0.3s var(--ease), opacity 0.2s var(--ease), padding-right 0.3s var(--ease);
+}
+
+.fab:hover,
+.fab:focus-visible {
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 0 6px 14px rgb(0 0 0 / 0.22), 0 12px 28px rgb(0 0 0 / 0.18);
+}
+
+.fab:hover .fab-label,
+.fab:focus-visible .fab-label {
+  max-width: 8rem;
+  opacity: 1;
+  padding-right: 1.4rem;
 }
 
 /* Icon-only circular buttons, matching the theme toggle's shape/language
@@ -1993,6 +2025,10 @@ html, body {
   }
 
   .fab {
+    height: 3.25rem;
+  }
+
+  .fab-icon {
     width: 3.25rem;
     height: 3.25rem;
   }
