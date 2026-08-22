@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FoodCategory, ItemInput, StorageLocation } from '../hooks/useItems'
-import { validateItemForm } from '../lib/validateItem'
+import { validateItemForm, todayLocal } from '../lib/validateItem'
 import { guessCategory } from '../lib/guessCategory'
 
 const CATEGORIES: FoodCategory[] = [
@@ -10,7 +10,12 @@ const CATEGORIES: FoodCategory[] = [
 
 const STORAGE_LOCATIONS: StorageLocation[] = ['Fridge', 'Freezer', 'Pantry']
 
-const today = () => new Date().toISOString().slice(0, 10)
+// Was its own `new Date().toISOString().slice(0, 10)` (UTC calendar date,
+// not local) — switched to the shared `todayLocal()` alongside the
+// validateItem.ts fix for the "date must not be in the future" bug, so the
+// date-input's own `max` attribute agrees with the validation message
+// instead of using a different definition of "today." See validateItem.ts.
+const today = todayLocal
 
 interface Props {
   onAdd: (input: ItemInput) => Promise<{ error?: string }>

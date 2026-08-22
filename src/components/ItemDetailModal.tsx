@@ -4,6 +4,7 @@ import { AnimatedModal } from './AnimatedModal'
 import { computeStatusInfo, STATUS_CLASS, STATUS_LABEL } from '../lib/itemStatus'
 import type { BadgeStatus } from '../lib/itemStatus'
 import { STORAGE_LOCATIONS } from '../lib/dashboardStats'
+import { todayLocal } from '../lib/validateItem'
 import { CategoryIcon } from './icons'
 
 // Pulled out of ItemList.tsx (UI feedback pass four, 21/8/26) so the same
@@ -17,7 +18,12 @@ const CATEGORIES: FoodCategory[] = [
   'Frozen', 'Beverages', 'Condiments', 'Snacks', 'Leftovers',
 ]
 
-const today = () => new Date().toISOString().slice(0, 10)
+// See validateItem.ts's todayLocal() — this used to be its own
+// `new Date().toISOString().slice(0, 10)` (UTC calendar date, not local),
+// which is what caused the "date must not be in the future" bug on today's
+// own date. Kept as a local alias so every call site below (`today()`)
+// stays unchanged.
+const today = todayLocal
 
 export interface EditState {
   name: string
