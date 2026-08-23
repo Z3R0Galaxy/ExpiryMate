@@ -25,7 +25,19 @@ This document tracks ExpiryMate against the assessment's security floor and reco
 
 **Session handling.** `supabase-js` manages the session token in the browser (localStorage) by default. This is a reasonable default for a household tracking app with no highly sensitive data, but it's worth naming explicitly here as an accepted trade-off rather than an oversight — a token-theft-via-XSS scenario would rely on an XSS vector that React's escaping already closes off.
 
-**Brute-force login attempts.** Not separately mitigated beyond whatever Supabase Auth does by default (basic rate limiting exists on Supabase's side for auth endpoints). Not a focus for this project's scope, noted here for completeness rather than as a planned addition.
+**Brute-force login attempts.** Not separately mitigated beyond whatever Supabase Auth does by default (basic rate limiting exists on Supabase's side for auth endpoints). Not a focus for this project's scope, noted here for completeness rather than as a planned addition. Any account that has opted into two-factor authentication (see below) is additionally protected against a successful password guess alone being enough to sign in.
+
+## Two-factor authentication (added Feedback Sprint 3, 23/8/26)
+
+Beyond the assessment's own security floor (the six-item checklist above), the app now offers opt-in TOTP two-factor authentication, using Supabase Auth's built-in MFA support directly rather than a custom implementation — Supabase stores and verifies the factor itself, so no shared secret or verification logic lives in this app's own code or database.
+
+**Mechanism.** `ProfilePage.tsx`'s `TwoFactorSettings` calls `supabase.auth.mfa.enroll({ factorType: 'totp' })`, which returns a QR code and a manual-entry secret; the factor is only marked `verified` once the user proves possession of it with one correct 6-digit code (`challenge` + `verify`). `App.tsx`'s top-level `App()` checks `supabase.auth.mfa.getAuthenticatorAssuranceLevel()` after every sign-in and requires a fresh code (via `MfaChallenge.tsx`) before rendering the authenticated app to any session that hasn't reached `aal2` but has a verified factor on file — a password alone is no longer sufficient for such an account.
+
+**Disabling requires the same proof enrolling does.** Turning two-factor off (`TwoFactorSettings`'s "Disable") also requires a correct fresh code before `unenroll` is called — a bare signed-in session (e.g. a stolen but not-yet-expired token, or a device left unlocked) can't turn the protection off by itself.
+
+**Opt-in, not enforced.** Per the user's own choice when this sprint was planned (see `decisions.md`, "Feedback Sprint 3"), two-factor is opt-in from the account's Profile page rather than mandatory for every account — an account that never enrolls a factor behaves exactly as before this sprint, with `getAuthenticatorAssuranceLevel()` reporting `currentLevel === nextLevel` and no challenge ever shown.
+
+**Not covered:** account recovery if a user loses access to their authenticator app and has no factor to unenroll with (no backup codes are generated on enroll) — acceptable for this project's scope, but a real product would need a recovery path (backup codes, or an admin-assisted reset) before this could be considered complete.
 
 ## Outstanding follow-ups
 
