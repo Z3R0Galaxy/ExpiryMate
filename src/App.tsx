@@ -11,6 +11,7 @@ import type { NavTarget } from './components/Dashboard'
 import { PlaceDashboard } from './components/PlaceDashboard'
 import { ProfilePage } from './components/ProfilePage'
 import { AboutPage } from './components/AboutPage'
+import { MfaChallenge } from './components/MfaChallenge'
 import { Sidebar } from './components/Sidebar'
 import type { NavKey } from './components/Sidebar'
 import { useItems } from './hooks/useItems'
@@ -290,9 +291,25 @@ function ThemeToggle() {
   )
 }
 
+// Whether the current session still needs a TOTP code before the app
+// proper is shown (Feedback Sprint 3, 23/8/26). 'checking' covers the gap
+// while getAuthenticatorAssuranceLevel()'s own request is in flight — it's
+// its own state rather than reusing `loading` below, since it only ever
+// applies once a session already exists.
+type MfaGate = 'checking' | 'required' | 'satisfied'
+
 function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  // Result of the last completed getAuthenticatorAssuranceLevel() check,
+  // tagged with the account it was computed for. Deliberately not reset to
+  // "checking" by the effect below on every session change — onAuthState
+  // Change also fires for plain token refreshes, and resetting then would
+  // flash the whole app back to a loading screen for no reason. Instead
+  // `mfaGate` below derives "checking" for any session whose user id
+  // doesn't match this result's userId, so signing into a different
+  // account never shows it the previous account's stale result.
+  const [mfaResult, setMfaResult] = useState<{ userId: string; required: boolean } | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -309,11 +326,36 @@ function App() {
     }
   }, [])
 
+  // Asks Supabase directly whether this session's assurance level
+  // (aal1/aal2) already matches what the account's enrolled factors
+  // require, rather than this component trying to track that itself. A
+  // password sign-in with no TOTP factor enrolled gets nextLevel ===
+  // currentLevel === aal1 and is never gated; one with a verified factor
+  // gets nextLevel aal2 until an MfaChallenge is completed.
+  useEffect(() => {
+    if (!session) return
+    let cancelled = false
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data }) => {
+      if (cancelled) return
+      const needsChallenge = !!data && data.nextLevel === 'aal2' && data.currentLevel !== data.nextLevel
+      setMfaResult({ userId: session.user.id, required: needsChallenge })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [session])
+
+  const mfaGate: MfaGate = !session
+    ? 'checking'
+    : mfaResult?.userId === session.user.id
+      ? (mfaResult.required ? 'required' : 'satisfied')
+      : 'checking'
+
   async function handleSignOut() {
     await supabase.auth.signOut()
   }
 
-  if (loading) {
+  if (loading || (session && mfaGate === 'checking')) {
     return <p className="app-loading">Loading...</p>
   }
 
@@ -323,6 +365,15 @@ function App() {
         <ThemeToggle />
         <Auth />
       </div>
+    )
+  }
+
+  if (mfaGate === 'required') {
+    return (
+      <MfaChallenge
+        onVerified={() => setMfaResult({ userId: session.user.id, required: false })}
+        onSignOut={handleSignOut}
+      />
     )
   }
 

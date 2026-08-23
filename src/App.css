@@ -510,6 +510,93 @@ html, body {
   margin-top: 0.3rem;
 }
 
+/* Account settings sections on the profile page — two-factor
+ * authentication (Feedback Sprint 3, 23/8/26) is the first of these, in
+ * its own card matching .profile-header's treatment. */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.settings-muted {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.settings-status-on {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mfa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.mfa-form input {
+  width: 100%;
+  max-width: 220px;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mfa-qr {
+  width: 180px;
+  height: 180px;
+  padding: 0.6rem;
+  background-color: #fff;
+  border-radius: var(--radius-sm);
+}
+
+.mfa-secret {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.mfa-secret code {
+  font-size: 0.85rem;
+  background-color: var(--color-surface-alt);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.mfa-form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* Generic text-styled button for a secondary/cancel action next to a
+ * primary one — same look as .toggle-auth on the sign-in screen. */
+.secondary-button {
+  background: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 0.6rem 0.5rem;
+}
+
+.secondary-button:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.danger-button {
+  background-color: var(--color-danger);
+}
+
+.danger-button:hover {
+  background-color: var(--color-danger-hover);
+}
+
 /* About page (Feedback Sprint 3, 23/8/26) — reached by clicking the
  * sidebar's logo. Same capped-and-centred single-card treatment as the
  * profile page, since it's likewise just one block of static content. */
