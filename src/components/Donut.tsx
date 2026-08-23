@@ -21,6 +21,14 @@ interface DonutProps {
    * stat tiles call. Optional so a Donut used purely for display can skip
    * it. */
   onSegmentClick?: (key: string) => void
+  /** Feedback Sprint 3 (23/8/26): the key whichever stat tile is currently
+   * selected corresponds to (e.g. Dashboard's `selected`), so clicking a
+   * tile highlights the matching slice the same way hovering it directly
+   * does — without this the two ways of picking a status looked
+   * unrelated. `null`/`undefined` (nothing selected, or a tile with no
+   * matching slice like "Total") leaves the ring showing its plain total,
+   * same as before this prop existed. */
+  activeKey?: string | null
 }
 
 const STROKE = 16
@@ -46,8 +54,13 @@ const GAP = 3 // small blank gap between adjacent segments, in stroke-path units
  * data underneath all of this, not decoration — every segment keeps its
  * swatch, name, and exact count as plain text regardless of hover state.
  */
-export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick }: DonutProps) {
+export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick, activeKey = null }: DonutProps) {
   const [hovered, setHovered] = useState<string | null>(null)
+  // A live hover always wins over the clicked-tile selection (mid-hover
+  // feedback should never look "stuck" on whatever was last clicked), but
+  // once the mouse leaves, the selected tile's own slice stays highlighted
+  // rather than the ring just going blank — see `activeKey` above.
+  const highlighted = hovered ?? activeKey
   const total = segments.reduce((sum, seg) => sum + seg.value, 0)
 
   const r = 45
@@ -70,7 +83,7 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
     }
   })
 
-  const hoveredSeg = segments.find(s => s.key === hovered) ?? null
+  const hoveredSeg = segments.find(s => s.key === highlighted) ?? null
 
   return (
     <div className="donut-row">
@@ -111,7 +124,7 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
                   strokeDasharray={dasharray}
                   strokeDashoffset={dashoffset}
                   initial={{ opacity: 0, strokeWidth: STROKE }}
-                  animate={{ opacity: 1, strokeWidth: hovered === seg.key ? STROKE + 5 : STROKE }}
+                  animate={{ opacity: 1, strokeWidth: highlighted === seg.key ? STROKE + 5 : STROKE }}
                   transition={{
                     opacity: { duration: 0.35, delay: i * 0.07 },
                     strokeWidth: { duration: 0.15 },
@@ -159,7 +172,7 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
         {segments.map(seg => (
           <li
             key={seg.key}
-            className={`donut-legend-row${hovered === seg.key ? ' donut-legend-row-active' : ''}`}
+            className={`donut-legend-row${highlighted === seg.key ? ' donut-legend-row-active' : ''}`}
             onMouseEnter={() => setHovered(seg.key)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => onSegmentClick?.(seg.key)}

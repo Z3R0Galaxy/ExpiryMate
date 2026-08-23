@@ -195,11 +195,17 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
              * type, not the ring's own size. */}
             {/* Feedback Sprint 2 (22/8/26): clicking a segment (ring arc or
              * legend row) now does exactly what clicking the matching stat
-             * tile above does — expands the AttentionPanel to that status. */}
+             * tile above does — expands the AttentionPanel to that status.
+             * Feedback Sprint 3 (23/8/26): wired the other direction too —
+             * `activeKey` highlights the ring/legend to match whichever
+             * stat tile is currently selected. 'all' and `null` both have
+             * no matching slice, so the ring just shows its plain total in
+             * either case, same as before this prop existed. */}
             <Donut
               segments={statusSegments}
               size={168}
               onSegmentClick={key => toggle(key as SelectedStat)}
+              activeKey={selected === 'all' ? null : selected}
             />
           </div>
 
