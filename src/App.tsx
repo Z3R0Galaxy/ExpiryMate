@@ -9,6 +9,7 @@ import type { StatusFilterValue } from './components/ItemList'
 import { Dashboard } from './components/Dashboard'
 import type { NavTarget } from './components/Dashboard'
 import { PlaceDashboard } from './components/PlaceDashboard'
+import { ProfilePage } from './components/ProfilePage'
 import { Sidebar } from './components/Sidebar'
 import type { NavKey } from './components/Sidebar'
 import { useItems } from './hooks/useItems'
@@ -34,7 +35,9 @@ interface AuthenticatedAppProps {
 // gets its own small PlaceDashboard, and the full ItemList (card or table)
 // is only reached deliberately from either of those, or from search/filter
 // use directly.
-type View = 'dashboard' | 'place-dashboard' | 'list'
+// 'profile' added Feedback Sprint 3 (23/8/26) — the sidebar's profile block
+// now navigates here instead of being purely decorative.
+type View = 'dashboard' | 'place-dashboard' | 'list' | 'profile'
 
 function isStorageLocation(value: NavTarget): value is StorageLocation {
   return value === 'Fridge' || value === 'Freezer' || value === 'Pantry'
@@ -48,6 +51,7 @@ function isStorageLocation(value: NavTarget): value is StorageLocation {
 // (how do I get back) does the same job in less to read. See
 // docs/decisions.md.
 function pageTitleFor(view: View, place: StorageLocation, listStorageFilter: StorageLocation | 'all', listStatusFilter: StatusFilterValue): string {
+  if (view === 'profile') return 'Profile'
   if (view === 'place-dashboard') return place
   if (view === 'list') {
     if (listStatusFilter === 'attention') return 'Needs attention'
@@ -212,6 +216,7 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
                 initialStatusFilter={listStatusFilter}
               />
             )}
+            {view === 'profile' && <ProfilePage userId={userId} email={email} />}
           </>
         )}
       </main>

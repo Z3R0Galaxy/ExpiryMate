@@ -3,6 +3,7 @@ import type { StorageLocation } from '../hooks/useItems'
 import type { NavTarget } from './Dashboard'
 import { PlaceStatusIcon } from './icons'
 import type { Theme } from '../hooks/useTheme'
+import { nameFromEmail, initialsFromName } from '../lib/userDisplay'
 
 const COLLAPSE_KEY = 'expirymate-sidebar-collapsed'
 
@@ -24,7 +25,11 @@ export type NavKey = 'dashboard' | StorageLocation | 'all'
 interface SidebarProps {
   email: string
   activeNav: NavKey
-  onNavigate: (view: 'dashboard' | 'place-dashboard' | 'list', target?: NavTarget) => void
+  /** Widened (Feedback Sprint 3, 23/8/26) to also accept 'profile' —
+   * clicking the profile block now navigates there, the same `onNavigate`
+   * App.tsx already threads through for every other destination. Never
+   * carries a `NavTarget`. */
+  onNavigate: (view: 'dashboard' | 'place-dashboard' | 'list' | 'profile', target?: NavTarget) => void
   theme: Theme
   onToggleTheme: () => void
   onSignOut: () => void
@@ -37,25 +42,6 @@ const NAV_ITEMS: { key: NavKey; label: string }[] = [
   { key: 'Pantry', label: 'Pantry' },
   { key: 'all', label: 'All items' },
 ]
-
-// ExpiryMate's schema has no display-name/avatar field (only the Supabase
-// Auth email) — rather than leaving the profile block blank, this derives
-// a readable name and initials from the email's local part. A real name
-// field would be a good future addition; noted in docs/decisions.md as a
-// deliberate stand-in, not an oversight.
-function nameFromEmail(email: string): string {
-  const local = email.split('@')[0] || 'User'
-  const words = local.split(/[._+-]+/).filter(Boolean)
-  if (words.length === 0) return 'User'
-  return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.split(' ').filter(Boolean)
-  const first = parts[0]?.[0] ?? 'U'
-  const second = parts[1]?.[0] ?? ''
-  return (first + second).toUpperCase()
-}
 
 /**
  * Persistent left navigation (Feedback Sprint, 21/8/26) — replaces the old
@@ -124,7 +110,16 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
         </button>
       </div>
 
-      <div className="sidebar-profile">
+      {/* Feedback Sprint 3 (23/8/26): now opens the Profile page —
+       * previously purely decorative. A real <button>, not a div with a
+       * click handler bolted on, so it's keyboard-reachable for free. */}
+      <button
+        type="button"
+        className="sidebar-profile"
+        onClick={() => onNavigate('profile')}
+        aria-label="View your profile"
+        title="View your profile"
+      >
         <span className="sidebar-avatar" aria-hidden="true">{initials}</span>
         {!collapsed && (
           <span className="sidebar-profile-text">
@@ -132,7 +127,7 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
             <span className="sidebar-profile-email">{email}</span>
           </span>
         )}
-      </div>
+      </button>
 
       <nav className="sidebar-nav" aria-label="Main">
         {NAV_ITEMS.map(navItem => (

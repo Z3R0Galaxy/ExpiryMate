@@ -236,14 +236,28 @@ html, body {
   color: var(--color-sidebar-text);
 }
 
+/* A real <button> as of Feedback Sprint 3 (23/8/26) — resets the global
+ * button rule's background/border/colour/padding (index.css) back to the
+ * original div's look, then adds the hover/width a clickable control
+ * needs, same pattern as .sidebar-nav-item/.sidebar-footer-button below. */
 .sidebar-profile {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  width: 100%;
   padding: 0.85rem 0.75rem;
   background-color: var(--color-sidebar-surface);
+  border: none;
   border-radius: var(--radius);
+  color: var(--color-sidebar-text);
   min-width: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s var(--ease);
+}
+
+.sidebar-profile:hover {
+  background-color: var(--color-sidebar-active);
 }
 
 .sidebar-avatar {
@@ -416,6 +430,62 @@ html, body {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-text);
+}
+
+/* Profile page (Feedback Sprint 3, 23/8/26) — reached by clicking the
+ * sidebar's profile block. Capped and centred like the dashboard grids
+ * above, since a single narrow card stretched edge-to-edge on a wide
+ * monitor would read as sparse rather than deliberately simple. ------- */
+
+.profile-page {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.5rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.profile-header-text {
+  min-width: 0;
+}
+
+.profile-header-text h1 {
+  margin-bottom: 0.2rem;
+}
+
+.profile-email {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.profile-joined {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
 }
 
 /* Dashboard / place-dashboard — the landing page and its per-place summary.
