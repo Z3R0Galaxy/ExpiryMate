@@ -12,6 +12,7 @@ import { PlaceDashboard } from './components/PlaceDashboard'
 import { ProfilePage } from './components/ProfilePage'
 import { AboutPage } from './components/AboutPage'
 import { MfaChallenge } from './components/MfaChallenge'
+import { OnboardingTour } from './components/OnboardingTour'
 import { Sidebar } from './components/Sidebar'
 import type { NavKey } from './components/Sidebar'
 import { useItems } from './hooks/useItems'
@@ -27,6 +28,10 @@ import { STATUS_LABEL } from './lib/itemStatus'
 interface AuthenticatedAppProps {
   userId: string
   email: string
+  /** Feedback Sprint 3 (23/8/26) — read from the account's own
+   * user_metadata by App() below, not localStorage: "the first time a
+   * user opens the app" should follow the account, not the browser. */
+  hasSeenTutorial: boolean
   onSignOut: () => void
 }
 
@@ -90,9 +95,21 @@ function PageHeading({ title, onBackHome }: PageHeadingProps) {
 
 // Split out so useItems (which fetches on mount) only ever runs once we
 // actually have a signed-in user, and cleanly unmounts on sign out.
-function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
+function AuthenticatedApp({ userId, email, hasSeenTutorial, onSignOut }: AuthenticatedAppProps) {
   const { items, loading, error, addItem, updateItem, deleteItem } = useItems(userId)
   const addModal = useAnimatedModal()
+  // Computed once from the prop at mount — this component only mounts
+  // once per signed-in session, so there's no later point where
+  // hasSeenTutorial changes underneath it.
+  const [showTour, setShowTour] = useState(!hasSeenTutorial)
+
+  async function completeTour() {
+    setShowTour(false)
+    // Best-effort: if this fails (offline, etc.) the tour just shows again
+    // next sign-in, which is a much smaller problem than throwing here and
+    // leaving the user stuck behind a tour that won't dismiss.
+    await supabase.auth.updateUser({ data: { has_seen_tutorial: true } })
+  }
   // The on-page banner this used to feed is gone (25/8/26 — the dashboard's
   // own "Needs attention" card already covers the same information), but
   // the hook itself still runs: it's also what fires the one batched
@@ -235,6 +252,7 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
         onClick={e => addModal.openFrom(e.currentTarget)}
         aria-label="Add item"
         title="Add item"
+        data-tour="fab"
       >
         <span className="fab-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -258,6 +276,8 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
           <AddItemForm onAdd={handleAdd} />
         </AnimatedModal>
       )}
+
+      {showTour && <OnboardingTour onComplete={completeTour} />}
     </div>
   )
 }
@@ -377,7 +397,14 @@ function App() {
     )
   }
 
-  return <AuthenticatedApp userId={session.user.id} email={session.user.email ?? ''} onSignOut={handleSignOut} />
+  return (
+    <AuthenticatedApp
+      userId={session.user.id}
+      email={session.user.email ?? ''}
+      hasSeenTutorial={session.user.user_metadata?.has_seen_tutorial === true}
+      onSignOut={handleSignOut}
+    />
+  )
 }
 
 export default App

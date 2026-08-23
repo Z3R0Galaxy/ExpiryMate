@@ -128,7 +128,7 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
 
   return (
     <div className="dash-grid">
-      <div className="stat-row">
+      <div className="stat-row" data-tour="stat-row">
         <motion.button
           {...tileProps}
           type="button"

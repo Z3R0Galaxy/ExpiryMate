@@ -91,6 +91,7 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
           onClick={() => onNavigate('about')}
           aria-label="About ExpiryMate"
           title="About ExpiryMate"
+          data-tour="sidebar-brand"
         >
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -128,6 +129,7 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
         onClick={() => onNavigate('profile')}
         aria-label="View your profile"
         title="View your profile"
+        data-tour="sidebar-profile"
       >
         <span className="sidebar-avatar" aria-hidden="true">{initials}</span>
         {!collapsed && (
@@ -138,7 +140,7 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
         )}
       </button>
 
-      <nav className="sidebar-nav" aria-label="Main">
+      <nav className="sidebar-nav" aria-label="Main" data-tour="sidebar-nav">
         {NAV_ITEMS.map(navItem => (
           <button
             key={navItem.key}

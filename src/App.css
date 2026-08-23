@@ -1791,6 +1791,90 @@ html, body {
   background-color: rgb(0 0 0 / 0.45);
 }
 
+/* First-time onboarding tour (Feedback Sprint 3, 23/8/26) — sits above
+ * everything else in the app, including the item modal above (z-index
+ * 100), since it can in principle appear the moment a brand-new account
+ * signs in for the first time. `.tour-overlay` itself stays transparent
+ * and just exists to block clicks on the real page underneath; the dim
+ * effect is `.tour-highlight`'s own oversized box-shadow spread, which
+ * darkens everywhere except the rect it's positioned over — no separate
+ * SVG mask needed for that spotlight look. */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.tour-highlight {
+  position: fixed;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgb(10 10 14 / 0.6);
+  pointer-events: none;
+  z-index: 301;
+}
+
+.tour-tooltip {
+  position: fixed;
+  z-index: 302;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.1rem 1.2rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* A small rotated square peeking out of the tooltip's edge reads as an
+ * arrow without needing an actual triangle/clip-path shape — same trick
+ * as a plain CSS "speech bubble" tail. Its horizontal position tracks the
+ * highlighted target's own centre (--tour-arrow-left, set inline by
+ * OnboardingTour.tsx) rather than always sitting in the tooltip's corner,
+ * since the tooltip itself gets clamped to stay on-screen and can end up
+ * offset from the target it's pointing at. */
+.tour-tooltip::before {
+  content: '';
+  position: absolute;
+  left: var(--tour-arrow-left, 1.5rem);
+  width: 14px;
+  height: 14px;
+  background-color: var(--color-surface);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tour-tooltip:not(.tour-tooltip-above)::before {
+  top: -7px;
+}
+
+.tour-tooltip-above::before {
+  bottom: -7px;
+}
+
+.tour-step-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tour-tooltip h3 {
+  font-size: 1.05rem;
+}
+
+.tour-tooltip p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+}
+
 .item-modal {
   width: 100%;
   max-width: 420px;
