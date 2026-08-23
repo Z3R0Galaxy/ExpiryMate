@@ -147,6 +147,28 @@ html, body {
   min-width: 0;
 }
 
+/* Sidebar's own brand mark is a real <button> as of Feedback Sprint 3
+ * (23/8/26) — resets the global button rule's background/border/colour/
+ * padding (index.css) back to the plain wordmark it was, same pattern as
+ * .sidebar-profile/.sidebar-nav-item. A small negative margin widens the
+ * click target slightly without shifting the visible logo, the same trick
+ * used by .donut-legend-row. */
+.sidebar-brand {
+  padding: 0.3rem 0.4rem;
+  margin: -0.3rem -0.4rem;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s var(--ease);
+}
+
+.sidebar-brand:hover {
+  background-color: var(--color-sidebar-surface);
+}
+
 .brand-mark {
   display: flex;
   align-items: center;
@@ -486,6 +508,48 @@ html, body {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   margin-top: 0.3rem;
+}
+
+/* About page (Feedback Sprint 3, 23/8/26) — reached by clicking the
+ * sidebar's logo. Same capped-and-centred single-card treatment as the
+ * profile page, since it's likewise just one block of static content. */
+.about-page {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.about-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.75rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.about-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.about-card h1 {
+  margin-top: -0.3rem;
+}
+
+.about-card p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.about-meta {
+  font-size: 0.85rem;
 }
 
 /* Dashboard / place-dashboard — the landing page and its per-place summary.

@@ -10,6 +10,7 @@ import { Dashboard } from './components/Dashboard'
 import type { NavTarget } from './components/Dashboard'
 import { PlaceDashboard } from './components/PlaceDashboard'
 import { ProfilePage } from './components/ProfilePage'
+import { AboutPage } from './components/AboutPage'
 import { Sidebar } from './components/Sidebar'
 import type { NavKey } from './components/Sidebar'
 import { useItems } from './hooks/useItems'
@@ -35,9 +36,10 @@ interface AuthenticatedAppProps {
 // gets its own small PlaceDashboard, and the full ItemList (card or table)
 // is only reached deliberately from either of those, or from search/filter
 // use directly.
-// 'profile' added Feedback Sprint 3 (23/8/26) — the sidebar's profile block
-// now navigates here instead of being purely decorative.
-type View = 'dashboard' | 'place-dashboard' | 'list' | 'profile'
+// 'profile' and 'about' both added Feedback Sprint 3 (23/8/26) — the
+// sidebar's profile block and logo now navigate here instead of being
+// purely decorative.
+type View = 'dashboard' | 'place-dashboard' | 'list' | 'profile' | 'about'
 
 function isStorageLocation(value: NavTarget): value is StorageLocation {
   return value === 'Fridge' || value === 'Freezer' || value === 'Pantry'
@@ -52,6 +54,7 @@ function isStorageLocation(value: NavTarget): value is StorageLocation {
 // docs/decisions.md.
 function pageTitleFor(view: View, place: StorageLocation, listStorageFilter: StorageLocation | 'all', listStatusFilter: StatusFilterValue): string {
   if (view === 'profile') return 'Profile'
+  if (view === 'about') return 'About'
   if (view === 'place-dashboard') return place
   if (view === 'list') {
     if (listStatusFilter === 'attention') return 'Needs attention'
@@ -217,6 +220,7 @@ function AuthenticatedApp({ userId, email, onSignOut }: AuthenticatedAppProps) {
               />
             )}
             {view === 'profile' && <ProfilePage userId={userId} email={email} />}
+            {view === 'about' && <AboutPage />}
           </>
         )}
       </main>

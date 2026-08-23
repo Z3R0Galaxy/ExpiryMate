@@ -25,11 +25,11 @@ export type NavKey = 'dashboard' | StorageLocation | 'all'
 interface SidebarProps {
   email: string
   activeNav: NavKey
-  /** Widened (Feedback Sprint 3, 23/8/26) to also accept 'profile' —
-   * clicking the profile block now navigates there, the same `onNavigate`
-   * App.tsx already threads through for every other destination. Never
-   * carries a `NavTarget`. */
-  onNavigate: (view: 'dashboard' | 'place-dashboard' | 'list' | 'profile', target?: NavTarget) => void
+  /** Widened (Feedback Sprint 3, 23/8/26) to also accept 'profile' and
+   * 'about' — clicking the profile block or the logo now navigates there,
+   * the same `onNavigate` App.tsx already threads through for every other
+   * destination. Neither ever carries a `NavTarget`. */
+  onNavigate: (view: 'dashboard' | 'place-dashboard' | 'list' | 'profile' | 'about', target?: NavTarget) => void
   theme: Theme
   onToggleTheme: () => void
   onSignOut: () => void
@@ -82,7 +82,16 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
   return (
     <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="sidebar-top">
-        <div className="brand sidebar-brand">
+        {/* Feedback Sprint 3 (23/8/26): now opens the About page —
+         * previously purely decorative. A real <button>, same reasoning
+         * as .sidebar-profile below. */}
+        <button
+          type="button"
+          className="brand sidebar-brand"
+          onClick={() => onNavigate('about')}
+          aria-label="About ExpiryMate"
+          title="About ExpiryMate"
+        >
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 20c-2-6 1-14 9-16 2 6-1 14-9 16Z" />
@@ -90,7 +99,7 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
             </svg>
           </span>
           {!collapsed && <span className="sidebar-title">ExpiryMate</span>}
-        </div>
+        </button>
         <button
           type="button"
           className="sidebar-collapse-toggle"
