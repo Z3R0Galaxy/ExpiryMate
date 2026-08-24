@@ -23,6 +23,22 @@ export const STATUS_CLASS: Record<BadgeStatus, string> = {
   warning: 'status-warning',
 }
 
+/**
+ * A "(2 weeks)" parenthetical (or, with `abbreviated`, "(2w)") for a
+ * countdown that's reached at least a full week, so a longer countdown
+ * doesn't leave the reader to do the day/7 maths themselves (Feedback
+ * Sprint 4, 24/8/26). Threshold is a full 7 days, not "close to it" — a
+ * 6-day item stays plain days with no note. `absDays` is expected
+ * unsigned (i.e. `countdownValue`, not the signed `daysRemaining`) — the
+ * "weeks ago" vs "weeks left" distinction is carried by whatever text
+ * this gets embedded into, not by this function.
+ */
+export function weeksNote(absDays: number, abbreviated = false): string {
+  if (absDays < 7) return ''
+  const weeks = Math.floor(absDays / 7)
+  return abbreviated ? ` (${weeks}w)` : ` (${weeks} week${weeks === 1 ? '' : 's'})`
+}
+
 export interface StatusInfo {
   result: AdjustedExpiryResult
   badgeStatus: BadgeStatus
@@ -53,9 +69,9 @@ export function computeStatusInfo(item: Item): StatusInfo {
   const daysRemaining = result.safe ? getDaysRemaining(result.adjustedDate) : null
   const isPast = daysRemaining !== null && daysRemaining < 0
   const countdownValue = daysRemaining === null ? null : Math.abs(daysRemaining)
-  const countdownLabel = daysRemaining === null
+  const countdownLabel = daysRemaining === null || countdownValue === null
     ? null
-    : `day${countdownValue === 1 ? '' : 's'} ${isPast ? 'ago' : 'left'}`
+    : `day${countdownValue === 1 ? '' : 's'}${weeksNote(countdownValue)} ${isPast ? 'ago' : 'left'}`
 
   return { result, badgeStatus, daysRemaining, countdownValue, countdownLabel }
 }

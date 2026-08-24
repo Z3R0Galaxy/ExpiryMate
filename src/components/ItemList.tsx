@@ -3,7 +3,7 @@ import type { FoodCategory, Item, ItemInput, StorageLocation } from '../hooks/us
 import { useItemDetail } from '../hooks/useItemDetail'
 import { useItemsWithStatus } from '../hooks/useItemsWithStatus'
 import { CardHero, ItemDetailModal } from './ItemDetailModal'
-import { STATUS_CLASS, STATUS_LABEL } from '../lib/itemStatus'
+import { STATUS_CLASS, STATUS_LABEL, weeksNote } from '../lib/itemStatus'
 import type { BadgeStatus } from '../lib/itemStatus'
 import { STORAGE_LOCATIONS, sortByUrgency } from '../lib/dashboardStats'
 import { CategoryIcon } from './icons'
@@ -243,11 +243,16 @@ export function ItemList({
             </thead>
             <tbody>
               {sorted.map(({ item, badgeStatus, daysRemaining }) => {
+                // Abbreviated weeks note (Feedback Sprint 4, 24/8/26) —
+                // "14d (2w) left" rather than the hero/AttentionPanel's
+                // spelled-out "(2 weeks)", since this column stays visible
+                // even on mobile and is deliberately terse (see the
+                // Feedback Sprint wireframe decision on this table).
                 const daysLabel = daysRemaining === null
                   ? '—'
                   : daysRemaining < 0
-                    ? `${Math.abs(daysRemaining)}d ago`
-                    : `${daysRemaining}d left`
+                    ? `${Math.abs(daysRemaining)}d${weeksNote(Math.abs(daysRemaining), true)} ago`
+                    : `${daysRemaining}d${weeksNote(daysRemaining, true)} left`
                 return (
                   <tr
                     key={item.id}
