@@ -562,3 +562,18 @@ Two ESLint findings caught along the way, both from `eslint-plugin-react-hooks`'
 **Verified before accepting:** each of the five items was checked individually with `tsc -b --force` and `eslint src`, run directly on the user's machine via the device bridge, and committed on its own before the next item was started.
 
 **Not yet done:** the user's own live testing of two-factor enrollment and the sign-in challenge, and of the onboarding tour's arrows/positioning on a real screen — none of this is something `tsc`/`eslint` can confirm, unlike most of this project's previous CSS-only feedback passes. `git push origin main` for all five commits (push is blocked from this sandbox).
+
+## 24/8/26 (Feedback Sprint 4 — two items, with a new review-before-commit step)
+
+**Prompt:** "Feedback sprint 4. Before each commit, wait and check with me if i am happy with the chnage," followed by two items: (1) "The list on the side of the dashboard to be collapsable into location"; (2) "On each item Instead of just days say weeks as well."
+
+**Response:** both items were genuinely ambiguous as written, so three clarifying questions were asked before building anything: which list ("the list on the side" — confirmed as the Needs Attention panel, not the sidebar nav), what "collapsible into location" should actually do (confirmed: group by storage location into independently-collapsible sections), and what the weeks addition should look like (confirmed: a "(N weeks)" parenthetical once a countdown reaches 7+ days, days staying primary). Built both, verified with `tsc -b --force`/`eslint src`, and — per the new explicit instruction — stopped and described both changes to the user instead of committing, since this sprint's process is "check with me before each commit" rather than Sprint 2/3's "commit after each change."
+
+1. **Needs-attention list grouped by location, collapsible** — `AttentionPanel.tsx` gained an optional `groupByLocation` prop, wired on for the main `Dashboard` only (not `PlaceDashboard`, already scoped to one location); a new `groupByStorageLocation` helper in `dashboardStats.ts` partitioned the existing urgency-sorted list into Fridge/Freezer/Pantry sections, each with a collapsible header. Built and shown to the user for review.
+2. **Weeks alongside days** — a new `weeksNote(absDays, abbreviated?)` helper in `itemStatus.ts`, folded into `computeStatusInfo`'s existing `countdownLabel` so every caller that already displays it (the item card/detail-modal big countdown, `AttentionPanel`'s rows) picked it up with no changes of their own; `ItemList.tsx`'s compact table column got the abbreviated form (`14d (2w) left`) via the same helper, kept terse since that column stays visible even on mobile.
+
+**User's response:** happy with the weeks change as built; asked for item 1 (the collapsible grouping) to be reverted entirely rather than adjusted. Reverted `src/App.css`, `AttentionPanel.tsx`, `Dashboard.tsx`, and `dashboardStats.ts` back to their pre-sprint state — via `git show HEAD:<path> > <path>` rather than `git checkout -- <path>`, since the device bridge can't unlink files (confirmed by `git checkout` itself failing with "unable to unlink old '...'": `Operation not permitted`) and `checkout`'s restore relies on that. Only the weeks change was committed.
+
+**Verified before accepting:** `tsc -b --force`/`eslint src`, run directly on the user's machine via the device bridge, passed clean both before presenting the two changes and again after reverting the first one.
+
+**Not yet done:** the user's own look at the weeks display on a real device (font/space check for the parenthetical, especially in the compact table column); `git push origin main` for this commit.
