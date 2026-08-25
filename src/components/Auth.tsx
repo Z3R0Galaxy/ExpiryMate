@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { authErrorMessage } from '../lib/authErrorMessage'
 
 export function Auth() {
   const [email, setEmail] = useState('')
@@ -39,11 +40,15 @@ export function Auth() {
         password,
         options: { emailRedirectTo: window.location.origin },
       })
-      if (error) setError(error.message)
-      else setMessage('Check your email to confirm your account.')
+      // Raw GoTrue strings ("email rate limit exceeded", "Invalid login
+      // credentials") were being rendered verbatim; authErrorMessage turns the
+      // ones we've actually seen into plain English and passes anything else
+      // through untouched. See lib/authErrorMessage.ts and decisions.md.
+      if (error) setError(authErrorMessage(error.message))
+      else setMessage('Check your email to confirm your account. If it has not arrived in a few minutes, check your spam folder.')
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
+      if (error) setError(authErrorMessage(error.message))
     }
 
     setLoading(false)
