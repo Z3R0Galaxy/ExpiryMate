@@ -28,7 +28,7 @@ const STEPS: TourStep[] = [
   {
     target: '[data-tour="sidebar-profile"]',
     title: 'Your account',
-    body: 'Open your profile to see your account details and turn on two-factor authentication.',
+    body: 'Open your profile for your account details and your settings: light or dark theme, notifications, and two-factor authentication.',
   },
   {
     target: '[data-tour="sidebar-brand"]',

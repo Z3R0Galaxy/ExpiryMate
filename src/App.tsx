@@ -110,13 +110,28 @@ function AuthenticatedApp({ userId, email, hasSeenTutorial, onSignOut }: Authent
     // leaving the user stuck behind a tour that won't dismiss.
     await supabase.auth.updateUser({ data: { has_seen_tutorial: true } })
   }
+
+  // "Replay the tutorial", from the profile page's Account section
+  // (28/8/26). Navigating home first is not cosmetic: three of the tour's
+  // five steps point at elements that only exist on the dashboard or the
+  // sidebar, and OnboardingTour drops any step whose anchor is missing at
+  // mount, so replaying it from the profile page itself would silently
+  // show a shorter tour. Both state updates are batched into one render,
+  // so the dashboard is already committed by the time the tour measures
+  // its anchors. The metadata write is best-effort for the same reason
+  // completeTour's is: worst case the tour reappears at next sign-in.
+  async function replayTour() {
+    navigateTo('dashboard')
+    setShowTour(true)
+    await supabase.auth.updateUser({ data: { has_seen_tutorial: false } })
+  }
   // The on-page banner this used to feed is gone (25/8/26 — the dashboard's
   // own "Needs attention" card already covers the same information), but
   // the hook itself still runs: it's also what fires the one batched
   // browser Notification per page load, which is unrelated to the banner
   // and still wanted. See docs/decisions.md.
   useExpiryNotifications(items, loading)
-  const { theme, toggleTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   const [view, setView] = useState<View>('dashboard')
   const [place, setPlace] = useState<StorageLocation>('Fridge')
@@ -180,12 +195,13 @@ function AuthenticatedApp({ userId, email, hasSeenTutorial, onSignOut }: Authent
 
   return (
     <div className="app-shell">
+      {/* No theme props as of 28/8/26: the light/dark control moved to
+       * the profile page's Appearance section, so the sidebar footer now
+       * holds Sign out alone. See docs/decisions.md. */}
       <Sidebar
         email={email}
         activeNav={activeNav}
         onNavigate={navigateTo}
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onSignOut={onSignOut}
       />
       {/* `app-main-fill` (UI feedback pass seven, 21/8/26) scopes the
@@ -237,7 +253,16 @@ function AuthenticatedApp({ userId, email, hasSeenTutorial, onSignOut }: Authent
                 initialStatusFilter={listStatusFilter}
               />
             )}
-            {view === 'profile' && <ProfilePage userId={userId} email={email} />}
+            {view === 'profile' && (
+              <ProfilePage
+                userId={userId}
+                email={email}
+                theme={theme}
+                onSetTheme={setTheme}
+                onReplayTour={replayTour}
+                onSignOut={onSignOut}
+              />
+            )}
             {view === 'about' && <AboutPage />}
           </>
         )}

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { StorageLocation } from '../hooks/useItems'
 import type { NavTarget } from './Dashboard'
 import { PlaceStatusIcon } from './icons'
-import type { Theme } from '../hooks/useTheme'
 import { nameFromEmail, initialsFromName } from '../lib/userDisplay'
 
 const COLLAPSE_KEY = 'expirymate-sidebar-collapsed'
@@ -30,8 +29,6 @@ interface SidebarProps {
    * the same `onNavigate` App.tsx already threads through for every other
    * destination. Neither ever carries a `NavTarget`. */
   onNavigate: (view: 'dashboard' | 'place-dashboard' | 'list' | 'profile' | 'about', target?: NavTarget) => void
-  theme: Theme
-  onToggleTheme: () => void
   onSignOut: () => void
 }
 
@@ -47,12 +44,19 @@ const NAV_ITEMS: { key: NavKey; label: string }[] = [
  * Persistent left navigation (Feedback Sprint, 21/8/26) — replaces the old
  * top app-header + Dashboard's quick-nav tiles as the primary way to move
  * between sections, matching the admin-template reference the user
- * supplied: a profile block, then icon+label destinations, then a footer
- * with the theme toggle and sign-out. Deliberately kept a constant dark
- * navy regardless of the light/dark theme toggle (which only affects the
- * main content surfaces) — see docs/decisions.md.
+ * supplied: a profile block, then icon+label destinations, then a footer.
+ * Deliberately kept a constant dark navy regardless of the light/dark
+ * theme toggle (which only affects the main content surfaces) — see
+ * docs/decisions.md.
+ *
+ * The footer's light/dark button moved to the profile page's Appearance
+ * section on 28/8/26, leaving Sign out as the only footer control. A
+ * single icon button was never able to say which theme was currently on,
+ * only which one pressing it would give you, and the profile page is
+ * where the app's other settings already live. See docs/decisions.md,
+ * "Profile page build-out." 
  */
-export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, onSignOut }: SidebarProps) {
+export function Sidebar({ email, activeNav, onNavigate, onSignOut }: SidebarProps) {
   const name = nameFromEmail(email)
   const initials = initialsFromName(name)
 
@@ -158,25 +162,6 @@ export function Sidebar({ email, activeNav, onNavigate, theme, onToggleTheme, on
       </nav>
 
       <div className="sidebar-footer">
-        <button
-          type="button"
-          className="sidebar-footer-button"
-          onClick={onToggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? (
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-            </svg>
-          )}
-          {!collapsed && <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>}
-        </button>
         <button type="button" className="sidebar-footer-button" onClick={onSignOut} aria-label="Sign out" title="Sign out">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

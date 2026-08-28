@@ -37,5 +37,11 @@ export function useTheme() {
     setTheme(current => (current === 'light' ? 'dark' : 'light'))
   }
 
-  return { theme, toggleTheme }
+  // setTheme is exposed alongside toggleTheme (28/8/26) for the profile
+  // page's Appearance section, which is a two-option radiogroup rather
+  // than a flip: clicking "Light" while already on light should be a
+  // no-op, not a switch to dark. toggleTheme stays for the sign-in
+  // screen's single icon button, which has no room for two options and no
+  // profile page to send anyone to.
+  return { theme, setTheme, toggleTheme }
 }

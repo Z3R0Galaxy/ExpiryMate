@@ -457,38 +457,82 @@ html, body {
 /* Profile page (Feedback Sprint 3, 23/8/26) — reached by clicking the
  * sidebar's profile block. Capped and centred like the dashboard grids
  * above, since a single narrow card stretched edge-to-edge on a wide
- * monitor would read as sparse rather than deliberately simple. ------- */
+ * monitor would read as sparse rather than deliberately simple.
+ *
+ * Rebuilt 28/8/26 when the page grew from one section to four (Appearance,
+ * Notifications, Two-factor, Account). The header gained a gradient banner
+ * with an overlapping avatar and a summary strip; every section below it
+ * now shares one .settings-section shell (tinted icon, heading, one-line
+ * description, then the control) so four cards read as one system rather
+ * than four separate layouts. See docs/decisions.md, "Profile page
+ * build-out." ------------------------------------------------------- */
 
 .profile-page {
-  max-width: 640px;
+  max-width: 680px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.1rem;
+  padding-bottom: 2rem;
 }
 
 .profile-header {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding: 1.5rem;
   background-color: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  /* Clips the banner's top corners to the card's own radius, and the
+   * facts strip's bottom corners, so the full-bleed bands inside don't
+   * square off the card. */
+  overflow: hidden;
+}
+
+/* A tinted band rather than a flat block of --color-primary: the second
+ * stop is mixed from the already-validated Fridge blue, so this reuses
+ * palette colours the app has rather than introducing a new hue just for
+ * decoration. */
+.profile-banner {
+  height: 78px;
+  background: linear-gradient(
+    120deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 55%, var(--color-place-fridge))
+  );
+}
+
+/* Avatar stacked above the name rather than beside it. Side by side with
+ * align-items: flex-end, the name block is almost exactly as tall as the
+ * avatar, so aligning their bottoms dragged the name up onto the banner
+ * with it: dark text on the indigo gradient, which fails contrast and
+ * looked like a mistake. Stacking keeps the overlap predictable (only the
+ * avatar crosses the banner's edge, by a fixed amount) no matter how tall
+ * the name and email wrap. Caught from a harness screenshot, 28/8/26. */
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0 1.5rem;
+  /* A little under half the avatar's height, so it straddles the banner's
+   * lower edge rather than floating clear of the band. */
+  margin-top: -2.1rem;
 }
 
 .profile-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 4.25rem;
+  height: 4.25rem;
   flex-shrink: 0;
   border-radius: 50%;
   background-color: var(--color-primary);
   color: #fff;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
+  /* A ring in the card's own colour, so the avatar reads as sitting on
+   * top of the banner rather than punched into it. */
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow);
 }
 
 .profile-header-text {
@@ -502,37 +546,245 @@ html, body {
 .profile-email {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
-.profile-joined {
+/* Summary strip: the three facts worth knowing at a glance, two of which
+ * (two-factor, theme) are live state owned by the sections below rather
+ * than static account data. */
+.profile-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface-alt);
+}
+
+.profile-fact {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.profile-fact dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
-  font-size: 0.8rem;
-  margin-top: 0.3rem;
 }
 
-/* Account settings sections on the profile page — two-factor
- * authentication (Feedback Sprint 3, 23/8/26) is the first of these, in
- * its own card matching .profile-header's treatment. */
+.profile-fact dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Settings sections on the profile page. Two-factor authentication
+ * (Feedback Sprint 3, 23/8/26) was the first of these; Appearance,
+ * Notifications and Account joined it 28/8/26 and all four now share this
+ * shell. */
 .settings-section {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1.5rem;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem;
   background-color: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
+.settings-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.settings-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.settings-section-heading {
+  min-width: 0;
+}
+
+/* index.css's base h2 is a muted section label; these are real card
+ * headings sitting above their own description, so they take the full
+ * text colour and a heavier weight. */
+.settings-section-heading h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.settings-section-heading .settings-muted {
+  margin-top: 0.2rem;
+}
+
+.settings-section-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
 .settings-muted {
   color: var(--color-text-muted);
   font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-.settings-status-on {
-  color: var(--color-primary);
-  font-weight: 600;
+/* Small state chip, shared by the notification permission state and the
+ * two-factor on/off state — both answer "is this on right now?", so they
+ * get the same shape, and reuse the status-badge colour tokens rather
+ * than introducing new ones. */
+.settings-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.settings-pill::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.settings-pill-on {
+  background-color: var(--color-fresh-bg);
+  color: var(--color-fresh-text);
+}
+
+.settings-pill-off {
+  background-color: var(--color-soon-bg);
+  color: var(--color-soon-text);
+}
+
+.settings-pill-blocked {
+  background-color: var(--color-expired-bg);
+  color: var(--color-expired-text);
+}
+
+.settings-pill-unavailable {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Appearance — a two-option segmented control (28/8/26), replacing the
+ * single icon button that used to sit in the sidebar footer. */
+.theme-choice {
+  display: inline-flex;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border-radius: var(--radius);
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+
+.theme-choice-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  /* Overrides index.css's global filled-button look — inside this control
+   * only the selected option is filled. */
+  background: none;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.theme-choice-option:hover {
+  background-color: color-mix(in srgb, var(--color-text) 8%, transparent);
+  color: var(--color-text);
+}
+
+/* A tinted fill rather than a plain --color-surface one. In light mode
+ * --color-surface is lighter than the --color-surface-alt track, so a flat
+ * surface fill reads as raised; in dark mode it is *darker* than the
+ * track, so the selected option looked recessed instead of selected.
+ * Mixing the primary into the surface makes the selected state read the
+ * same way in both themes, and matches the tinted treatment
+ * .settings-section-icon already uses. */
+.theme-choice-option.active,
+.theme-choice-option.active:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+  color: var(--color-primary);
+  box-shadow: var(--shadow);
+}
+
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* Account — one row per action, each a label/description on the left and
+ * its button on the right, divided by hairlines rather than being four
+ * separate cards. */
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.account-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.account-row:last-child {
+  padding-bottom: 0;
+}
+
+.account-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.account-row-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.account-row button {
+  flex-shrink: 0;
 }
 
 .mfa-form {
@@ -2293,6 +2545,39 @@ html, body {
 
   .item-stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Profile page at phone width (28/8/26). The identity block already
+   * stacks at every width (see .profile-identity above), so only the
+   * padding needs tightening here; the facts strip keeps wrapping on its
+   * own basis, two per line on most phones, rather than being forced to
+   * one per line, which would make the strip taller than the identity
+   * block above it. */
+  .profile-facts {
+    padding: 0.9rem 1.15rem;
+  }
+
+  .settings-section {
+    padding: 1.2rem 1.15rem;
+  }
+
+  /* Each action's description would otherwise be squeezed into a narrow
+   * column beside its button. */
+  .account-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .account-row button {
+    align-self: flex-start;
+  }
+
+  /* .secondary-button carries its own horizontal padding, which once the
+   * row stacks would indent its label half a step further in than the
+   * description sitting directly above it. */
+  .account-row .secondary-button {
+    margin-left: -0.5rem;
   }
 
   .item-toolbar {
