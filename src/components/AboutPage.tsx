@@ -2,10 +2,19 @@
  * Reached by clicking the sidebar's logo/wordmark (Feedback Sprint 3,
  * 23/8/26) — previously the brand mark was purely decorative. Static
  * content only: a short explanation of what ExpiryMate does and the one
- * behaviour (blocking an unsafe adjusted-expiry save rather than silently
- * calculating one) that most needs a plain-language explanation, since it's
- * the app's one hard "no" to the user. See docs/02-requirements.md and
- * docs/decisions.md, "Feedback Sprint 2."
+ * behaviour (blocking a save whose category/storage/opened combination is
+ * unsafe, rather than calculating a date for it) that most needs a
+ * plain-language explanation, since it's the app's one hard "no" to the
+ * user. See docs/02-requirements.md and docs/decisions.md, "Feedback
+ * Sprint 2."
+ *
+ * Copy corrected 27/8/26 (see the sweep report, finding 4): this page
+ * previously described the block as happening when "the adjusted date
+ * would put an already unsafe or expired item back into 'fresh' or
+ * 'expiring soon'", which is not the implemented rule at all. The real
+ * rule is unconditional on status - checkStorageSafety() in
+ * lib/validateItem.ts refuses the save whenever getAdjustedExpiry()
+ * classifies the category/storage/opened combination itself as unsafe.
  */
 export function AboutPage() {
   return (
@@ -27,13 +36,21 @@ export function AboutPage() {
           gone.
         </p>
         <p>
-          Moving an item to a different storage location can shift how long
-          it safely keeps — the dashboard offers an adjusted expiry date for
-          that new location, but if the adjusted date would put an already
-          unsafe or expired item back into "fresh" or "expiring soon", the
-          save is blocked rather than accepted. That's deliberate: an
-          adjusted date is a helpful estimate, not a substitute for your own
-          judgement about food safety.
+          Where you keep something changes how long it lasts, so ExpiryMate
+          works out an adjusted expiry date for each item from its category,
+          its storage place, and whether it has been opened. An unopened
+          carton of milk in the fridge keeps to its printed date; the same
+          carton, once opened, is good for about a week from the day you
+          opened it.
+        </p>
+        <p>
+          Some combinations are not safe at any date. Raw meat does not
+          belong in the pantry, eggs cannot be frozen in their shells, and a
+          reheated ready meal should not go back in the freezer. There is no
+          sensible adjusted date to show for those, so ExpiryMate refuses to
+          save the item and tells you where it actually belongs instead.
+          That is deliberate: an adjusted date is a helpful estimate, not a
+          substitute for your own judgement about food safety.
         </p>
         <p className="about-meta">Built with React, TypeScript, and Supabase.</p>
       </div>

@@ -9,7 +9,7 @@
  * readable error before a raw Postgres constraint violation reaches them.
  */
 
-import { getAdjustedExpiry } from './adjustedExpiry'
+import { getAdjustedExpiry, todayLocal } from './adjustedExpiry'
 import type { FoodCategory, StorageLocation } from '../hooks/useItems'
 
 export interface ItemFormValues {
@@ -21,28 +21,27 @@ export interface ItemFormValues {
 }
 
 /**
- * Today's date, in the user's own local timezone, as a `YYYY-MM-DD` string —
- * i.e. exactly the calendar date a `<input type="date">` picker shows and
- * expects. Deliberately NOT `new Date().toISOString().slice(0, 10)`, which
- * reads UTC's calendar date instead of the local one: for any timezone
- * ahead of UTC (e.g. Australia/Sydney, UTC+10) that UTC date lags behind
- * the real local date for the first several hours of every day. That
- * mismatch — comparing a UTC-parsed date against a local-midnight
- * `Date` — is exactly what caused "date must not be in the future" to
- * fire when a user picked today's own date (Feedback Sprint 2, 22/8/26;
- * see docs/decisions.md). Every "what's today, for a date-only field"
- * check in the app should go through this one function rather than each
- * reinventing its own — the previous bug happened because AddItemForm.tsx,
- * ItemDetailModal.tsx, and this file each had their own slightly different
- * idea of "today."
+ * Re-exported from adjustedExpiry.ts, where it now lives (27/8/26).
+ *
+ * It was defined here first, as the fix for the "date must not be in the
+ * future" bug in Feedback Sprint 2 (22/8/26): comparing a UTC-parsed date
+ * against local midnight made today's own date read as a future date for
+ * the first several hours of every day in any timezone ahead of UTC.
+ *
+ * The sweep on 27/8/26 found getDaysRemaining() in adjustedExpiry.ts had
+ * never been given the same treatment and was still anchoring the whole
+ * app's countdown on the UTC date. Since adjustedExpiry.ts is the lower
+ * of the two modules (this file imports it, not the other way round), the
+ * definition moved there and is re-exported here so the existing
+ * `import { todayLocal } from '../lib/validateItem'` call sites in
+ * AddItemForm.tsx and ItemDetailModal.tsx keep working unchanged.
+ *
+ * Every "what is today, for a date-only field" check in the app should go
+ * through this one function rather than each reinventing its own - the
+ * original bug happened precisely because three files each had a slightly
+ * different idea of "today".
  */
-export function todayLocal(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+export { todayLocal }
 
 export function validateItemForm(values: ItemFormValues): string | null {
   if (!values.name.trim()) {

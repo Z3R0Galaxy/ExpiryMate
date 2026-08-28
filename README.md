@@ -2,13 +2,14 @@
 
 **Track what's in your kitchen. Waste less. Eat it before it's gone.**
 
-ExpiryMate is a web application that helps households keep track of food items and their expiry dates. Users log what they have — name, category, storage location, printed expiry date, quantity, and whether it's been opened — and the app calculates an **adjusted expiry date** from USDA cold-storage guidance, factoring in how the item is actually stored and whether it's been opened. Items approaching or past their adjusted expiry date are flagged with a status badge and surfaced through an in-app banner and a browser notification, so nothing gets pushed to the back of the fridge and forgotten.
+ExpiryMate is a web application that helps households keep track of food items and their expiry dates. Users log what they have — name, category, storage location, printed expiry date, quantity, and whether it's been opened — and the app calculates an **adjusted expiry date** from USDA cold-storage guidance, factoring in how the item is actually stored and whether it's been opened. Items approaching or past their adjusted expiry date are flagged with a status badge, listed on the dashboard's "needs attention" panel, and announced with a browser notification, so nothing gets pushed to the back of the fridge and forgotten.
 
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
-[![No UI library](https://img.shields.io/badge/Styling-Plain%20CSS-informational)]()
+[![Styling](https://img.shields.io/badge/Styling-Plain%20CSS%20%2B%20design%20tokens-informational)]()
+[![Tests](https://img.shields.io/badge/Tests-161%20passing-brightgreen)]()
 
 **Live app:** [expiry-mate.vercel.app](https://expiry-mate.vercel.app)
 **Course context:** Year 12 Software Engineering, Assessment Task 3 (Software Engineering Project) — Emanuel School.
@@ -43,12 +44,15 @@ ExpiryMate replaces both with a system that actively tracks every item a househo
 ## Features
 
 - **Per-user accounts** — email/password sign-up and sign-in via Supabase Auth, with each user's items fully isolated from every other user's via Row Level Security.
-- **Full item schema** — name, category (11 types), storage location (Fridge / Freezer / Pantry), printed expiry date, quantity, opened status, and date opened, with a category guessed automatically from the item's name as it's typed (fully overridable).
-- **Adjusted expiry dates** — every item's real shelf life is computed from its category, storage location, and opened status against a USDA-sourced rule table, not just the printed date on the label. Unsafe combinations (e.g. raw meat left in the pantry) are flagged as a warning instead of a date.
+- **Full item schema** — name, category (12 types), storage location (Fridge / Freezer / Pantry), printed expiry date, quantity, opened status, and date opened, with a category guessed automatically from the item's name as it's typed (fully overridable).
+- **Adjusted expiry dates** — every item's real shelf life is computed from its category, storage location, and opened status against a USDA-sourced rule table, not just the printed date on the label. Unsafe combinations (e.g. raw meat left in the pantry) have no valid adjusted date, so the save is refused outright and the message names where the item actually belongs.
 - **Status at a glance** — Fresh / Expiring Soon / Expired badges and a live days-remaining countdown, derived from the adjusted date.
-- **Expiry notifications** — a single batched browser notification on load for anything within 7 days of its adjusted expiry date, backed by an always-visible in-app banner as a fallback for when notifications are denied or blocked.
-- **Search, filter, and sort** — filter the dashboard by storage location, category, or status, search by name, and group cards either by storage location or by expiry status, with unsafe items always pinned to their own section at the top.
-- **Click-to-expand cards** — a minimal collapsed view (countdown, status, name, category icon) that expands to a full detail view with a "grows from where you clicked" animation, built without any animation library.
+- **Expiry notifications** — a single batched browser notification on load for anything within 7 days of its adjusted expiry date, or already past it. One notification per page load, never one per change.
+- **Dashboard first** — a summary landing page with four counts (total, fresh, expiring soon, expired), a status ring chart, an items-by-location bar chart, and a "needs attention" list naming the actual items. Every count and chart segment is clickable. Each storage place has its own scoped dashboard.
+- **Search and filter** — search by name and filter independently by storage location, category, or status, with a combined "needs attention" option. Card and table views, both sorted by urgency, with the filters collapsing behind one control on a phone.
+- **Two-factor authentication** — optional TOTP from an authenticator app, enabled and disabled from the profile page, with both actions requiring a fresh code.
+- **First-run tour** — a five-step walkthrough shown once per account rather than once per browser, so it follows the user rather than the device.
+- **Click-to-expand cards** — a minimal collapsed view (countdown, status, name, category icon) that expands to a full detail view with a "grows from where you clicked" animation, built from `getBoundingClientRect()` and CSS transitions alone.
 - **Dark mode** — a manual light/dark toggle, persisted across sessions, with no flash of the wrong theme on load.
 - **Delete confirmation** — deleting an item requires an explicit in-place confirmation step; nothing is removed on a single click.
 
@@ -59,10 +63,11 @@ ExpiryMate replaces both with a system that actively tracks every item a househo
 | Frontend | React 19, TypeScript 6, Vite 8 |
 | Backend / database | Supabase (PostgreSQL, Auth, Row Level Security) |
 | Hosting | Vercel — auto-deploys from `main` |
-| Styling | Plain CSS — no UI library, no external fonts |
-| Tooling | ESLint, `tsc` |
+| Styling | Plain CSS with a design-token layer (radius, shadow, easing scales); Inter loaded from Google Fonts |
+| Animation | `framer-motion`, scoped to animation only |
+| Tooling | ESLint, `tsc`, Vitest |
 
-No component library, animation library, or CSS framework is used anywhere in the project — every visual element, including the icons, is hand-written. This was a deliberate scope decision; see [`docs/decisions.md`](docs/decisions.md) for the reasoning.
+No component library and no CSS framework is used anywhere in the project — every visual element, including all the icons, is hand-written. The one dependency added for presentation is `framer-motion`, and it is scoped narrowly to animation (the attention panel, the stat tiles, both charts, the onboarding tour). The original decision was to use no UI library at all; the user overrode that during the Feedback Sprint. See [`docs/decisions.md`](docs/decisions.md) for both the original reasoning and the reversal.
 
 ## Getting started
 
@@ -111,22 +116,28 @@ ExpiryMate/
 │   ├── 07-evaluation.md             evaluation plan and findings
 │   ├── 08-test-plan.md              test layers and coverage priorities
 │   ├── 09-iteration-log.md          UAT feedback and deployment iteration, entry per revision
+│   ├── 10-feedback-sprint.md        the teacher UX review and the sprint it triggered
+│   ├── wireframes/                  the clickable dashboard wireframe agreed before the rebuild
 │   ├── decisions.md                 every design/architecture decision and its reasoning, incl. the build slice plan and the algorithm spec
 │   └── ai-use-log.md                every substantive AI interaction — prompt, response, and what was accepted
 ├── src/
 │   ├── App.tsx                      session shell: Auth vs. the authenticated dashboard
 │   ├── main.tsx                     React entry point
-│   ├── index.css / App.css          global styles and layout — no UI library
-│   ├── components/                  Auth, AddItemForm, ItemList, AnimatedModal, ExpiryBanner
-│   ├── hooks/                       useItems, useTheme, useAnimatedModal, useExpiryNotifications
+│   ├── index.css / App.css          design tokens, light/dark palettes, layout and components
+│   ├── components/                  Sidebar, Dashboard, PlaceDashboard, ItemList, AttentionPanel,
+│   │                                Donut, BarChart, ItemDetailModal, AddItemForm, Auth,
+│   │                                MfaChallenge, OnboardingTour, ProfilePage, AboutPage
+│   ├── hooks/                       useItems, useItemsWithStatus, useItemDetail, useTheme,
+│   │                                useAnimatedModal, useExpiryNotifications
 │   └── lib/                         Supabase client, the adjusted-expiry algorithm, validation, category guessing
 ├── supabase/
 │   ├── migrations/                  schema history, applied in order
 │   ├── functions/                   reserved for a possible future email-digest edge function
 │   └── seed/                        local test data — kept out of migrations/ so it's never replayed against production
 └── tests/
-    ├── unit/                        pure logic (adjusted-expiry, status calculation)
-    ├── integration/                 tests against a real Supabase schema (RLS, constraints)
+    ├── unit/                        161 Vitest tests: the algorithm, status, validation,
+    │                                category guessing, dashboard helpers
+    ├── integration/                 RLS and constraint checks against a real schema (manual, documented)
     └── smoke/                       manual post-deploy checklist
 ```
 
@@ -178,9 +189,20 @@ Full threat model and the security-floor checklist: [`docs/05-security-review.md
 
 ## Testing
 
-`tests/unit/`, `tests/integration/`, and `tests/smoke/` are laid out and ready, with coverage priorities defined in [`docs/08-test-plan.md`](docs/08-test-plan.md) — pure-function unit tests for the adjusted-expiry algorithm and status thresholds first, since they're the algorithmic core and the easiest place to introduce a subtle off-by-one bug; RLS and constraint integration tests against a real Supabase schema second; a manual smoke checklist against the live deployment last. Every pure function in `src/lib/` (`adjustedExpiry.ts`, `itemStatus.ts`, `guessCategory.ts`, `validateItem.ts`) was written with no React or Supabase dependency specifically so it's easy to test in isolation once test-writing starts.
+```bash
+npm test          # run the unit suite once
+npm run test:watch
+```
 
-Every change in this repository is checked with `npx tsc -b --force` (type-check) and `npx eslint .` (lint) before being committed — see [`docs/ai-use-log.md`](docs/ai-use-log.md) for where this verification is recorded per change.
+**Unit (161 tests, Vitest).** Every pure function in `src/lib/` was written with no React or Supabase dependency specifically so it could be tested in isolation, and now is: the adjusted-expiry algorithm across all 72 combinations of category, storage location and opened state; the Fresh/Expiring soon/Expired thresholds including the day-0 boundary; the weeks-alongside-days formatting; form validation and the storage-safety check; category guessing; and the dashboard's sorting and counting helpers.
+
+Two things about how these are written. The algorithm's 72 expected results are transcribed by hand from the rule tables in `docs/decisions.md`, not generated from the implementation, so the suite fails if the code and the documented rules ever disagree. And several tests pin the timezone to `Australia/Sydney` and use a fake clock inside the window where the local date and the UTC date differ, because both timezone bugs this project has hit lived in exactly that window and a suite running in UTC would have passed straight through them.
+
+**Integration.** Not automated. All eight migrations were replayed by hand into a clean Postgres 16 instance on 27/8/26 and the resulting schema, enum, constraints, index and RLS policies checked against `docs/04-data-model.md`, including confirming that a second account sees none of the first's rows and that its `UPDATE` and `DELETE` affect zero of them. Full results in [`tests/integration/README.md`](tests/integration/README.md).
+
+**Smoke.** A written manual checklist against the live deployment, in [`tests/smoke/README.md`](tests/smoke/README.md).
+
+Every change is also checked with `npx tsc -b` and `npx eslint .` before being committed — see [`docs/ai-use-log.md`](docs/ai-use-log.md) for where this is recorded per change.
 
 ## Documentation
 
@@ -195,11 +217,12 @@ Every change in this repository is checked with `npx tsc -b --force` (type-check
 | [`docs/07-evaluation.md`](docs/07-evaluation.md) | Evaluation plan and findings |
 | [`docs/08-test-plan.md`](docs/08-test-plan.md) | Test layers, tooling, and coverage priorities |
 | [`docs/09-iteration-log.md`](docs/09-iteration-log.md) | A dated entry per revision — what changed and why |
+| [`docs/10-feedback-sprint.md`](docs/10-feedback-sprint.md) | The teacher UX review that triggered the dashboard rebuild, and the plan that followed |
 | [`docs/decisions.md`](docs/decisions.md) | Every design/architecture decision, the build slice plan, and the full adjusted-expiry algorithm spec |
 | [`docs/ai-use-log.md`](docs/ai-use-log.md) | Every substantive AI interaction: prompt, response, and what was accepted |
 | [`CLAUDE.md`](CLAUDE.md) | A single up-to-date snapshot of the project — structure, key components, and current status |
 
-> **Note on `docs/03-architecture.md`, `06-front-end-architecture.md`, `07-evaluation.md`, and `08-test-plan.md`:** these were written early, before Slice 1 landed, and describe an earlier, pre-implementation state of the app in places. `CLAUDE.md` and `decisions.md` are kept current with every change and are the reliable source of truth for where the project actually stands; the four files above are worth a pass to bring in line before submission.
+> All of the above were brought in line with the code on 27/8/26. `03-architecture.md`, `06-front-end-architecture.md`, `07-evaluation.md` and `08-test-plan.md` had been written before Slice 1 landed and still described a pre-implementation app; `06` and `07` in particular still said the app was not wired together. `decisions.md` and `ai-use-log.md` are append-only historical records and are accurate as written.
 
 ## Project status
 
@@ -207,12 +230,16 @@ All six planned build slices have landed code, in order:
 
 1. ✅ **App Shell** — auth, per-user data isolation. Fully verified end-to-end against the live Supabase project.
 2. ✅ **Full Schema Forms** — every item field, add/edit/delete. Code-complete.
-3. ✅ **Adjusted Expiry Logic** — the full algorithm across all 11 categories. Fully verified, including a live browser test.
-4. ✅ **Styling** — no UI library, dark mode, responsive layout, click-to-expand cards, search/filter/sort, delete confirmation, category icons. Code-complete.
-5. ✅ **Expiry Notifications** — batched browser notification plus an in-app banner fallback. Code-complete.
+3. ✅ **Adjusted Expiry Logic** — the full algorithm across all 12 categories. Verified twice: by hand during the slice, and exhaustively on all 72 category/storage/opened combinations by the 27/8/26 test suite.
+4. ✅ **Styling** — design tokens, dark mode by default, responsive layout at 900px and 560px, click-to-expand cards, search and filters, delete confirmation, category icons.
+5. ✅ **Expiry Notifications** — one batched browser notification per page load. (An in-app banner was built alongside it and later removed, since the dashboard's needs-attention panel already answers the same question.)
 6. 🟡 **Nice-to-Haves** — auto-category suggestion and defaulting the date field to today are done; AI recipe suggestions and multi-user household sharing are deliberately deferred, not dropped.
 
-All Must Have requirements from `docs/02-requirements.md` are code-complete. The one thing genuinely outstanding across every slice above is a real browser walk-through — this project has been built and verified with `tsc`/`eslint` throughout, but not yet clicked through in an actual browser. See [`CLAUDE.md`](CLAUDE.md) for the detailed, currently-accurate breakdown of what's done, what's outstanding, and why.
+Beyond the six slices, four rounds of feedback (one from a teacher UX review, three from user testing) reshaped the app around a dashboard, a persistent sidebar and per-place views, and added two-factor authentication, an onboarding tour and an about page. See [`docs/10-feedback-sprint.md`](docs/10-feedback-sprint.md).
+
+All Must Have requirements from `docs/02-requirements.md` are built. A full repository sweep on 27/8/26 confirmed the algorithm correct on all 72 combinations and RLS isolating users on every operation, and found and fixed ten issues, including two timezone bugs that made the status wrong for the first ten hours of every day.
+
+**Outstanding:** the database password exposed in a chat on 18/8/26 is still not confirmed rotated, which is the highest-priority open item. There is no password-reset flow and no display-name field. Integration and smoke coverage remain manual. See [`CLAUDE.md`](CLAUDE.md) for the detailed breakdown.
 
 ## Use of AI in this project
 

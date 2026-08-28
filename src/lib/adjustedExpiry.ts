@@ -67,8 +67,32 @@ function earlierOf(a: string, b: string): string {
   return parseDate(a).getTime() <= parseDate(b).getTime() ? a : b
 }
 
-function todayUTC(): string {
-  return new Date().toISOString().slice(0, 10)
+/**
+ * Today's date in the user's own local timezone, as a 'YYYY-MM-DD' string.
+ *
+ * Deliberately NOT `new Date().toISOString().slice(0, 10)`, which reads
+ * UTC's calendar date instead of the local one. For any timezone ahead of
+ * UTC (e.g. Australia/Sydney, UTC+10) that UTC date lags a day behind the
+ * real local date for the first several hours of every day.
+ *
+ * This used to read the UTC date, which meant every countdown in the app
+ * ran one day high between midnight and 10am local time, and an item that
+ * had expired the previous day still showed as "Expiring soon" rather than
+ * "Expired" (fixed 27/8/26 - see the sweep report, finding 1). It is the
+ * same bug validateItem.ts already fixed for the date-opened check in
+ * Feedback Sprint 2; that fix simply never reached the countdown.
+ *
+ * Defined here, in the lowest-level module, and re-exported by
+ * validateItem.ts so that every "what is today, for a date-only field"
+ * check in the app resolves to this one function rather than each caller
+ * reinventing its own idea of today.
+ */
+export function todayLocal(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 function ok(adjustedDate: string): AdjustedExpiryResult {
@@ -269,7 +293,7 @@ export function getAdjustedExpiry(item: AdjustedExpiryInput): AdjustedExpiryResu
 /** Whole days between today and the adjusted date (negative once expired). */
 export function getDaysRemaining(adjustedDate: string): number {
   const target = parseDate(adjustedDate)
-  const today = parseDate(todayUTC())
+  const today = parseDate(todayLocal())
   return Math.floor((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 

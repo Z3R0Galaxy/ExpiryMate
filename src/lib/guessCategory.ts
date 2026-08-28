@@ -93,6 +93,16 @@ function escapeRegExp(value: string): string {
  * doesn't apply cleanly to a phrase. Returns null rather than a fallback
  * category when nothing matches, so the caller can leave the current
  * selection alone instead of guessing wrong.
+ *
+ * The single-word pattern allows an optional trailing "s"/"es" (fixed
+ * 27/8/26 - see the sweep report, finding 3). The keyword table is written
+ * in the singular, and a strict `\bapple\b` did not match "Apples", so 28
+ * of the 29 singular keywords silently failed on the plural - which is how
+ * people actually write a shopping list ("Apples", "Carrots", "Cherry
+ * tomatoes" all returned no guess at all). The word boundary is kept, so
+ * the "Ham" matches / "Shampoo" doesn't distinction still holds: the
+ * boundary before the keyword is what rules "Shampoo" out, and that is
+ * unchanged.
  */
 export function guessCategory(name: string): FoodCategory | null {
   const trimmed = name.trim().toLowerCase()
@@ -102,7 +112,7 @@ export function guessCategory(name: string): FoodCategory | null {
     for (const keyword of rule.keywords) {
       if (keyword.includes(' ')) {
         if (trimmed.includes(keyword)) return rule.category
-      } else if (new RegExp(`\\b${escapeRegExp(keyword)}\\b`).test(trimmed)) {
+      } else if (new RegExp(`\\b${escapeRegExp(keyword)}(?:e?s)?\\b`).test(trimmed)) {
         return rule.category
       }
     }

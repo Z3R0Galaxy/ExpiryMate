@@ -1003,6 +1003,26 @@ html, body {
   background-color: var(--color-surface-alt);
 }
 
+/* Both charts put role="button"/tabIndex={0} on plain <li>/<div>
+ * elements, which index.css's focus rule (input, select, button, a) does
+ * not reach — they were falling back to the browser's default ring, which
+ * works but doesn't match the rest of the app. These give the two chart
+ * controls the same focus treatment every other interactive element gets
+ * (27/8/26 — see the sweep report, finding 8).
+ *
+ * The ring arcs inside the donut's <svg> are deliberately left
+ * pointer-only: the legend rows below already select the same statuses by
+ * keyboard, so making each arc a second tab stop for the same action
+ * would add tab stops without adding capability. The <svg> stays
+ * aria-hidden for the same reason — the legend is the accessible copy of
+ * that data, as plain text. */
+.donut-legend-row:focus-visible,
+.bar-chart-col:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 .donut-swatch {
   width: 0.9rem;
   height: 0.9rem;
@@ -1351,13 +1371,12 @@ html, body {
   padding: 2rem 0;
 }
 
-/* .expiry-banner* rules removed 25/8/26 — the on-page banner they styled
+/* .expiry-banner* rules removed 25/8/26 - the on-page banner they styled
  * is no longer rendered (the dashboard's "Needs attention" card already
  * covers the same information; see App.tsx and docs/decisions.md).
- * ExpiryBanner.tsx itself is left in place, unused, rather than deleted —
- * this sandbox can write files but not delete them on the user's device;
- * `git rm src/components/ExpiryBanner.tsx` is the optional cleanup step,
- * called out in the delivery notes. */
+ * ExpiryBanner.tsx and its lib/formatNameList.ts helper were retired from
+ * src/ on 27/8/26 and moved to the gitignored _to_delete/ folder, so they
+ * are no longer compiled or bundled. */
 
 .item-list {
   display: grid;
@@ -1366,9 +1385,11 @@ html, body {
   align-items: start;
 }
 
-/* Toolbar — search + filters + sort-mode toggle, sitting above the
- * grouped card sections. Wraps onto multiple lines rather than
- * squeezing, since there are five controls in total. --------------------- */
+/* Toolbar - search + the three filter selects + the card/list view
+ * toggle, sitting above the flat urgency-sorted list. Wraps onto multiple
+ * lines rather than squeezing. (The sort-mode toggle this comment used to
+ * mention went away with the grouped card sections in the Feedback
+ * Sprint's real-UI build; sorting is now always by urgency.) ------------- */
 
 .item-toolbar {
   display: flex;

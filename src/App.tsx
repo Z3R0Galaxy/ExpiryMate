@@ -277,7 +277,12 @@ function AuthenticatedApp({ userId, email, hasSeenTutorial, onSignOut }: Authent
         </AnimatedModal>
       )}
 
-      {showTour && <OnboardingTour onComplete={completeTour} />}
+      {/* Gated on !loading (27/8/26) so the tour only mounts once the
+        * dashboard it points at has actually rendered. Before this it
+        * appeared while useItems was still fetching, at which point the
+        * stat row its second step highlights doesn't exist yet and the
+        * step was skipped. See the sweep report, finding 7. */}
+      {showTour && !loading && <OnboardingTour onComplete={completeTour} />}
     </div>
   )
 }
