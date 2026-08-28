@@ -591,3 +591,34 @@ Two ESLint findings caught along the way, both from `eslint-plugin-react-hooks`'
 **Verified before accepting:** `tsc -b --force` and `eslint src`, run directly on the user's machine via the device bridge, passed clean.
 
 **Not yet done:** everything in the Supabase and Brevo dashboards. None of it is reachable from this session, and until it's done the app fails more legibly but still fails for outside testers. No live sign-up test. Not committed; left in the working tree for review, per the review-before-commit process adopted in Feedback Sprint 4.
+
+## 27/8/26 (Full repository sweep: ten findings, tests written, docs caught up)
+
+**Prompt:** a request to review every source file, migration, and document in the repo for correctness and drift, then fix whatever it found.
+
+**Response:** read every file under `src/`, `supabase/migrations/`, and `docs/` rather than sampling, cross-checking the code against its own documented rules (the adjusted-expiry algorithm's rule tables in particular) instead of assuming the docs were still accurate. Ten findings, all fixed in the same pass:
+
+1. **Two timezone bugs, both high severity.** `getDaysRemaining` compared against a UTC "today," so between 00:00 and roughly 10:00 in Australia/Sydney every countdown read one day high and an already-expired item still showed "Expiring soon" — the exact class of bug Feedback Sprint 2 had already fixed once in `validateItem.ts` via `todayLocal()`, which had never been carried over to `adjustedExpiry.ts`. Moved `todayLocal()` into `adjustedExpiry.ts` (the lower module) and re-exported it from `validateItem.ts` so nothing importing it had to change. Separately, the `date_opened <= current_date` check constraint ran in the server's UTC timezone against a client validated in the browser's local timezone, so marking an item opened "today" during that same window passed the form and was then rejected by Postgres with a raw constraint error; a new migration widens it to `current_date + 1`, covering every timezone ahead of UTC.
+2. **`guessCategory` missed plurals** — the keyword table is singular and matched with a strict `\b...\b`, so "Apples," "Carrots," and 26 others returned no guess at all. Pattern now allows an optional trailing `s`/`es`.
+3. **`AboutPage.tsx` described a rule the app doesn't have** (blocking a save only when an unsafe/expired item's adjusted date would move it back to "fresh"); the real rule is unconditional — `checkStorageSafety()` refuses any unsafe category/storage/opened combination regardless of status. Copy corrected.
+4. **The onboarding tour claimed 5 steps but only ever showed 4** — its stat-row step targets an element `Dashboard.tsx` doesn't render for a brand-new, item-less account, which is the tour's only real audience. It now resolves which steps are actually reachable in a mount effect and counts only those.
+5. **161 new unit tests** (`tests/unit/`, Vitest, five files) — the 72-combination adjusted-expiry rule table transcribed by hand from the documentation rather than derived from the implementation, so the suite would fail rather than agree if the two ever diverged; several tests pin `TZ=Australia/Sydney` and fake the system clock specifically because a UTC test run would have passed with both timezone bugs still present.
+6. Dead code retired: `ExpiryBanner.tsx` and `lib/formatNameList.ts`, unused since the dashboard redesign, moved out of `src/`.
+7. Keyboard focus styles added for the donut legend rows and bar-chart bars, which were `tabIndex` elements the existing focus rule didn't reach.
+8. The single 582 KB build chunk split into app code plus cached vendor chunks via Vite's `codeSplitting` groups.
+9. Documentation drift corrected across `02-requirements.md` through `08-test-plan.md`, `README.md`, and `CLAUDE.md` — several hadn't been updated since before Slice 1.
+10. Confirmed (not a finding, but checked rather than assumed): `tsc`/`eslint`/`vite build` all clean, every migration replaying in order to the schema `04-data-model.md` describes, RLS isolating a second account on all four operations, and the algorithm matching its own documented rules on all 72 combinations.
+
+**Verified before accepting:** all of the above, plus the new test suite itself passing (161/161).
+
+**Not yet done:** the new migration hasn't been run against the live Supabase project yet (still pending as of this entry); the database password from 18/8/26 is still not confirmed rotated; nothing in this session's changes was committed or pushed — left in the working tree for review.
+
+## 28/8/26 (Committing and pushing the 27/8/26 sweep)
+
+**Prompt:** review the sweep's uncommitted changes and commit + push them to `origin/main`.
+
+**Response:** re-ran `tsc -b`, `eslint .`, and `npm test` to confirm the working tree was still green before committing anything (all three clean, 161/161 tests passing). Staged every file from the sweep individually (not `git add -A`), deliberately excluding `.claude/`. Hit the stale zero-byte `.git/index.lock` flagged as outstanding in `CLAUDE.md`'s 27/8/26 entry — confirmed no real git process was running (only editor/IDE helper processes) before removing it by hand, then staged, committed as one commit, and pushed. `5bd9c8f..6e12c30 main -> main`.
+
+**Verified before accepting:** the three check commands above, and `git status`/`git log` after the push confirming a clean tree and a fast-forward push with no conflicts.
+
+**Not yet done:** running the `20260827000000` migration against the live Supabase project; rotating the database password.
