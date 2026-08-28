@@ -879,3 +879,31 @@ The `denied` state deliberately gets no button. Once a browser has recorded a de
 **Not yet done:** the user's own look at the page in the running app, in particular the notification permission prompt and the test notification, which cannot be exercised from a static harness. Not committed: left in the working tree for review, per the review-before-commit process adopted in Feedback Sprint 4.
 
 ---
+
+## Dashboard charts: filling their cards (decided 28/8/26)
+
+**Context:** two screenshots of the running app with three asks: drop the line under the bars and fill the bar chart's empty space, and make the ring and its key take up more of their own card. Explicitly scoped: do not change the size of the cards themselves, just make their contents fit better.
+
+**Decision — measure the cards before changing anything.** Both chart cards are flex children of a full-viewport-height column, so their height is a function of the viewport, not a constant. A harness rendering the real markup against the real stylesheet put numbers on it: the card is 240px tall at 1440x700 and 430px at 1920x1080, and each bar column is 125-158px wide. That reframed both problems. The bar chart's empty space was horizontal, not vertical: a 46px cap on a 152px column meant every bar was leaving two thirds of its own slot empty. The ring's problem was that a single fixed pixel size cannot be right for a card whose height varies by 190px across ordinary viewports.
+
+**Decision — the ring's `size` prop becomes a maximum, not a diameter.** This is the substantive change. `Donut.tsx` now hands its `size` to CSS as a custom property instead of a width/height pair; `.donut-shape` takes it as a width, holds a 1:1 `aspect-ratio`, and clamps itself with `max-width`/`max-height` against the room the card and the legend actually leave. `Dashboard.tsx` raises the value from 168 to 220. The result is a 220px ring wherever the card can hold one, 192px at 1280x800 where the legend takes the width, and 170px at 1440x700 where the card is short — all measured, none overflowing.
+
+This is why the previous three attempts at this card all worked on something other than the ring. UI feedback pass six bumped it 140 to 168; the 22/8/26 follow-up explicitly declined to bump it further and sized up the legend and the centring instead, on the reasoning that a fixed pixel size "rendered at every viewport including phone width" could not safely grow. That reasoning was right about the constraint and wrong about the fix: the answer was to stop it being a fixed pixel size at all.
+
+**Two real bugs this surfaced, both caught by measuring rather than by looking.**
+
+First, `.donut-row` had no `min-height: 0`. A flex item's automatic minimum size is its content, so the row simply refused to shrink below the ring's ideal diameter and overflowed the card at 1440x700 — 220px of row inside 182px of space. It also meant `.donut-shape`'s `max-height: 100%` had nothing smaller to resolve against, so the two only work as a pair.
+
+Second, `aspect-ratio` only re-derives the axis it was not given. With `width` specified, a `max-height` clamp shortens the box without narrowing it, so on a short viewport `.donut-shape` measured 220x170. The `<svg>` letterboxes and stays a true circle, but the punched centre was a plain percentage of that box, which would have made it a 132x102 ellipse floating inside a 170px ring. Fixed by making `.donut-shape` a size container and sizing the hole in `cqmin`, which tracks the shorter axis — exactly the diameter the `<svg>` drew. Verified at five viewports: the hole is circular, centred on the ring, and 0.600 of the drawn diameter at every one.
+
+**Decision — the bar track is a percentage with a cap, not a bigger fixed cap.** `width: 72%; max-width: 110px` rather than raising the 46px cap to a larger number. A percentage keeps the bars proportional as the card narrows, and the cap only exists to stop them becoming slabs on a very wide monitor. Measured: 110px bars in 157px columns at 1440, 94px in 131px columns at 1280, 72px in 100px columns at phone width.
+
+**Decision — remove the baseline rule outright rather than restyle it.** It carried no information. Every bar starts from the same edge of the same track, so the rule marked a boundary the bars already draw; dropping it leaves the bars as the only structure in the card, which is what the user asked for.
+
+**Decision — `min-width: 0` on `.dash-charts-col`.** Sizing the key up to a 200px minimum pushed the charts column wider than the attention card beside it at 1280px, because a grid item's automatic minimum size is its content and a `1fr` track will quietly grow past its share. The brief was explicitly not to change the cards' sizes, so the content shrinks and the tracks stay an even split. Caught by asserting the two cards' widths were equal at every viewport, not by looking at a screenshot.
+
+**Verified:** `tsc -b --force`, `eslint src`, `vite build` and `npm test` (161/161) all clean on the user's machine via the device bridge, plus a harness at 1280x800, 1366x640, 1440x700, 1440x900, 1536x960, 1920x1080, 768x1024 and 390x844 asserting on measured layout rather than appearance: no row overflowing its card, the two chart cards equal in width, no horizontal page scroll, a computed `border-bottom-width` of 0 on the bar chart, and the hole circular and concentric at 0.600 of the ring at every size.
+
+**Not yet done:** the user's own look at it in the running app. Not committed: left in the working tree with the profile page build-out, per the review-before-commit process.
+
+---

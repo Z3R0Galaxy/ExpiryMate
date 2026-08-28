@@ -103,6 +103,8 @@ Notes on the table: Meat and Seafood apply fridge rules regardless of whether th
 
 - The system must show item counts across the three storage locations as a bar chart rather than a second ring chart, since comparing magnitudes across a few categories is a bar chart's job. Clicking a bar must navigate to that location's own dashboard.
 
+- Both dashboard charts must size themselves to the card they sit in rather than to fixed pixel dimensions. The ring must grow on a taller card and shrink on a shorter one, staying circular and never overflowing its card; the bars must stay proportional to their own columns. The bar chart must carry no baseline rule, since every bar starts from the same edge and the rule states nothing the bars and their labels do not.
+
 - The dashboard must show a "needs attention" list of the actual items that need a look, named individually rather than only counted. Fresh items must be excluded. The order must be unsafe items first, then expiring-soon items with the fewest days left first, then expired items with the most recently expired first. The list must not be truncated at any count. On desktop it scrolls within its own panel so the link to the full list stays in view; below 900px the panel grows to fit and the page scrolls instead.
 
 - The system must provide a separate scoped dashboard for each storage location, reached from the sidebar or from the bar chart, showing that location's own counts and its own needs-attention list, with a deliberate step to view the full list of that location's items.
