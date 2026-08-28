@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export interface DonutSegment {
@@ -10,6 +11,11 @@ export interface DonutSegment {
 
 interface DonutProps {
   segments: DonutSegment[]
+  /** The ring's *ideal* diameter in pixels, not a fixed one (28/8/26).
+   * `.donut-shape` in App.css takes this as its width and then clamps it
+   * against the card's real height and the room the legend leaves, so the
+   * same value renders a bigger ring on a tall card and a smaller one on
+   * a short card instead of leaving dead space or overflowing. */
   size?: number
   /** What the punched-out centre shows below the total — defaults to
    * "items" but callers can rename it for a differently-scoped donut. */
@@ -66,7 +72,6 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
   const r = 45
   const circumference = 2 * Math.PI * r
   const viewBox = 120
-  const holeSize = Math.round(size * 0.6)
 
   let acc = 0
   const arcs = segments.map((seg, i) => {
@@ -87,8 +92,13 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
 
   return (
     <div className="donut-row">
-      <div className="donut-shape" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${viewBox} ${viewBox}`} aria-hidden="true">
+      {/* The diameter is handed to CSS as a custom property rather than a
+        * width/height pair (28/8/26) so the stylesheet can treat it as a
+        * maximum: the <svg> below fills whatever box `.donut-shape` ends
+        * up at, and the punched hole is sized as a percentage of it, so
+        * the whole ring scales as one piece. */}
+      <div className="donut-shape" style={{ '--donut-size': `${size}px` } as CSSProperties}>
+        <svg viewBox={`0 0 ${viewBox} ${viewBox}`} aria-hidden="true">
           <g transform={`rotate(-90 ${viewBox / 2} ${viewBox / 2})`}>
             {total === 0 ? (
               <circle
@@ -138,7 +148,7 @@ export function Donut({ segments, size = 140, holeUnit = 'items', onSegmentClick
             )}
           </g>
         </svg>
-        <div className="donut-hole" style={{ width: holeSize, height: holeSize }}>
+        <div className="donut-hole">
           <AnimatePresence mode="wait" initial={false}>
             {hoveredSeg ? (
               <motion.div

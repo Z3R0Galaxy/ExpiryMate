@@ -179,20 +179,16 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
         <div className="dash-charts-col">
           <div className="chart-card">
             <h2 className="section-title">Status breakdown</h2>
-            {/* Bumped from the component's own 140px default (UI feedback
-             * pass six, 21/8/26) — at 140px the ring left this card
-             * noticeably shorter than its "Items by location" neighbour
-             * (whose bar chart has a fixed 160px plot height), reading as
-             * unused vertical space rather than a deliberately compact
-             * chart. 168px brings the two cards to comparable heights.
-             * Left at 168px rather than bumped further (22/8/26, "the gap
-             * is still there") — this is a fixed pixel size rendered at
-             * every viewport including phone width (see the Feedback
-             * Sprint 2 mobile-legend fix below), so growing it risks
-             * squeezing the legend on a narrow screen. The wide-card empty
-             * space this pass actually fixes is `.donut-row`'s
-             * `justify-content: center` (App.css) plus larger legend/hole
-             * type, not the ring's own size. */}
+            {/* 220 is now an upper bound, not a fixed diameter (28/8/26)
+             * — see Donut's `size` prop and `.donut-shape` in App.css.
+             * The old value could not be raised past 168 precisely
+             * because it was fixed: a card measured 170px tall at a
+             * 1440x700 viewport and 360px tall at 1920x1080, so any one
+             * number was either wasting most of a tall card or about to
+             * overflow a short one. Now the ring takes 220 where the card
+             * can hold it and shrinks itself where it cannot, which is
+             * what finally closes the empty space UI feedback pass six
+             * and the 22/8/26 follow-up were both aiming at. */}
             {/* Feedback Sprint 2 (22/8/26): clicking a segment (ring arc or
              * legend row) now does exactly what clicking the matching stat
              * tile above does — expands the AttentionPanel to that status.
@@ -203,7 +199,7 @@ export function Dashboard({ items, onNavigate, onSelectStatus, onUpdate, onDelet
              * either case, same as before this prop existed. */}
             <Donut
               segments={statusSegments}
-              size={168}
+              size={220}
               onSegmentClick={key => toggle(key as SelectedStat)}
               activeKey={selected === 'all' ? null : selected}
             />

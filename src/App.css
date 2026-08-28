@@ -1110,6 +1110,13 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* A grid item's automatic minimum size is its content, so a `1fr 1fr`
+   * track will quietly grow past its share to fit something wide inside
+   * it. Without this, sizing the donut's key up pushed this column wider
+   * than the attention card beside it at 1280px — the charts and the
+   * attention panel are meant to be an even split at every width, so the
+   * content shrinks, not the track (28/8/26). */
+  min-width: 0;
 }
 
 /* Once `.dash-charts-row` stretches this column to the attention card's
@@ -1163,17 +1170,58 @@ html, body {
   width: 100%;
   gap: 2rem;
   /* Grows to fill `.chart-card`'s now-taller box (UI feedback pass seven,
-   * 21/8/26) — the ring itself stays a fixed size (`size` is a plain
-   * pixel prop on Donut, not something CSS should stretch/distort), but
-   * `align-items: center` above then centres it and the legend within
-   * whatever extra height this row claims, rather than leaving that
-   * height as blank space below them. */
+   * 21/8/26), and `align-items: center` above centres the ring and legend
+   * within whatever height it claims rather than leaving that height as
+   * blank space below them.
+   *
+   * `min-height: 0` added 28/8/26, and it is load-bearing rather than
+   * defensive. A flex item's automatic minimum size is its content, so
+   * without it this row refused to shrink below the ring's own ideal
+   * diameter and simply overflowed the card at short viewports — caught
+   * in the harness at 1440x700, where the card had 182px of room and the
+   * row was measuring 220px. Letting the row shrink is also what gives
+   * `.donut-shape`'s `max-height: 100%` something smaller to clamp
+   * against; the two only work as a pair. */
   flex: 1;
+  min-height: 0;
 }
 
+/* Sized from Donut.tsx's `size` prop as a *maximum*, not a fixed diameter
+ * (28/8/26). Measured in a harness first: this card is 170px tall at a
+ * 1440x700 viewport and 360px tall at 1920x1080, because it is a flex
+ * child of a full-viewport-height column. A fixed 168px ring therefore
+ * left roughly 190px of dead height on a big monitor while sitting two
+ * pixels off overflowing on a laptop, which is why every previous attempt
+ * to close that gap worked on the legend and the centring instead of the
+ * ring itself. `aspect-ratio` keeps it circular while the two max-*
+ * constraints clamp it against the row's real height and the width the
+ * legend leaves, so one number now works at every viewport. */
 .donut-shape {
   position: relative;
-  flex-shrink: 0;
+  width: var(--donut-size, 140px);
+  aspect-ratio: 1;
+  max-width: 100%;
+  max-height: 100%;
+  /* Allowed to shrink, unlike the old fixed square: on a narrow card the
+   * ring gives way to the legend rather than overflowing the card. */
+  min-width: 0;
+  flex-shrink: 1;
+  /* Makes this element a size container so `.donut-hole` below can use
+   * `cqmin`. That is not decoration: `aspect-ratio` only re-derives the
+   * axis it was not given, so when `max-height` clamps this box (a short
+   * viewport) the specified `width` stays put and the box ends up wider
+   * than it is tall — 220x170 at 1440x700, measured. The <svg> inside
+   * letterboxes and stays a true circle, but a hole sized in plain
+   * percentages of a 220x170 box would be a 132x102 ellipse sitting
+   * inside a 170px ring. `cqmin` tracks the shorter axis, which is
+   * exactly the diameter the <svg> actually drew. */
+  container-type: size;
+}
+
+.donut-shape svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* The punched-out centre (Feedback Sprint, 21/8/26) — turns the ring into
@@ -1189,6 +1237,14 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  /* Sized from the ring rather than by a pixel value computed in
+   * Donut.tsx (28/8/26), so the hole scales with a ring that is no longer
+   * a fixed diameter. 60 is the same proportion the old
+   * `Math.round(size * 0.6)` produced; `cqmin` rather than `%` because
+   * `.donut-shape`'s box is not always square (see its own comment) and
+   * the hole has to follow the circle the <svg> drew, not the box. */
+  width: 60cqmin;
+  height: 60cqmin;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1211,14 +1267,14 @@ html, body {
 }
 
 .donut-hole-value {
-  font-size: 1.4rem;
+  font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
 .donut-hole-label {
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1232,16 +1288,24 @@ html, body {
 .donut-legend {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  font-size: 1.05rem;
+  gap: 0.85rem;
+  font-size: 1.15rem;
+  /* Sized up again 28/8/26 alongside the ring. The `min-width` is what
+   * makes the key a real column rather than three lines as wide as their
+   * longest label happens to be: it gives the counts (right-aligned by
+   * `.donut-legend-count`'s `margin-left: auto`) a consistent distance
+   * from the labels, and gives the ring a predictable width budget to
+   * clamp itself against. Reset at phone width below, where the card is
+   * too narrow to spend 200px on the key. */
+  min-width: 200px;
 }
 
 .donut-legend-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.3rem 0.5rem;
-  margin: 0 -0.5rem;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  margin: 0 -0.6rem;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.15s var(--ease);
@@ -1276,9 +1340,9 @@ html, body {
 }
 
 .donut-swatch {
-  width: 0.9rem;
-  height: 0.9rem;
-  border-radius: 3px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
@@ -1299,10 +1363,15 @@ html, body {
  * hover layer: pointing at one bar (or its own tooltip) dims the others
  * slightly and scales up its value label, the same "point at one, the
  * rest recede" interaction the Donut's ring/legend pair already uses. */
+/* The baseline rule under the bars was removed 28/8/26 at the user's
+ * request. It was carrying no information the bars and their labels don't
+ * already give — every bar starts from the same edge of the same track,
+ * so the axis was decoration, and dropping it lets the bars themselves be
+ * the only structure in the card. */
 .bar-chart {
   display: flex;
   align-items: flex-end;
-  gap: 1.5rem;
+  gap: 1rem;
   /* Was a fixed 160px (UI feedback pass seven, 21/8/26) — now grows to
    * fill whatever height `.chart-card` has claimed, with a floor so the
    * plot never gets so short the bars read as flat. `.bar-chart-col`'s
@@ -1312,7 +1381,6 @@ html, body {
   flex: 1;
   min-height: 120px;
   padding-top: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .bar-chart-col {
@@ -1332,16 +1400,23 @@ html, body {
 
 .bar-chart-value {
   display: inline-block;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   transform-origin: center bottom;
 }
 
+/* Widened from a 46px cap to roughly two thirds of each column
+ * (28/8/26). Measured first: each column is 125-153px wide at ordinary
+ * desktop widths, so a 46px bar was leaving about two thirds of its own
+ * slot empty and the card read as three thin strips in a lot of space.
+ * A percentage rather than a bigger fixed cap so the bars stay
+ * proportional as the card narrows, with the cap only stopping them
+ * turning into slabs on a very wide monitor. */
 .bar-chart-track {
   flex: 1;
-  width: 100%;
-  max-width: 46px;
+  width: 72%;
+  max-width: 110px;
   display: flex;
   align-items: flex-end;
   background-color: var(--color-surface-alt);
@@ -1383,7 +1458,7 @@ html, body {
 }
 
 .bar-chart-label {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -2733,5 +2808,12 @@ html, body {
   .donut-row {
     gap: 0.85rem;
     justify-content: flex-start;
+  }
+
+  /* The desktop key reserves 200px so its counts line up in a column; a
+   * phone-width card cannot spend that and still leave the ring a
+   * sensible diameter, so the key goes back to sizing to its own text. */
+  .donut-legend {
+    min-width: 0;
   }
 }
