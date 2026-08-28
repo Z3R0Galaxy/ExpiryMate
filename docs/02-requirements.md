@@ -129,17 +129,25 @@ Notes on the table: Meat and Seafood apply fridge rules regardless of whether th
 
 - This must be delivered as exactly one batched browser notification per page load, covering expiring-soon and expired items together, requesting permission if it has not been granted and failing quietly if it is refused. Unsafe items are excluded, since they have no adjusted date to be within seven days of and are already surfaced at the top of the dashboard.
 
+- The system must show the current browser notification permission on the profile page, stating whether notifications are on, off, blocked, or unavailable in this browser, and must offer a control to turn them on where the browser will still accept the request. Where permission has already been granted it must offer a way to send a test notification; where it has been denied it must explain that the change has to be made in the browser's own site settings rather than offering a control that cannot work.
+
 #### Interface, navigation and accessibility
 
 - The system must provide a persistent sidebar with five destinations: the dashboard, each of the three storage locations, and all items. It must indicate which destination is current, must be collapsible to icons only with that choice remembered between visits, and must become a horizontal icon bar on screens narrower than 900px.
 
-- The system must offer a light and dark theme with a manual toggle, remembered between visits, available both inside the app and on the sign-in screen. A first-time visitor with no stored preference must get the dark theme. The chosen theme must be applied before the first paint so there is no flash of the wrong theme on load.
+- The system must offer a light and dark theme, remembered between visits. Inside the app the choice must be made from the profile page's Appearance section, as a two-option control that shows which theme is currently active rather than only the one that pressing it would give; the sign-in screen, which has no profile page to reach, keeps a single toggle button. A first-time visitor with no stored preference must get the dark theme. The chosen theme must be applied before the first paint so there is no flash of the wrong theme on load.
+
+- The system must provide a profile page, reached from the sidebar's profile block, showing the account's derived name, email, and join date, along with a summary of its current two-factor and theme state. It must gather the app's settings in one place: appearance, notifications, two-factor authentication, and account-level actions.
+
+- The profile page must offer a way to replay the first-run guided tour. Because several of the tour's steps point at elements that only exist on the dashboard, replaying it must return to the dashboard first rather than showing a silently shortened tour.
+
+- The profile page must offer a sign-out control alongside the sidebar's own.
 
 - The system must place the add-item action in a fixed button that stays reachable from every view, and must reveal its label on hover and on keyboard focus alike.
 
-- The system must show a first-run guided tour covering the sidebar, the dashboard counts, the add button, the profile block, and the logo. It must be shown once per account rather than once per browser, so it follows the user rather than the device, and must be skippable at any step. A step whose target is not on screen must be skipped rather than stranding the tour. (Known defect: on a genuinely new account the dashboard shows an empty state instead of the counts, so that step is skipped while the counter still reads "of 5". See the sweep report, finding 9.)
+- The system must show a first-run guided tour covering the sidebar, the dashboard counts, the add button, the profile block, and the logo. It must be shown once per account rather than once per browser, so it follows the user rather than the device, and must be skippable at any step. A step whose target is not on screen must be skipped rather than stranding the tour, and the step counter must count only the steps that can actually be shown, so that a new account whose dashboard has no counts yet is not told it is on "step 2 of 5" of a tour with four steps.
 
-- The system must provide an About page, reached from the app's logo, explaining what the app does and explaining in plain language the one case where it refuses a save. (Known defect: the current copy describes a different rule from the one implemented. See the sweep report, finding 4.)
+- The system must provide an About page, reached from the app's logo, explaining what the app does and explaining in plain language the one case where it refuses a save.
 
 - The system must label the current page with a single plain-language title and offer one control that returns to the dashboard, rather than a multi-level breadcrumb trail.
 

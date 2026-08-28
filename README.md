@@ -53,7 +53,9 @@ ExpiryMate replaces both with a system that actively tracks every item a househo
 - **Two-factor authentication** — optional TOTP from an authenticator app, enabled and disabled from the profile page, with both actions requiring a fresh code.
 - **First-run tour** — a five-step walkthrough shown once per account rather than once per browser, so it follows the user rather than the device.
 - **Click-to-expand cards** — a minimal collapsed view (countdown, status, name, category icon) that expands to a full detail view with a "grows from where you clicked" animation, built from `getBoundingClientRect()` and CSS transitions alone.
-- **Dark mode** — a manual light/dark toggle, persisted across sessions, with no flash of the wrong theme on load.
+- **Dark mode** — light and dark themes, persisted across sessions, with no flash of the wrong theme on load. Chosen from the profile page's Appearance section inside the app, and from a single toggle on the sign-in screen.
+
+- **Profile and settings** — one page, reached from the sidebar's profile block, holding the account's details alongside appearance, notification permission, two-factor authentication, replaying the guided tour, and signing out.
 - **Delete confirmation** — deleting an item requires an explicit in-place confirmation step; nothing is removed on a single click.
 
 ## Tech stack

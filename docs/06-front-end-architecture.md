@@ -7,13 +7,14 @@ App                                  session boundary + MFA gate
 ├── Auth                             (no session)
 ├── MfaChallenge                     (session, but assurance level not yet aal2)
 └── AuthenticatedApp                 (session satisfied)
-    ├── Sidebar                      brand, profile block, 5 nav destinations, theme toggle, sign out
+    ├── Sidebar                      brand, profile block, 5 nav destinations, sign out
     ├── main
     │   ├── PageHeading              page title + Home button (every view except the dashboard)
     │   ├── Dashboard                stat tiles, Donut, BarChart, AttentionPanel
     │   ├── PlaceDashboard           per-place stat tiles + AttentionPanel
     │   ├── ItemList                 toolbar, card grid or table, both opening ItemDetailModal
-    │   ├── ProfilePage              derived name, join date, TwoFactorSettings
+    │   ├── ProfilePage              identity header, then Appearance, Notifications,
+    │   │                            TwoFactorSettings and Account sections
     │   └── AboutPage
     ├── FAB                          fixed add-item button
     ├── AnimatedModal > AddItemForm  (when the FAB is used)
@@ -58,6 +59,8 @@ Plain CSS with a design-token layer: `index.css` holds the reset, typography, co
 No CSS framework and no component library. `framer-motion` is the one exception and is a real dependency, used for the attention panel's crossfade, the stat-tile press, the ring chart's sweep-in and hover, the bar chart's grow-in, and the onboarding tour's highlight. It was added deliberately and narrowly, for animation only, after the original "no UI library at all" decision was overridden by the user. Everything else, including all icons, is hand-written.
 
 Theme is an attribute on the root element, set by an inline script in `index.html` before first paint so there is no flash of the wrong theme, and kept in sync by `useTheme` once React mounts. Dark is the default for a visitor with no stored preference.
+
+`useTheme` exposes both `setTheme` and `toggleTheme` because the app has two different theme controls. Inside the app the control is the profile page's Appearance section, a two-option radiogroup where selecting the theme that is already active should do nothing, which is `setTheme`. The sign-in screen has no profile page to send anyone to, so it keeps the single icon button, which is `toggleTheme`. The sidebar footer held a third copy of that button until 28/8/26 and no longer does; a lone icon button could only ever show the theme you would get by pressing it, never the one you were on.
 
 Two breakpoints, both max-width: 900px, where the sidebar becomes a horizontal icon bar and the dashboard's fill-the-viewport layout reverts to normal page scrolling; and 560px, where two-column forms collapse to one and the item table drops to name, days left and status. The item grid uses `repeat(auto-fill, minmax(...))` so it reflows without needing a breakpoint of its own.
 
